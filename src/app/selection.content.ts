@@ -4,6 +4,7 @@ import type { ContentScriptContext } from "@/types/index";
 import type { SelectionArea } from "@/types/screenshot";
 
 export default defineContentScript({
+  registration: "runtime",
   matches: ["<all_urls>"],
   cssInjectionMode: "ui",
 

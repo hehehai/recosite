@@ -21,6 +21,17 @@ export const ImageFormat = {
 export type ImageFormat = (typeof ImageFormat)[keyof typeof ImageFormat];
 
 /**
+ * 视频格式
+ */
+export const VideoFormat = {
+  WEBM: "webm",
+  MP4: "mp4",
+  GIF: "gif",
+} as const;
+
+export type VideoFormat = (typeof VideoFormat)[keyof typeof VideoFormat];
+
+/**
  * 截图配置选项
  */
 export interface ScreenshotOptions {
@@ -58,9 +69,34 @@ export const MessageType = {
   CAPTURE_VIEWPORT: "capture_viewport",
   CAPTURE_FULL_PAGE: "capture_full_page",
   SELECTION_COMPLETE: "selection_complete",
+  START_RECORDING: "start_recording",
+  STOP_RECORDING: "stop_recording",
+  GET_RECORDING_STATUS: "get_recording_status",
+  RECORDING_COMPLETE: "recording_complete",
 } as const;
 
 export type MessageType = (typeof MessageType)[keyof typeof MessageType];
+
+/**
+ * 录制状态
+ */
+export const RecordingState = {
+  IDLE: "idle",
+  RECORDING: "recording",
+  PROCESSING: "processing",
+} as const;
+
+export type RecordingState =
+  (typeof RecordingState)[keyof typeof RecordingState];
+
+/**
+ * 录制配置选项
+ */
+export interface RecordingOptions {
+  format: VideoFormat;
+  videoBitsPerSecond?: number;
+  audioBitsPerSecond?: number;
+}
 
 /**
  * 消息数据

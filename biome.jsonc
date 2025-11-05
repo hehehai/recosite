@@ -48,12 +48,7 @@
         "useAwait": "off",
         "noUnknownAtRules": "off",
         "noDocumentCookie": "off",
-        "noConsole": {
-          "level": "warn",
-          "options": {
-            "allow": ["warn", "error"]
-          }
-        }
+        "noConsole": "off"
       },
       "a11y": {
         "useButtonType": "off"
