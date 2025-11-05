@@ -13,6 +13,9 @@
 - ✅ 使用 `chrome.scripting.executeScript()` 在页面中运行代码
 - ✅ 使用 `chrome.downloads.download()` API 替代 `URL.createObjectURL()`
 
+**错误提示**：
+现在所有错误都会通过 Toast 组件友好地显示给用户，不再使用 alert。
+
 **已修复的代码示例**：
 ```typescript
 // ❌ 错误：在 background script 中使用 Image
@@ -98,6 +101,7 @@ startY.value = event.clientY + window.scrollY;
 1. ✅ 确认 `downloads` 权限已添加
 2. ✅ 文件名不包含非法字符
 3. ✅ dataURL 格式正确
+4. ✅ 查看 Toast 错误提示信息
 
 **调试代码**：
 ```typescript
@@ -105,6 +109,9 @@ startY.value = event.clientY + window.scrollY;
 console.log('Downloading file:', fileName);
 console.log('DataURL length:', dataUrl.length);
 ```
+
+**错误提示**：
+现在会通过 Toast 显示具体错误信息，更容易定位问题。
 
 #### 问题：下载的文件无法打开
 
@@ -151,12 +158,18 @@ try {
 1. 减少截图数量（降低精度）
 2. 减少等待时间（可能影响准确性）
 3. 使用更高效的拼接算法
+4. 考虑添加进度提示
 
 **当前配置**：
 ```typescript
 // 每屏等待 300ms
 await new Promise((resolve) => setTimeout(resolve, 300));
 ```
+
+**用户体验改进**：
+- 显示"截图中..."状态
+- 未来可添加进度条
+- Toast 通知截图完成
 
 **优化建议**：
 ```typescript
@@ -306,6 +319,34 @@ await new Promise((resolve) => {
 | 长截图 | 1920x5400 (5屏) | ~2.5MB | ~800KB |
 | 长截图 | 1920x10800 (10屏) | ~5MB | ~1.5MB |
 
+## 新增功能说明
+
+### Toast 通知系统
+
+**功能**：
+- 替代了原来的 alert 弹窗
+- 更友好的错误提示
+- 4 种消息类型
+- 自动消失和手动关闭
+
+**使用**：
+```typescript
+import { useToast } from '@/composables/useToast';
+const { success, error, info, warning } = useToast();
+
+// 显示不同类型的消息
+success('截图成功');
+error('截图失败: ' + errorMessage);
+info('正在处理...');
+warning('注意：页面较长，可能需要等待');
+```
+
+**样式**：
+- 支持深色模式
+- 平滑动画效果
+- 固定在右上角
+- 可堆叠多个通知
+
 ## 报告问题
 
 如果遇到未列出的问题，请提供以下信息：
@@ -319,11 +360,13 @@ await new Promise((resolve) => {
    - 具体操作步骤
    - 预期结果
    - 实际结果
+   - Toast 错误提示内容（如有）
 
 3. **错误日志**
    - Background script 日志
    - Content script 日志
    - Console 错误信息
+   - 截图或录屏
 
 4. **重现步骤**
    - 测试 URL

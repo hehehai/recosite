@@ -33,11 +33,14 @@ enum MessageType {
 - 提供用户界面
 - 向 background script 发送截图请求
 - 显示截图结果反馈
+- 管理 Toast 通知
 
 **主要功能**：
 - 6 个截图按钮（视窗/长截图/选区 × PNG/JPEG）
 - 实时状态显示
 - 结果反馈
+- Toast 错误提示
+- 深色模式适配
 
 #### 3. Content Script - Selection (`src/app/content-selection.ts`)
 
@@ -65,6 +68,42 @@ enum MessageType {
 - 实时显示尺寸
 - ESC 取消
 - 遮罩效果
+
+#### 5. Toast Component (`src/components/Toast.vue`)
+
+**职责**：
+- 显示通知消息
+- 管理消息队列
+- 处理动画效果
+
+**功能**：
+- 4 种消息类型（success/error/warning/info）
+- 自动消失
+- 手动关闭
+- 平滑动画
+- 深色模式支持
+
+### Composables
+
+#### useToast (`src/composables/useToast.ts`)
+
+**职责**：
+- 管理 Toast 通知状态
+- 提供通知方法
+
+**API**：
+```typescript
+const { success, error, info, warning, toasts, remove } = useToast();
+
+// 显示通知
+success('操作成功', 3000);
+error('操作失败', 4000);
+info('提示信息', 3000);
+warning('警告信息', 3000);
+
+// 手动移除
+remove(toastId);
+```
 
 ### 工具模块
 
@@ -215,6 +254,11 @@ console.log("Content: received message", message);
 - 页面可能有固定定位元素
 - 某些页面使用虚拟滚动
 - 滚动等待时间可能不够
+
+**问题 5**: Toast 通知不显示
+- 确认 Toast 组件已在 App.vue 中引入
+- 检查 z-index 是否被其他元素遮挡
+- 查看控制台是否有错误
 
 ## 测试指南
 

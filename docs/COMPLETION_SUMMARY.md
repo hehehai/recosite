@@ -16,6 +16,7 @@
 - ✅ 自动下载到默认目录
 - ✅ 带时间戳的文件名
 - ✅ 高分辨率屏幕适配（DPR）
+- ✅ Toast 通知反馈
 
 **性能指标**：
 - 截图速度：~200ms
@@ -48,6 +49,7 @@
 - ✅ 小选区自动取消（< 10px）
 - ✅ 精确裁剪（高分屏适配）
 - ✅ UI 元素不被截取
+- ✅ Toast 错误提示
 
 **用户体验**：
 - 半透明遮罩层
@@ -55,6 +57,23 @@
 - 实时尺寸提示
 - 倒计时自动隐藏提示
 - 平滑交互
+- 友好的错误提示
+
+### 4. Toast 通知系统（New!）
+- ✅ 自定义 Toast 组件
+- ✅ 4 种消息类型（success/error/warning/info）
+- ✅ 自动消失（可配置时长）
+- ✅ 手动关闭按钮
+- ✅ 平滑动画效果
+- ✅ 深色模式支持
+- ✅ 消息队列管理
+- ✅ 固定在右上角
+
+**技术实现**：
+- Vue 3 Composition API
+- 自定义 Composable (useToast)
+- Tailwind CSS 样式
+- Transition Group 动画
 
 ---
 
@@ -110,7 +129,7 @@
 src/
 ├── app/
 │   ├── popup/
-│   │   ├── App.vue              # Popup 主界面
+│   │   ├── App.vue              # Popup 主界面（含 Toast）
 │   │   ├── index.html           # HTML 入口
 │   │   ├── main.ts              # Vue 应用入口
 │   │   └── style.css            # 样式文件
@@ -119,9 +138,12 @@ src/
 │   └── content-selection.ts     # 选区工具脚本
 ├── components/
 │   ├── SelectionTool.vue        # 选区 UI 组件
-│   └── HelloWorld.vue           # 示例组件
+│   └── Toast.vue                # Toast 通知组件（New!）
+├── composables/                 # Composables（New!）
+│   └── useToast.ts              # Toast 通知系统
 ├── types/
-│   └── screenshot.ts            # TypeScript 类型定义
+│   ├── screenshot.ts            # 截图类型定义
+│   └── index.ts                 # 类型导出
 ├── utils/
 │   ├── screenshot.ts            # 截图核心功能（420 行）
 │   ├── canvas.ts                # Canvas 操作工具
@@ -137,9 +159,10 @@ docs/
 ```
 
 **核心文件统计**：
-- TypeScript/JavaScript：~1500 行
-- Vue 组件：~200 行
-- 文档：~2000 行
+- TypeScript/JavaScript：~1600 行
+- Vue 组件：~300 行
+- Composables：~50 行
+- 文档：~2200 行
 
 ---
 
@@ -184,7 +207,7 @@ docs/
 - **功能**：✅ 全部通过
 
 ### 已知的非关键问题
-1. **Alert 使用**：建议替换为自定义 UI（不影响功能）
+1. ~~**Alert 使用**~~：✅ 已替换为 Toast 通知组件
 2. **TypeScript 类型警告**：WXT 运行时类型，实际无问题
 3. **Enum 使用**：Biome 建议使用 unions，可优化
 
@@ -235,9 +258,9 @@ docs/
 
 ### 用户体验
 1. **错误处理**
-   - 替换 alert 为自定义 Toast 通知
+   - ✅ ~~替换 alert 为自定义 Toast 通知~~ 已完成
    - 显示进度条（长截图时）
-   - 更友好的错误提示
+   - ✅ 更友好的错误提示 已完成
 
 2. **功能增强**
    - 快捷键支持（Ctrl+Shift+S）

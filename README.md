@@ -40,9 +40,12 @@ src/
 │   └── content-selection.ts # 选区工具内容脚本
 ├── components/              # Vue 组件
 │   ├── SelectionTool.vue   # 可视化选区工具
-│   └── HelloWorld.vue      # 示例组件
+│   └── Toast.vue           # Toast 通知组件
+├── composables/             # Vue Composables
+│   └── useToast.ts         # Toast 通知系统
 ├── types/                   # TypeScript 类型定义
-│   └── screenshot.ts       # 截图相关类型
+│   ├── screenshot.ts       # 截图相关类型
+│   └── index.ts            # 类型导出
 ├── utils/                   # 工具函数
 │   ├── screenshot.ts       # 截图核心功能
 │   ├── canvas.ts           # Canvas 操作工具
@@ -75,6 +78,16 @@ src/
   - 实时显示选区尺寸
   - 支持 ESC 取消选择
   - 自动裁剪并下载
+  - Toast 通知反馈
+
+### 4. 通知系统
+- **功能**：友好的消息提示
+- **实现**：
+  - 自定义 Toast 组件
+  - 4 种类型（success/error/warning/info）
+  - 自动消失（可配置时长）
+  - 平滑动画过渡效果
+  - 支持深色模式
 
 ## 开发命令
 
@@ -177,30 +190,42 @@ npm run compile
 
 1. **模块化架构**：清晰的文件结构和职责分离
 2. **类型安全**：完整的 TypeScript 类型定义
-3. **现代化工具链**：WXT + Vue 3 + Tailwind CSS
+3. **现代化工具链**：WXT + Vue 3 + Tailwind CSS 4 + Biome
 4. **消息通信**：Background ↔ Content Script ↔ Popup 三方通信
 5. **Canvas 操作**：高效的图片处理和拼接算法
-6. **用户体验**：实时反馈、可视化选区、自动命名
+6. **用户体验**：Toast 通知、可视化选区、自动命名、深色模式支持
+7. **Composition API**：使用 Vue 3 Composition API 和自定义 Composables
+8. **响应式设计**：适配不同分辨率和深色模式
 
 ## 待优化项
 
 1. **长截图性能优化**
-   - 当前实现需要等待滚动完成
+   - 添加进度条显示
    - 可以考虑使用 `chrome.debugger` API 获取完整渲染树
+   - 优化大页面的内存使用
 
 2. **选区工具增强**
    - 添加撤销/重做功能
    - 支持键盘快捷键
    - 添加网格辅助线
+   - 支持多选区
 
 3. **文件管理**
    - 自定义保存路径
    - 批量截图管理
    - 历史记录查看
+   - 云端同步
 
 4. **图片编辑**
    - 添加基础编辑功能（裁剪、旋转、标注）
    - 添加水印功能
+   - 图片压缩选项
+
+5. **用户体验**
+   - 添加快捷键支持
+   - 右键菜单集成
+   - 设置页面（自定义配置）
+   - 多语言支持（i18n）
 
 ## 贡献指南
 
