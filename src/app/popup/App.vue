@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { browser } from 'wxt/browser'
+import { browser } from "wxt/browser";
+import Toast from "@/components/Toast.vue";
+import { useToast } from "@/composables/useToast";
 import { ImageFormat, MessageType } from "@/types/screenshot";
 
+const { error } = useToast();
 const isCapturing = ref(false);
 const lastResult = ref<{
     fileName: string;
@@ -21,7 +24,7 @@ async function captureViewport(format: ImageFormat = ImageFormat.PNG) {
         });
 
         if (response.error) {
-            alert(`截图失败: ${response.error}`);
+            error(`截图失败: ${response.error}`);
             return;
         }
 
@@ -30,8 +33,8 @@ async function captureViewport(format: ImageFormat = ImageFormat.PNG) {
             width: response.width,
             height: response.height,
         };
-    } catch (error) {
-        alert(`截图失败: ${error}`);
+    } catch (err) {
+        error(`截图失败: ${err}`);
     } finally {
         isCapturing.value = false;
     }
@@ -48,7 +51,7 @@ async function captureFullPage(format: ImageFormat = ImageFormat.PNG) {
         });
 
         if (response.error) {
-            alert(`长截图失败: ${response.error}`);
+            error(`长截图失败: ${response.error}`);
             return;
         }
 
@@ -57,8 +60,8 @@ async function captureFullPage(format: ImageFormat = ImageFormat.PNG) {
             width: response.width,
             height: response.height,
         };
-    } catch (error) {
-        alert(`长截图失败: ${error}`);
+    } catch (err) {
+        error(`长截图失败: ${err}`);
     } finally {
         isCapturing.value = false;
     }
@@ -80,7 +83,7 @@ async function captureSelection(format: ImageFormat = ImageFormat.PNG) {
         }
 
         if (response.error) {
-            alert(`选区截图失败: ${response.error}`);
+            error(`选区截图失败: ${response.error}`);
             return;
         }
 
@@ -89,8 +92,8 @@ async function captureSelection(format: ImageFormat = ImageFormat.PNG) {
             width: response.width,
             height: response.height,
         };
-    } catch (error) {
-        alert(`选区截图失败: ${error}`);
+    } catch (err) {
+        error(`选区截图失败: ${err}`);
     } finally {
         isCapturing.value = false;
     }
@@ -98,16 +101,21 @@ async function captureSelection(format: ImageFormat = ImageFormat.PNG) {
 </script>
 
 <template>
+    <Toast />
     <div class="w-80 p-4 bg-white dark:bg-gray-900">
         <!-- 标题 -->
         <div class="mb-6 text-center">
-            <h1 class="text-xl font-bold text-gray-800 dark:text-gray-100">Recosite</h1>
+            <h1 class="text-xl font-bold text-gray-800 dark:text-gray-100">
+                Recosite
+            </h1>
             <p class="text-sm text-gray-600 dark:text-gray-400">网页截图与录屏工具</p>
         </div>
 
         <!-- 截图功能区 -->
         <div class="space-y-3">
-            <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300">📸 截图功能</h2>
+            <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                📸 截图功能
+            </h2>
 
             <!-- 视窗截图 -->
             <div class="space-y-2">
@@ -180,7 +188,9 @@ async function captureSelection(format: ImageFormat = ImageFormat.PNG) {
 
         <!-- 录屏功能区（待实现） -->
         <div class="mt-6 space-y-3">
-            <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300">🎥 录屏功能</h2>
+            <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                🎥 录屏功能
+            </h2>
             <div
                 class="rounded-lg bg-gray-100 dark:bg-gray-800 p-3 text-center text-sm text-gray-500 dark:text-gray-400">
                 即将推出...
