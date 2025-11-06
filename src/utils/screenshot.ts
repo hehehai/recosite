@@ -167,78 +167,202 @@ export async function captureSelection(
 }
 
 /**
- * 加载并拼接多张图片
+ * 计算安全重叠像素，避免因舍入/布局抖动造成丢段
  */
-async function mergeImages(
-  dataUrls: string[],
-  imageFormat: ImageFormat,
-  imageQuality: number
-): Promise<{ dataUrl: string; width: number; height: number }> {
-  // 先加载第一张图片获取实际宽度
-  const firstImg = await new Promise<HTMLImageElement>(
-    (resolveImg, rejectImg) => {
-      const image = new Image();
-      image.onload = () => resolveImg(image);
-      image.onerror = rejectImg;
-      image.src = dataUrls[0];
+function computeOverlap(viewportHeight: number): number {
+  const ratio = 0.05; // 5% 视口高度
+  const minPx = 20;
+  const maxPx = 160;
+  const raw = Math.round(viewportHeight * ratio);
+  return Math.max(minPx, Math.min(maxPx, raw));
+}
+
+/**
+ * 构建滚动计划
+ */
+function buildScrollPlan(totalHeight: number, viewportHeight: number) {
+  const safeViewport = Math.max(1, viewportHeight);
+  const maxOffset = Math.max(0, totalHeight - safeViewport);
+  const overlap = computeOverlap(safeViewport);
+  const stride = Math.max(1, safeViewport - overlap);
+  const offsetSet = new Set<number>();
+
+  // 强制包含 0 和末尾 maxOffset
+  offsetSet.add(0);
+  for (let y = 0; y < maxOffset; y += stride) {
+    offsetSet.add(Math.min(y, maxOffset));
+  }
+  offsetSet.add(maxOffset);
+
+  const offsets = Array.from(offsetSet).sort((a, b) => a - b);
+  return offsets;
+}
+
+/**
+ * 页面准备函数（在页面上下文中执行）
+ */
+function preparePageScript() {
+  const w = window as any;
+  if (w.__snapshotBackup) {
+    return {
+      totalHeight: w.__snapshotBackup.totalHeight,
+      viewportHeight: w.__snapshotBackup.viewportHeight,
+      dpr: window.devicePixelRatio || 1,
+    };
+  }
+
+  const backups: Array<{ el: HTMLElement; cssText: string }> = [];
+  const originalScrollTop = window.scrollY;
+  const originalOverflow = document.documentElement.style.overflow || "";
+  const originalBodyOverflow = document.body.style.overflow || "";
+
+  // 收集并处理定位元素
+  const all = Array.from(document.querySelectorAll("*")) as HTMLElement[];
+  for (const el of all) {
+    const cs = getComputedStyle(el);
+    const position = cs.position;
+
+    if (position === "fixed" || position === "sticky") {
+      backups.push({ el, cssText: el.style.cssText });
     }
+  }
+
+  // 创建隐藏滚动条样式
+  let styleEl = document.querySelector(
+    'style[data-snapshot="hide-scrollbar"]'
+  ) as HTMLStyleElement | null;
+  if (!styleEl) {
+    styleEl = document.createElement("style");
+    styleEl.setAttribute("data-snapshot", "hide-scrollbar");
+    styleEl.textContent = `
+      html::-webkit-scrollbar, body::-webkit-scrollbar { display: none !important; }
+      html, body { scrollbar-width: none !important; }
+    `;
+    document.documentElement.appendChild(styleEl);
+  }
+
+  // 隐藏滚动条并滚动到顶部
+  document.documentElement.style.overflow = "hidden";
+  document.body.style.overflow = "hidden";
+  window.scrollTo(0, 0);
+
+  // 处理定位元素
+  for (const backup of backups) {
+    const cs = getComputedStyle(backup.el);
+    if (cs.position === "fixed") {
+      const rect = backup.el.getBoundingClientRect();
+      backup.el.style.setProperty("position", "absolute", "important");
+      backup.el.style.setProperty("top", `${rect.top}px`, "important");
+      backup.el.style.setProperty("left", `${rect.left}px`, "important");
+      backup.el.style.setProperty("right", "auto", "important");
+      backup.el.style.setProperty("bottom", "auto", "important");
+    } else if (cs.position === "sticky") {
+      backup.el.style.setProperty("position", "static", "important");
+      backup.el.style.setProperty("top", "auto", "important");
+      backup.el.style.setProperty("z-index", "auto", "important");
+    }
+  }
+
+  // 计算内容高度
+  const layoutH = Math.max(
+    document.documentElement.scrollHeight,
+    document.body.scrollHeight,
+    document.documentElement.offsetHeight,
+    document.body.offsetHeight
   );
 
-  // 计算总高度并加载所有图片
-  let totalHeight = firstImg.naturalHeight;
-  const images = [firstImg];
-
-  // 加载剩余图片
-  for (let i = 1; i < dataUrls.length; i += 1) {
-    const img = await new Promise<HTMLImageElement>((resolveImg, rejectImg) => {
-      const image = new Image();
-      image.onload = () => resolveImg(image);
-      image.onerror = rejectImg;
-      image.src = dataUrls[i];
-    });
-    totalHeight += img.naturalHeight;
-    images.push(img);
+  let maxBottom = 0;
+  const nodes = Array.from(
+    document.body.getElementsByTagName("*")
+  ) as HTMLElement[];
+  for (const el of nodes) {
+    const rect = el.getBoundingClientRect();
+    if (rect) {
+      maxBottom = Math.max(maxBottom, rect.bottom);
+    }
   }
+  const bboxH = maxBottom + window.scrollY;
+  const totalHeight = Math.max(layoutH, bboxH);
+  const viewportHeight = window.innerHeight;
 
-  // 创建 canvas（使用实际图片尺寸）
-  const canvas = document.createElement("canvas");
-  canvas.width = firstImg.naturalWidth;
-  canvas.height = totalHeight;
-  const ctx = canvas.getContext("2d");
-
-  if (!ctx) {
-    throw new Error("Failed to get 2d context");
-  }
-
-  // 拼接图片
-  let offsetY = 0;
-  for (const img of images) {
-    ctx.drawImage(img, 0, offsetY);
-    offsetY += img.naturalHeight;
-  }
-
-  // 转换为 dataURL
-  const mergedDataUrl = canvas.toDataURL(
-    `image/${imageFormat}`,
-    imageFormat === "jpeg" ? imageQuality : undefined
-  );
+  w.__snapshotBackup = {
+    backups,
+    originalScrollTop,
+    originalOverflow,
+    originalBodyOverflow,
+    styleEl,
+    totalHeight,
+    viewportHeight,
+  };
 
   return {
-    dataUrl: mergedDataUrl,
-    width: canvas.width,
-    height: canvas.height,
+    totalHeight,
+    viewportHeight,
+    dpr: window.devicePixelRatio || 1,
   };
 }
 
 /**
+ * 准备页面进行截图（隐藏固定元素、滚动条等）
+ */
+async function preparePageForCapture(tabId: number) {
+  return await browser.scripting.executeScript({
+    target: { tabId },
+    func: preparePageScript,
+  });
+}
+
+/**
+ * 恢复页面状态
+ */
+async function restorePageState(tabId: number) {
+  await browser.scripting.executeScript({
+    target: { tabId },
+    func: () => {
+      const w = window as any;
+      const b = w.__snapshotBackup;
+      if (b) {
+        for (const item of b.backups || []) {
+          item.el.style.cssText = item.cssText;
+        }
+        if (b.styleEl?.parentNode) {
+          b.styleEl.parentNode.removeChild(b.styleEl);
+        }
+        document.documentElement.style.overflow = b.originalOverflow;
+        document.body.style.overflow = b.originalBodyOverflow;
+        window.scrollTo(0, b.originalScrollTop);
+      }
+      w.__snapshotBackup = undefined;
+    },
+  });
+}
+
+/**
+ * 执行滚动步骤
+ */
+async function performScrollStep(tabId: number, y: number) {
+  await browser.scripting.executeScript({
+    target: { tabId },
+    func: (yy: number) =>
+      new Promise((resolve) => {
+        window.scrollTo(0, yy);
+        document.body.getBoundingClientRect();
+        requestAnimationFrame(() =>
+          requestAnimationFrame(() => resolve({ y: yy }))
+        );
+      }),
+    args: [y],
+  });
+}
+
+/**
  * 捕获整个页面（长截图）
- * 通过滚动页面并拼接多张截图实现
+ * 使用带重叠的智能滚动策略
  */
 export async function captureFullPage(
   format: ImageFormat = ImageFormat.PNG,
   quality = 0.92
 ): Promise<ScreenshotResult> {
-  // 获取当前标签页
   const [tab] = await browser.tabs.query({
     active: true,
     currentWindow: true,
@@ -248,107 +372,168 @@ export async function captureFullPage(
     throw new Error("No active tab found");
   }
 
-  // 1. 获取页面信息并隐藏滚动条
-  const pageInfo = await browser.scripting.executeScript({
-    target: { tabId: tab.id },
-    func: () => {
-      const height = Math.max(
-        document.documentElement.scrollHeight,
-        document.body.scrollHeight
-      );
-      const viewport = window.innerHeight;
-      const scrollTop = window.scrollY;
+  try {
+    // 1. 准备页面
+    const prepResult = await preparePageForCapture(tab.id);
+    if (!prepResult[0]?.result) {
+      throw new Error("Failed to prepare page");
+    }
 
-      // 隐藏滚动条
-      const overflow = document.documentElement.style.overflow;
-      const bodyOverflow = document.body.style.overflow;
-      document.documentElement.style.overflow = "hidden";
-      document.body.style.overflow = "hidden";
+    const { totalHeight, viewportHeight } = prepResult[0].result;
 
-      return {
-        pageHeight: height,
-        viewportHeight: viewport,
-        originalScrollTop: scrollTop,
-        originalOverflow: overflow,
-        originalBodyOverflow: bodyOverflow,
-        screenshotCount: Math.ceil(height / viewport),
-      };
-    },
-  });
+    // 2. 构建滚动计划
+    const offsets = buildScrollPlan(totalHeight, viewportHeight);
 
-  if (!pageInfo[0]?.result) {
-    throw new Error("Failed to get page info");
-  }
+    // 3. 执行滚动并截图
+    const screenshots: string[] = [];
+    const actualOffsets: number[] = [];
 
-  const {
-    viewportHeight,
-    originalScrollTop,
-    originalOverflow,
-    originalBodyOverflow,
-    screenshotCount,
-  } = pageInfo[0].result;
+    for (const offset of offsets) {
+      // 滚动到目标位置
+      await performScrollStep(tab.id, offset);
 
-  // 2. 逐屏滚动并截图
-  const screenshots: string[] = [];
+      // 等待渲染
+      await new Promise((resolve) => setTimeout(resolve, 800));
 
-  for (let i = 0; i < screenshotCount; i += 1) {
-    // 滚动到指定位置
-    await browser.scripting.executeScript({
+      // 获取实际滚动位置
+      const actualPosResult = await browser.scripting.executeScript({
+        target: { tabId: tab.id },
+        func: () => window.scrollY,
+      });
+      const actualPos = actualPosResult[0]?.result || offset;
+
+      // 截图
+      const dataUrl = await browser.tabs.captureVisibleTab({
+        format: format === ImageFormat.PNG ? "png" : "jpeg",
+        quality:
+          format === ImageFormat.JPEG ? Math.round(quality * 100) : undefined,
+      });
+
+      screenshots.push(dataUrl);
+      actualOffsets.push(actualPos);
+    }
+
+    // 4. 拼接截图
+    const mergeResult = await browser.scripting.executeScript({
       target: { tabId: tab.id },
-      func: (scrollTop: number) => {
-        window.scrollTo(0, scrollTop);
+      func: async (
+        dataUrls: string[],
+        imageFormat: ImageFormat,
+        imageQuality: number,
+        pageHeight: number,
+        viewportH: number,
+        scrollOffsets: number[]
+      ) => {
+        // 加载所有图片
+        const images = await Promise.all(
+          dataUrls.map(
+            (url) =>
+              new Promise<HTMLImageElement>((resolveImg, rejectImg) => {
+                const image = new Image();
+                image.onload = () => resolveImg(image);
+                image.onerror = rejectImg;
+                image.src = url;
+              })
+          )
+        );
+
+        const scale = images[0].naturalHeight / viewportH;
+        const canvas = document.createElement("canvas");
+        canvas.width = images[0].naturalWidth;
+        canvas.height = Math.ceil(pageHeight * scale);
+        const ctx = canvas.getContext("2d");
+
+        if (!ctx) {
+          throw new Error("Failed to get 2d context");
+        }
+
+        // 使用实际偏移量进行精确拼接
+        const segments = images.map((bitmap, index) => ({
+          bitmap,
+          destY: scrollOffsets[index] * scale,
+        }));
+
+        segments.sort((a, b) => a.destY - b.destY);
+
+        let canvasFilledHeight = 0;
+
+        for (const { bitmap, destY } of segments) {
+          const roundedDestY = Math.round(destY);
+
+          let srcY = 0;
+          let drawDestY = roundedDestY;
+          let srcH = bitmap.naturalHeight;
+
+          // 处理重叠
+          if (roundedDestY < canvasFilledHeight) {
+            const overlap = canvasFilledHeight - roundedDestY;
+            srcY = Math.min(overlap, bitmap.naturalHeight);
+            drawDestY = canvasFilledHeight;
+            srcH = bitmap.naturalHeight - srcY;
+          }
+
+          // 确保不超出画布
+          const remaining = canvas.height - drawDestY;
+          if (remaining <= 0 || srcH <= 0) {
+            continue;
+          }
+
+          srcH = Math.min(srcH, remaining);
+
+          if (srcH > 0) {
+            ctx.drawImage(
+              bitmap,
+              0,
+              srcY,
+              bitmap.naturalWidth,
+              srcH,
+              0,
+              drawDestY,
+              bitmap.naturalWidth,
+              srcH
+            );
+            canvasFilledHeight = Math.max(canvasFilledHeight, drawDestY + srcH);
+          }
+        }
+
+        const mergedDataUrl = canvas.toDataURL(
+          `image/${imageFormat}`,
+          imageFormat === "jpeg" ? imageQuality : undefined
+        );
+
+        return {
+          dataUrl: mergedDataUrl,
+          width: canvas.width,
+          height: canvas.height,
+        };
       },
-      args: [i * viewportHeight],
+      args: [
+        screenshots,
+        format,
+        quality,
+        totalHeight,
+        viewportHeight,
+        actualOffsets,
+      ],
     });
 
-    // 等待渲染
-    await new Promise((resolve) => setTimeout(resolve, 300));
+    if (!mergeResult[0]?.result) {
+      throw new Error("Failed to merge screenshots");
+    }
 
-    // 截图
-    const dataUrl = await browser.tabs.captureVisibleTab({
-      format: format === ImageFormat.PNG ? "png" : "jpeg",
-      quality:
-        format === ImageFormat.JPEG ? Math.round(quality * 100) : undefined,
-    });
+    const { dataUrl: finalDataUrl, width, height } = mergeResult[0].result;
+    const blob = dataURLToBlob(finalDataUrl);
 
-    screenshots.push(dataUrl);
+    return {
+      dataUrl: finalDataUrl,
+      blob,
+      width,
+      height,
+    };
+  } finally {
+    // 5. 恢复页面状态
+    await restorePageState(tab.id);
   }
-
-  // 3. 恢复滚动位置和滚动条显示
-  await browser.scripting.executeScript({
-    target: { tabId: tab.id },
-    func: (scrollTop: number, overflow: string, bodyOverflow: string) => {
-      window.scrollTo(0, scrollTop);
-      document.documentElement.style.overflow = overflow;
-      document.body.style.overflow = bodyOverflow;
-    },
-    args: [originalScrollTop, originalOverflow, originalBodyOverflow],
-  });
-
-  // 4. 在页面中拼接所有截图
-  const mergeResult = await browser.scripting.executeScript({
-    target: { tabId: tab.id },
-    func: mergeImages,
-    args: [screenshots, format, quality],
-  });
-
-  if (!mergeResult[0]?.result) {
-    throw new Error("Failed to merge screenshots");
-  }
-
-  const {
-    dataUrl: finalDataUrl,
-    width,
-    height: resultHeight,
-  } = mergeResult[0].result;
-  const blob = dataURLToBlob(finalDataUrl);
-
-  return {
-    dataUrl: finalDataUrl,
-    blob,
-    width,
-    height: resultHeight,
-  };
 }
 
 /**

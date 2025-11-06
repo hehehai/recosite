@@ -45,14 +45,14 @@
     checkRecordingStatus();
   });
 
-  async function captureViewport(format: ImageFormat = ImageFormat.PNG) {
+  async function captureViewport() {
     try {
       isCapturing.value = true;
       lastResult.value = null;
 
       const response = await browser.runtime.sendMessage({
         type: MessageType.CAPTURE_VIEWPORT,
-        data: { format, quality: 0.92 },
+        data: { format: ImageFormat.PNG, quality: 0.92 },
       });
 
       if (response.error) {
@@ -72,14 +72,14 @@
     }
   }
 
-  async function captureFullPage(format: ImageFormat = ImageFormat.PNG) {
+  async function captureFullPage() {
     try {
       isCapturing.value = true;
       lastResult.value = null;
 
       const response = await browser.runtime.sendMessage({
         type: MessageType.CAPTURE_FULL_PAGE,
-        data: { format, quality: 0.92 },
+        data: { format: ImageFormat.PNG, quality: 0.92 },
       });
 
       if (response.error) {
@@ -99,14 +99,14 @@
     }
   }
 
-  async function captureSelection(format: ImageFormat = ImageFormat.PNG) {
+  async function captureSelection() {
     try {
       isCapturing.value = true;
       lastResult.value = null;
 
       const response = await browser.runtime.sendMessage({
         type: MessageType.START_SELECTION,
-        data: { format, quality: 0.92 },
+        data: { format: ImageFormat.PNG, quality: 0.92 },
       });
 
       if (response.cancelled) {
@@ -212,73 +212,37 @@
       </h2>
 
       <!-- 视窗截图 -->
-      <div class="space-y-2">
-        <button
-          type="button"
-          class="w-full rounded-lg bg-blue-500 dark:bg-blue-600 px-4 py-3 text-left text-white transition hover:bg-blue-600 dark:hover:bg-blue-700 disabled:opacity-50"
-          :disabled="isCapturing"
-          @click="captureViewport(ImageFormat.PNG)"
-        >
-          <div class="font-medium">视窗截图 (PNG)</div>
-          <div class="text-xs opacity-90">截取当前可见区域</div>
-        </button>
-
-        <button
-          type="button"
-          class="w-full rounded-lg bg-blue-500 dark:bg-blue-600 px-4 py-3 text-left text-white transition hover:bg-blue-600 dark:hover:bg-blue-700 disabled:opacity-50"
-          :disabled="isCapturing"
-          @click="captureViewport(ImageFormat.JPEG)"
-        >
-          <div class="font-medium">视窗截图 (JPEG)</div>
-          <div class="text-xs opacity-90">截取当前可见区域</div>
-        </button>
-      </div>
+      <button
+        type="button"
+        class="w-full rounded-lg bg-blue-500 dark:bg-blue-600 px-4 py-3 text-left text-white transition hover:bg-blue-600 dark:hover:bg-blue-700 disabled:opacity-50"
+        :disabled="isCapturing"
+        @click="captureViewport"
+      >
+        <div class="font-medium">视窗截图</div>
+        <div class="text-xs opacity-90">截取当前可见区域</div>
+      </button>
 
       <!-- 长截图 -->
-      <div class="space-y-2">
-        <button
-          type="button"
-          class="w-full rounded-lg bg-green-500 dark:bg-green-600 px-4 py-3 text-left text-white transition hover:bg-green-600 dark:hover:bg-green-700 disabled:opacity-50"
-          :disabled="isCapturing"
-          @click="captureFullPage(ImageFormat.PNG)"
-        >
-          <div class="font-medium">长截图 (PNG)</div>
-          <div class="text-xs opacity-90">截取整个网页</div>
-        </button>
-
-        <button
-          type="button"
-          class="w-full rounded-lg bg-green-500 dark:bg-green-600 px-4 py-3 text-left text-white transition hover:bg-green-600 dark:hover:bg-green-700 disabled:opacity-50"
-          :disabled="isCapturing"
-          @click="captureFullPage(ImageFormat.JPEG)"
-        >
-          <div class="font-medium">长截图 (JPEG)</div>
-          <div class="text-xs opacity-90">截取整个网页</div>
-        </button>
-      </div>
+      <button
+        type="button"
+        class="w-full rounded-lg bg-green-500 dark:bg-green-600 px-4 py-3 text-left text-white transition hover:bg-green-600 dark:hover:bg-green-700 disabled:opacity-50"
+        :disabled="isCapturing"
+        @click="captureFullPage"
+      >
+        <div class="font-medium">长截图</div>
+        <div class="text-xs opacity-90">截取整个网页</div>
+      </button>
 
       <!-- 局部截图 -->
-      <div class="space-y-2">
-        <button
-          type="button"
-          class="w-full rounded-lg bg-purple-500 dark:bg-purple-600 px-4 py-3 text-left text-white transition hover:bg-purple-600 dark:hover:bg-purple-700 disabled:opacity-50"
-          :disabled="isCapturing"
-          @click="captureSelection(ImageFormat.PNG)"
-        >
-          <div class="font-medium">选区截图 (PNG)</div>
-          <div class="text-xs opacity-90">拖动选择截图区域</div>
-        </button>
-
-        <button
-          type="button"
-          class="w-full rounded-lg bg-purple-500 dark:bg-purple-600 px-4 py-3 text-left text-white transition hover:bg-purple-600 dark:hover:bg-purple-700 disabled:opacity-50"
-          :disabled="isCapturing"
-          @click="captureSelection(ImageFormat.JPEG)"
-        >
-          <div class="font-medium">选区截图 (JPEG)</div>
-          <div class="text-xs opacity-90">拖动选择截图区域</div>
-        </button>
-      </div>
+      <button
+        type="button"
+        class="w-full rounded-lg bg-purple-500 dark:bg-purple-600 px-4 py-3 text-left text-white transition hover:bg-purple-600 dark:hover:bg-purple-700 disabled:opacity-50"
+        :disabled="isCapturing"
+        @click="captureSelection"
+      >
+        <div class="font-medium">选区截图</div>
+        <div class="text-xs opacity-90">拖动选择截图区域</div>
+      </button>
     </div>
 
     <!-- 状态提示 -->

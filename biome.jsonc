@@ -50,6 +50,9 @@
         "noDocumentCookie": "off",
         "noConsole": "off"
       },
+      "complexity": {
+        "noExcessiveCognitiveComplexity": "off"
+      },
       "a11y": {
         "useButtonType": "off"
       }

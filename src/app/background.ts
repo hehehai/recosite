@@ -9,7 +9,7 @@ import {
   type SelectionArea,
   VideoFormat,
 } from "@/types/screenshot";
-import { downloadFile, generateFileName } from "@/utils/file";
+import { generateFileName } from "@/utils/file";
 import {
   closeOffscreenDocument,
   downloadRecording,
@@ -139,6 +139,41 @@ async function handleMessage(
 }
 
 /**
+ * 打开结果页面并显示截图
+ * 使用 storage API 传递大数据，避免 URL 长度限制
+ */
+async function openResultPage(
+  dataUrl: string,
+  fileName: string,
+  width: number,
+  height: number
+) {
+  // 生成唯一 ID
+  const resultId = `screenshot_${Date.now()}`;
+
+  // 将数据存储到 session storage
+  await browser.storage.session.set({
+    [resultId]: {
+      dataUrl,
+      fileName,
+      width,
+      height,
+      type: "image",
+    },
+  });
+
+  // 打开结果页面，只传递 ID
+  const resultUrl = browser.runtime.getURL("/result.html");
+  const params = new URLSearchParams({
+    id: resultId,
+  });
+
+  await browser.tabs.create({
+    url: `${resultUrl}?${params.toString()}`,
+  });
+}
+
+/**
  * 处理视窗截图
  */
 async function handleCaptureViewport(
@@ -151,7 +186,8 @@ async function handleCaptureViewport(
   const result = await captureViewport(format, quality);
   const fileName = generateFileName(format);
 
-  await downloadFile(result.dataUrl, fileName);
+  // 打开结果页面显示截图
+  await openResultPage(result.dataUrl, fileName, result.width, result.height);
 
   sendResponse({
     success: true,
@@ -168,20 +204,34 @@ async function handleCaptureFullPage(
   data: { format: ImageFormat; quality?: number },
   sendResponse: (response?: unknown) => void
 ) {
-  const format = data.format || ImageFormat.PNG;
-  const quality = data.quality || 0.92;
+  try {
+    const format = data.format || ImageFormat.PNG;
+    const quality = data.quality || 0.92;
 
-  const result = await captureFullPage(format, quality);
-  const fileName = generateFileName(format);
+    console.log("[Background] Starting full page capture...");
+    const result = await captureFullPage(format, quality);
+    console.log(
+      "[Background] Full page capture complete, opening result page..."
+    );
 
-  await downloadFile(result.dataUrl, fileName);
+    const fileName = generateFileName(format);
 
-  sendResponse({
-    success: true,
-    fileName,
-    width: result.width,
-    height: result.height,
-  });
+    // 打开结果页面显示截图
+    await openResultPage(result.dataUrl, fileName, result.width, result.height);
+    console.log("[Background] Result page opened");
+
+    sendResponse({
+      success: true,
+      fileName,
+      width: result.width,
+      height: result.height,
+    });
+  } catch (error) {
+    console.error("[Background] Full page capture failed:", error);
+    sendResponse({
+      error: String(error),
+    });
+  }
 }
 
 /**
@@ -207,7 +257,7 @@ async function handleStartSelection(
     // 注入选区工具脚本
     await browser.scripting.executeScript({
       target: { tabId: tab.id },
-      files: ["content-selection.js"],
+      files: ["/content-scripts/selection.js"],
     });
 
     // 等待一小段时间让脚本初始化
@@ -228,7 +278,8 @@ async function handleStartSelection(
     const result = await captureSelection(area, format, quality);
     const fileName = generateFileName(format);
 
-    await downloadFile(result.dataUrl, fileName);
+    // 打开结果页面显示截图
+    await openResultPage(result.dataUrl, fileName, result.width, result.height);
 
     sendResponse({
       success: true,
