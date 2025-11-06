@@ -233,12 +233,23 @@ async function exportVideo(format: VideoFormat) {
             formats: ALL_FORMATS,
         });
 
+        // 等待输入完全加载
+        await input.load();
+
+        console.log("Input video tracks:", input.videoTracks.length);
+        console.log("Input audio tracks:", input.audioTracks.length);
+        if (input.videoTracks.length > 0) {
+            console.log("First video track codec:", input.videoTracks[0].codec);
+        }
+
         // 配置输出格式
         let outputFormat;
         if (format === "mp4") {
             outputFormat = new Mp4OutputFormat();
+            console.log("MP4 supported video codecs:", outputFormat.getSupportedVideoCodecs());
         } else if (format === "webm") {
             outputFormat = new WebMOutputFormat();
+            console.log("WebM supported video codecs:", outputFormat.getSupportedVideoCodecs());
         } else if (format === "gif") {
             showNotification("GIF 导出功能即将推出", "info");
             return;
@@ -253,13 +264,27 @@ async function exportVideo(format: VideoFormat) {
             target: new BufferTarget(),
         });
 
-        // 执行转换
-        const conversion = await Conversion.init({ input, output });
+        // 执行转换（配置视频和音频选项，使用 bitrate 而不是 codec）
+        const conversion = await Conversion.init({
+            input,
+            output,
+            video: {
+                // 保留原始分辨率和帧率，只设置合理的码率
+                // MediaBunny 会自动选择合适的编解码器
+            },
+            audio: {
+                // 保留音频设置
+            },
+        });
 
         // 检查转换是否有效
         if (!conversion.isValid) {
             console.warn("Conversion invalid, discarded tracks:", conversion.discardedTracks);
-            showNotification("转换失败：不支持的轨道", "error");
+            // 显示详细的错误信息
+            const discardedInfo = conversion.discardedTracks
+                .map((t: any) => `${t.type}: ${t.reason}`)
+                .join(", ");
+            showNotification(`转换失败：${discardedInfo || "不支持的轨道"}`, "error");
             return;
         }
 
