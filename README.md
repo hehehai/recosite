@@ -1,236 +1,207 @@
-# Recosite
+<div align="center">
+  <h1>🎬 Recosite</h1>
+  <p>A powerful browser extension for capturing web pages as images and recording screen interactions as videos</p>
 
-> 这是一个浏览器插件，可以截取网页为长图或局部图，还支持录制网页交互为视频
+  [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+  [![Chrome Web Store](https://img.shields.io/badge/Chrome-Coming%20Soon-orange.svg)](https://github.com/hehehai/recosite)
+  [![Firefox Add-ons](https://img.shields.io/badge/Firefox-Coming%20Soon-orange.svg)](https://github.com/hehehai/recosite)
+</div>
 
-## 功能实现状态
+## 📖 Introduction
 
-### ✅ 已完成的功能
+Recosite is a modern, feature-rich browser extension that enables you to capture web pages in multiple ways - from simple viewport screenshots to full-page scrolling captures and precise selection-based captures. It also supports recording web interactions as videos with advanced format conversion capabilities.
 
-- [x] 任意网页视窗截图（PNG/JPEG）
-- [x] 任意网页长截图（PNG/JPEG）- 自动滚动拼接
-- [x] 任意网页局部选择截图（PNG/JPEG）- 可视化拖拽选区
-- [x] 自动文件下载和命名
-- [x] 美观的 Popup UI 界面
+## ✨ Features
 
-### 🚧 待实现的功能
+### Screenshot Capabilities
+- **📸 Viewport Screenshot** - Capture the currently visible area instantly
+- **📄 Full-Page Screenshot** - Automatically scroll and stitch the entire page
+- **✂️ Selection Screenshot** - Drag to select and capture any specific region
+- **🎨 Multiple Formats** - Export as PNG or JPEG with quality control
 
-- [ ] 任意网页视窗录制（mp4, wav, gif）
-- [ ] 截图二次编辑（尺寸截取）
-- [ ] 视频二次编辑（时长截取，视频帧选取封面）
+### Video Recording
+- **🎥 Tab Recording** - Record any browser tab with audio support
+- **🔄 Format Conversion** - Convert to MP4, MOV, WebM, or GIF
+- **📊 Metadata Extraction** - View detailed video information (codec, resolution, bitrate, etc.)
+- **⚡ High Performance** - Powered by MediaBunny for efficient processing
 
-## 技术栈
+### User Experience
+- **🎯 Intuitive UI** - Clean, modern interface with dark mode support
+- **📦 Automatic Download** - Smart file naming and instant downloads
+- **🔔 Toast Notifications** - Friendly feedback for all operations
+- **📱 Responsive Design** - Works seamlessly across different screen sizes
 
-- **wxt** - 现代化的浏览器插件开发框架
-- **vue 3** - 渐进式 JavaScript 框架
-- **tailwindcss** - 实用优先的 CSS 框架
-- **vite** - 新一代前端构建工具（wxt 封装）
-- **biome** - 快速的代码格式化和检查工具
+## 📸 Screenshots
 
-## 项目结构
+> Coming soon
 
-```
-src/
-├── app/                      # 插件入口点
-│   ├── popup/               # 弹窗页面
-│   │   ├── App.vue         # 主界面
-│   │   ├── index.html      # HTML 入口
-│   │   └── main.ts         # Vue 应用入口
-│   ├── background.ts        # 后台脚本（处理截图逻辑）
-│   ├── content.ts           # 内容脚本（原有）
-│   └── content-selection.ts # 选区工具内容脚本
-├── components/              # Vue 组件
-│   ├── SelectionTool.vue   # 可视化选区工具
-│   └── Toast.vue           # Toast 通知组件
-├── composables/             # Vue Composables
-│   └── useToast.ts         # Toast 通知系统
-├── types/                   # TypeScript 类型定义
-│   ├── screenshot.ts       # 截图相关类型
-│   └── index.ts            # 类型导出
-├── utils/                   # 工具函数
-│   ├── screenshot.ts       # 截图核心功能
-│   ├── canvas.ts           # Canvas 操作工具
-│   └── file.ts             # 文件处理工具
-└── assets/                  # 静态资源
-    └── tailwind.css        # Tailwind CSS 入口
-```
+## 🌐 Supported Browsers
 
-## 功能说明
+- **Chrome** - Version 88 and above (Manifest V3)
+- **Edge** - Version 88 and above (Manifest V3)
+- **Firefox** - Support coming soon
 
-### 1. 视窗截图
-- **功能**：截取浏览器当前可见区域
-- **格式**：PNG（无损）或 JPEG（有损压缩）
-- **实现**：使用 Chrome `tabs.captureVisibleTab` API
+## 📥 Installation
 
-### 2. 长截图（整页截图）
-- **功能**：自动滚动页面并拼接为完整截图
-- **格式**：PNG 或 JPEG
-- **实现**：
-  - 计算页面总高度
-  - 分段滚动并截图
-  - 使用 Canvas 拼接所有截图
-  - 支持超长页面
+### From Web Store
 
-### 3. 选区截图
-- **功能**：拖拽鼠标选择任意区域进行截图
-- **格式**：PNG 或 JPEG
-- **实现**：
-  - 注入可视化选区工具
-  - 实时显示选区尺寸
-  - 支持 ESC 取消选择
-  - 自动裁剪并下载
-  - Toast 通知反馈
+> Chrome Web Store and Firefox Add-ons store listings are coming soon!
 
-### 4. 通知系统
-- **功能**：友好的消息提示
-- **实现**：
-  - 自定义 Toast 组件
-  - 4 种类型（success/error/warning/info）
-  - 自动消失（可配置时长）
-  - 平滑动画过渡效果
-  - 支持深色模式
+### Manual Installation (Development)
 
-## 开发命令
+1. Download the latest release from [Releases](https://github.com/hehehai/recosite/releases)
+2. Extract the ZIP file
+3. Open your browser's extensions page:
+   - **Chrome**: Navigate to `chrome://extensions/`
+   - **Edge**: Navigate to `edge://extensions/`
+4. Enable "Developer mode"
+5. Click "Load unpacked" and select the extracted folder
+
+## 🛠️ Development
+
+### Prerequisites
+
+- Node.js 18+ and npm/pnpm/yarn
+- A Chromium-based browser (Chrome, Edge, etc.)
+
+### Installation
 
 ```bash
-# 安装依赖
-npm install
+# Clone the repository
+git clone https://github.com/hehehai/recosite.git
+cd recosite
 
-# 开发模式（Chrome）
+# Install dependencies
+npm install
+```
+
+### Development Server
+
+```bash
+# Start development server for Chrome
 npm run dev
 
-# 开发模式（Firefox）
+# Start development server for Firefox
 npm run dev:firefox
+```
 
-# 构建生产版本（Chrome）
+Then load the extension:
+1. Open `chrome://extensions/` (or `about:debugging#/runtime/this-firefox` for Firefox)
+2. Enable "Developer mode"
+3. Click "Load unpacked extension"
+4. Select the `.output/chrome-mv3` directory (or `.output/firefox-mv2` for Firefox)
+
+### Build
+
+```bash
+# Build for production (Chrome)
 npm run build
 
-# 构建生产版本（Firefox）
+# Build for production (Firefox)
 npm run build:firefox
 
-# 打包为 ZIP（用于发布）
+# Package as ZIP for store submission
 npm run zip
+npm run zip:firefox
+```
 
-# 代码格式化和检查
+### Code Quality
+
+```bash
+# Format and lint code
 npm run check
 
-# TypeScript 类型检查
+# Type checking
 npm run compile
 ```
 
-## 安装和使用
+## 🏗️ Tech Stack
 
-### 开发模式
+- **[WXT](https://wxt.dev/)** - Modern browser extension framework
+- **[Vue 3](https://vuejs.org/)** - Progressive JavaScript framework
+- **[Tailwind CSS 4](https://tailwindcss.com/)** - Utility-first CSS framework
+- **[TypeScript](https://www.typescriptlang.org/)** - Type-safe JavaScript
+- **[Biome](https://biomejs.dev/)** - Fast code formatter and linter
+- **[MediaBunny](https://github.com/TrebledJ/mediabunny)** - Web-based media processing
+- **[Vite](https://vitejs.dev/)** - Next-generation frontend tooling
 
-1. 克隆项目并安装依赖：
-   ```bash
-   git clone <repository-url>
-   cd recosite
-   npm install
-   ```
+## 📁 Project Structure
 
-2. 启动开发服务器：
-   ```bash
-   npm run dev
-   ```
-
-3. 在 Chrome 中加载扩展：
-   - 打开 `chrome://extensions/`
-   - 开启"开发者模式"
-   - 点击"加载已解压的扩展程序"
-   - 选择 `.output/chrome-mv3` 目录
-
-### 生产构建
-
-1. 构建生产版本：
-   ```bash
-   npm run build
-   ```
-
-2. 在 Chrome 中加载：
-   - 打开 `chrome://extensions/`
-   - 开启"开发者模式"
-   - 点击"加载已解压的扩展程序"
-   - 选择 `dist/chrome-mv3` 目录
-
-### 使用方法
-
-1. 点击浏览器工具栏中的 Recosite 图标
-2. 选择截图类型：
-   - **视窗截图**：立即截取当前可见区域
-   - **长截图**：自动滚动并截取整个页面
-   - **选区截图**：拖拽选择特定区域
-3. 选择图片格式（PNG 或 JPEG）
-4. 截图会自动下载到默认下载目录
-
-## 核心 API 使用
-
-### 权限要求
-
-```json
-{
-  "permissions": [
-    "activeTab",      // 访问当前标签页
-    "tabs",           // 操作标签页
-    "scripting",      // 注入脚本
-    "downloads"       // 下载文件
-  ],
-  "host_permissions": ["<all_urls>"]  // 访问所有网站
-}
+```
+recosite/
+├── src/
+│   ├── app/                      # Application entry points
+│   │   ├── background.ts        # Background service worker
+│   │   ├── offscreen/           # Offscreen document for recording
+│   │   ├── popup/               # Extension popup UI
+│   │   └── result/              # Result page for viewing captures
+│   ├── components/              # Reusable Vue components
+│   │   ├── SelectionTool.vue   # Visual selection tool
+│   │   └── Toast.vue           # Notification component
+│   ├── composables/             # Vue composition functions
+│   │   ├── useImageExport.ts   # Image export logic
+│   │   ├── useVideoExport.ts   # Video conversion logic
+│   │   ├── useVideoMetadata.ts # Video metadata extraction
+│   │   └── useToast.ts         # Toast notification system
+│   ├── content-scripts/         # Content scripts
+│   │   └── selection.ts        # Selection tool injection
+│   ├── types/                   # TypeScript type definitions
+│   │   ├── screenshot.ts       # Screenshot types
+│   │   └── bridge.d.ts         # Message bridge types
+│   └── utils/                   # Utility functions
+│       ├── screenshot.ts       # Screenshot capture utilities
+│       ├── recording.ts        # Video recording utilities
+│       ├── canvas.ts           # Canvas manipulation
+│       └── file.ts             # File handling
+├── public/                      # Static assets
+├── wxt.config.ts               # WXT configuration
+└── package.json                # Project dependencies
 ```
 
-### 主要 API
+## 🤝 Contributing
 
-- `chrome.tabs.captureVisibleTab()` - 截取可见标签页
-- `chrome.tabs.query()` - 查询标签页信息
-- `chrome.scripting.executeScript()` - 执行脚本
-- `chrome.runtime.sendMessage()` - 消息通信
-- `chrome.runtime.onMessage` - 监听消息
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
 
-## 技术亮点
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'feat: add some amazing feature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-1. **模块化架构**：清晰的文件结构和职责分离
-2. **类型安全**：完整的 TypeScript 类型定义
-3. **现代化工具链**：WXT + Vue 3 + Tailwind CSS 4 + Biome
-4. **消息通信**：Background ↔ Content Script ↔ Popup 三方通信
-5. **Canvas 操作**：高效的图片处理和拼接算法
-6. **用户体验**：Toast 通知、可视化选区、自动命名、深色模式支持
-7. **Composition API**：使用 Vue 3 Composition API 和自定义 Composables
-8. **响应式设计**：适配不同分辨率和深色模式
+Please make sure to:
+- Follow the existing code style
+- Run `npm run check` before committing
+- Update documentation as needed
+- Write meaningful commit messages
 
-## 待优化项
+## 📄 License
 
-1. **长截图性能优化**
-   - 添加进度条显示
-   - 可以考虑使用 `chrome.debugger` API 获取完整渲染树
-   - 优化大页面的内存使用
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-2. **选区工具增强**
-   - 添加撤销/重做功能
-   - 支持键盘快捷键
-   - 添加网格辅助线
-   - 支持多选区
+## 🙏 Acknowledgments
 
-3. **文件管理**
-   - 自定义保存路径
-   - 批量截图管理
-   - 历史记录查看
-   - 云端同步
+- [WXT](https://wxt.dev/) - For the amazing browser extension framework
+- [MediaBunny](https://github.com/TrebledJ/mediabunny) - For powerful media processing capabilities
+- [Vue.js](https://vuejs.org/) - For the reactive UI framework
+- All contributors who help improve this project
 
-4. **图片编辑**
-   - 添加基础编辑功能（裁剪、旋转、标注）
-   - 添加水印功能
-   - 图片压缩选项
+## 💖 Support
 
-5. **用户体验**
-   - 添加快捷键支持
-   - 右键菜单集成
-   - 设置页面（自定义配置）
-   - 多语言支持（i18n）
+If you find this project helpful, please consider:
+- ⭐ Starring the repository on GitHub
+- 🐛 Reporting bugs or suggesting features through [Issues](https://github.com/hehehai/recosite/issues)
+- 📢 Sharing it with others who might find it useful
+- ☕ [Buying me a coffee](https://github.com/hehehai) (Coming soon)
 
-## 贡献指南
+## 📮 Contact
 
-欢迎提交 Issue 和 Pull Request！
+- GitHub: [@hehehai](https://github.com/hehehai)
+- Issues: [GitHub Issues](https://github.com/hehehai/recosite/issues)
 
-## 许可证
+---
 
-MIT
+<div align="center">
+  Made with ❤️ by <a href="https://github.com/hehehai">hehehai</a>
+  <br>
+  <a href="#-recosite">⬆️ Back to top</a>
+</div>
