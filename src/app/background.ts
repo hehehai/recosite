@@ -12,7 +12,6 @@ import {
 import { generateFileName } from "@/utils/file";
 import {
   closeOffscreenDocument,
-  downloadRecording,
   generateRecordingFileName,
   startRecording,
   stopRecording,
@@ -139,26 +138,29 @@ async function handleMessage(
 }
 
 /**
- * 打开结果页面并显示截图
+ * 打开结果页面并显示截图或录屏
  * 使用 storage API 传递大数据，避免 URL 长度限制
  */
 async function openResultPage(
   dataUrl: string,
   fileName: string,
   width: number,
-  height: number
+  height: number,
+  size = 0,
+  type: "image" | "video" = "image"
 ) {
   // 生成唯一 ID
   const resultId = `screenshot_${Date.now()}`;
 
-  // 将数据存储到 session storage
-  await browser.storage.session.set({
+  // 将数据存储到 local storage（跨标签页访问）
+  await browser.storage.local.set({
     [resultId]: {
       dataUrl,
       fileName,
       width,
       height,
-      type: "image",
+      size,
+      type,
     },
   });
 
@@ -409,16 +411,25 @@ async function handleStopRecording(
       return;
     }
 
-    console.log("[Background] Recording stopped, preparing download...");
+    console.log("[Background] Recording stopped, preparing result page...");
 
-    // 下载录制文件
+    // 生成文件名
     const fileName = generateRecordingFileName(VideoFormat.WEBM);
     console.log("[Background] Generated file name:", fileName);
-    await downloadRecording(
-      result.data,
-      fileName,
-      result.mimeType || "video/webm"
-    );
+
+    // 将视频数据转换为 data URL
+    const blob = new Blob([result.data as BlobPart], {
+      type: result.mimeType || "video/webm",
+    });
+    const reader = new FileReader();
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+
+    // 打开结果页面显示录屏
+    await openResultPage(dataUrl, fileName, 0, 0, result.size || 0, "video");
 
     // 关闭 offscreen document
     console.log("[Background] Closing offscreen document...");
@@ -583,16 +594,25 @@ async function handleStopRecordingBridge() {
       };
     }
 
-    console.log("[Background] Recording stopped, preparing download...");
+    console.log("[Background] Recording stopped, preparing result page...");
 
-    // 下载录制文件
+    // 生成文件名
     const fileName = generateRecordingFileName(VideoFormat.WEBM);
     console.log("[Background] Generated file name:", fileName);
-    await downloadRecording(
-      result.data,
-      fileName,
-      result.mimeType || "video/webm"
-    );
+
+    // 将视频数据转换为 data URL
+    const blob = new Blob([result.data as BlobPart], {
+      type: result.mimeType || "video/webm",
+    });
+    const reader = new FileReader();
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+
+    // 打开结果页面显示录屏
+    await openResultPage(dataUrl, fileName, 0, 0, result.size || 0, "video");
 
     // 关闭 offscreen document
     console.log("[Background] Closing offscreen document...");
