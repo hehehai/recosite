@@ -7,10 +7,12 @@
     height: number;
     fileSizeFormatted: string;
     isVideo: boolean;
+    duration?: string;
   }>();
 
   const emit = defineEmits<{
     close: [];
+    showDetails: [];
   }>();
 </script>
 
@@ -64,14 +66,24 @@
           </div>
         </div>
 
-        <!-- 关闭按钮 -->
-        <button
-          type="button"
-          class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
-          @click="emit('close')"
-        >
-          关闭
-        </button>
+        <!-- 按钮组 -->
+        <div class="flex gap-2">
+          <button
+            v-if="isVideo"
+            type="button"
+            class="rounded-lg border border-blue-500 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 shadow-sm transition hover:bg-blue-100 dark:border-blue-600 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50"
+            @click="emit('showDetails')"
+          >
+            视频详情
+          </button>
+          <button
+            type="button"
+            class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+            @click="emit('close')"
+          >
+            关闭
+          </button>
+        </div>
       </div>
 
       <!-- 文件信息 -->
@@ -114,6 +126,16 @@
             class="rounded bg-purple-100 px-2 py-1 font-mono text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
           >
             {{ fileSizeFormatted }}
+          </span>
+        </div>
+        <div v-if="isVideo && duration" class="flex items-center gap-2">
+          <span class="font-medium text-gray-700 dark:text-gray-300"
+            >时长:</span
+          >
+          <span
+            class="rounded bg-orange-100 px-2 py-1 font-mono text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+          >
+            {{ duration }}
           </span>
         </div>
       </div>

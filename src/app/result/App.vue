@@ -5,10 +5,13 @@
     useNotification,
     useResultData,
     useVideoExport,
+    useVideoMetadata,
   } from "@/composables";
   import type { ImageFormat, VideoFormat } from "@/types/screenshot";
   import NotificationToast from "./components/NotificationToast.vue";
   import ResultHeader from "./components/ResultHeader.vue";
+  import VideoMetadataDialog from "./components/VideoMetadataDialog.vue";
+  import VideoPlayer from "./components/VideoPlayer.vue";
 
   // 使用 composables
   const { notification, showNotification, hideNotification } =
@@ -40,11 +43,19 @@
     downloadFile: videoDownloadFile,
   } = useVideoExport();
 
+  const { metadata: videoMetadata, extractMetadata } = useVideoMetadata();
+
   // 导出状态
   const exportingFormat = computed(
     () => imageExportingFormat.value || videoExportingFormat.value
   );
   const copySuccess = ref(false);
+
+  // 视频元数据对话框
+  const showMetadataDialog = ref(false);
+
+  // 视频时长
+  const videoDuration = ref<string>();
 
   // 图片导出选项
   const imageExportFormats: ImageFormat[] = ["png", "jpeg"];
@@ -68,6 +79,11 @@
     }
 
     await loadResultData(resultId);
+
+    // 如果是视频，获取时长
+    if (resultType.value === "video") {
+      await handleVideoLoaded();
+    }
   });
 
   async function handleExport(format: string) {
@@ -129,6 +145,46 @@
   function handleClose() {
     window.close();
   }
+
+  function handleShowDetails() {
+    showMetadataDialog.value = true;
+  }
+
+  function handleCloseDetails() {
+    showMetadataDialog.value = false;
+  }
+
+  // 格式化视频时长
+  function formatVideoDuration(seconds: number): string {
+    if (!Number.isFinite(seconds)) {
+      return "0:00";
+    }
+
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = Math.floor(seconds % 60);
+
+    if (hours > 0) {
+      return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
+    }
+    return `${minutes}:${secs.toString().padStart(2, "0")}`;
+  }
+
+  // 视频加载完成后获取时长
+  async function handleVideoLoaded() {
+    if (mediaData.value && resultType.value === "video") {
+      try {
+        await extractMetadata(mediaData.value);
+        if (videoMetadata.value) {
+          videoDuration.value = formatVideoDuration(
+            videoMetadata.value.duration
+          );
+        }
+      } catch (err) {
+        console.error("Failed to get video duration:", err);
+      }
+    }
+  }
 </script>
 
 <template>
@@ -143,7 +199,9 @@
       :height="height"
       :file-size-formatted="fileSizeFormatted"
       :is-video="resultType === 'video'"
+      :duration="videoDuration"
       @close="handleClose"
+      @show-details="handleShowDetails"
     />
 
     <!-- 主内容区域 -->
@@ -208,12 +266,7 @@
             >
 
             <!-- 视频预览 -->
-            <video
-              v-else
-              :src="mediaData"
-              controls
-              class="max-h-full max-w-full rounded shadow-lg"
-            />
+            <VideoPlayer v-else :data-url="mediaData"/>
           </div>
         </div>
 
@@ -264,12 +317,12 @@
                 </svg>
                 <span
                   >{{
-                  copySuccess
-                    ? "已复制"
-                    : resultType === "image"
-                      ? "复制到剪贴板"
-                      : "下载视频"
-                }}</span
+                                    copySuccess
+                                        ? "已复制"
+                                        : resultType === "image"
+                                            ? "复制到剪贴板"
+                                            : "下载视频"
+                                }}</span
                 >
               </button>
             </div>
@@ -291,13 +344,13 @@
                 type="button"
                 :disabled="exportingFormat === format"
                 :class="[
-                  'flex w-full items-center justify-between rounded-lg border px-4 py-2.5 text-sm font-medium transition',
-                  format === originalFormat
-                    ? 'border-green-500 bg-green-50 text-green-700 hover:bg-green-100 dark:border-green-600 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50'
-                    : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700',
-                  exportingFormat === format &&
-                    'cursor-not-allowed opacity-50',
-                ]"
+                                    'flex w-full items-center justify-between rounded-lg border px-4 py-2.5 text-sm font-medium transition',
+                                    format === originalFormat
+                                        ? 'border-green-500 bg-green-50 text-green-700 hover:bg-green-100 dark:border-green-600 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50'
+                                        : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700',
+                                    exportingFormat === format &&
+                                    'cursor-not-allowed opacity-50',
+                                ]"
                 @click="handleExport(format)"
               >
                 <span class="flex items-center gap-2">
@@ -355,7 +408,8 @@
               <div class="text-xs text-blue-700 dark:text-blue-300">
                 <p class="font-medium">提示</p>
                 <p class="mt-1">
-                  {{ resultType === "image" ? "转换为 JPEG 可以减小文件大小，但会失去透明度支持" : "MP4 格式兼容性更好，适合大多数播放器" }}
+                  {{ resultType === "image" ? "转换为 JPEG 可以减小文件大小，但会失去透明度支持" : "MP4 格式兼容性更好，适合大多数播放器"
+                                    }}
                 </p>
               </div>
             </div>
@@ -366,5 +420,12 @@
 
     <!-- 通知消息 -->
     <NotificationToast :notification="notification" @close="hideNotification"/>
+
+    <!-- 视频元数据对话框 -->
+    <VideoMetadataDialog
+      :show="showMetadataDialog"
+      :data-url="mediaData || ''"
+      @close="handleCloseDetails"
+    />
   </div>
 </template>
