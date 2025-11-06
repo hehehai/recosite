@@ -3,7 +3,7 @@
   "extends": ["ultracite/core", "ultracite/vue"],
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**", "!**/.output", "!**/dist"]
+    "includes": ["**", "!**/.output", "!**/dist", "!**/demo"]
   },
   "javascript": {
     "globals": [
