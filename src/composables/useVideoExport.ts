@@ -41,6 +41,7 @@ export function useVideoExport() {
         BufferTarget,
         Mp4OutputFormat,
         WebMOutputFormat,
+        MovOutputFormat,
         ALL_FORMATS,
       } = await import("mediabunny");
 
@@ -56,11 +57,14 @@ export function useVideoExport() {
       // 配置输出格式
       let outputFormat:
         | InstanceType<typeof Mp4OutputFormat>
-        | InstanceType<typeof WebMOutputFormat>;
+        | InstanceType<typeof WebMOutputFormat>
+        | InstanceType<typeof MovOutputFormat>;
       if (targetFormat === "mp4") {
         outputFormat = new Mp4OutputFormat();
       } else if (targetFormat === "webm") {
         outputFormat = new WebMOutputFormat();
+      } else if (targetFormat === "mov") {
+        outputFormat = new MovOutputFormat();
       } else if (targetFormat === "gif") {
         return { success: false, error: "GIF 导出功能即将推出" };
       } else {

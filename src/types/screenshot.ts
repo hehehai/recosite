@@ -26,6 +26,7 @@ export type ImageFormat = (typeof ImageFormat)[keyof typeof ImageFormat];
 export const VideoFormat = {
   WEBM: "webm",
   MP4: "mp4",
+  MOV: "mov",
   GIF: "gif",
 } as const;
 
