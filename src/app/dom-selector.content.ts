@@ -154,6 +154,29 @@ function updateHighlight(element: HTMLElement) {
 }
 
 /**
+ * 检查元素是否是工具元素或其子元素
+ */
+function isToolElement(element: HTMLElement): boolean {
+  if (
+    element === overlayElement ||
+    element === highlightElement ||
+    element === confirmDialogElement
+  ) {
+    return true;
+  }
+
+  // 检查是否是工具元素的子元素
+  if (overlayElement?.contains(element)) {
+    return true;
+  }
+  if (confirmDialogElement?.contains(element)) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
  * 鼠标移动处理
  */
 function handleMouseMove(e: MouseEvent) {
@@ -162,12 +185,7 @@ function handleMouseMove(e: MouseEvent) {
   }
 
   const target = e.target as HTMLElement;
-  if (
-    !target ||
-    target === overlayElement ||
-    target === highlightElement ||
-    target === confirmDialogElement
-  ) {
+  if (!target || isToolElement(target)) {
     return;
   }
 
@@ -188,18 +206,13 @@ function handleClick(e: MouseEvent) {
     return;
   }
 
-  e.preventDefault();
-  e.stopPropagation();
-
   const target = e.target as HTMLElement;
-  if (
-    !target ||
-    target === overlayElement ||
-    target === highlightElement ||
-    target === confirmDialogElement
-  ) {
+  if (!target || isToolElement(target)) {
     return;
   }
+
+  e.preventDefault();
+  e.stopPropagation();
 
   selectElement(target);
 }
@@ -263,6 +276,9 @@ async function captureSelectedElement() {
     return;
   }
 
+  // 保存引用，因为 stopDomSelection 会清空 selectedElement
+  const element = selectedElement;
+
   try {
     // 临时移除高亮和对话框
     if (highlightElement?.parentNode) {
@@ -276,11 +292,11 @@ async function captureSelectedElement() {
     const options = { backgroundColor: "#ffffff" };
 
     // 生成 PNG 数据 URL
-    const pngImage = await snapdom.toPng(selectedElement, options);
+    const pngImage = await snapdom.toPng(element, options);
     const dataUrl = pngImage.src;
 
     // 同时生成 SVG 版本供后续导出使用
-    const svgElement = await snapdom.toSvg(selectedElement, options);
+    const svgElement = await snapdom.toSvg(element, options);
     const svgBlob = new Blob([svgElement.outerHTML], {
       type: "image/svg+xml",
     });
@@ -295,8 +311,8 @@ async function captureSelectedElement() {
       data: {
         dataUrl,
         svgDataUrl,
-        width: selectedElement.offsetWidth,
-        height: selectedElement.offsetHeight,
+        width: element.offsetWidth,
+        height: element.offsetHeight,
       },
     });
   } catch (error) {
