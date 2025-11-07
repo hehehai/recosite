@@ -128,6 +128,23 @@ async function handleMessage(
         console.log("[Background] Recording complete notification received");
         break;
 
+      case MessageType.START_DOM_SELECTION:
+        console.log("[Background] Received START_DOM_SELECTION message");
+        await updateDomBadge(true);
+        sendResponse({ success: true });
+        break;
+
+      case MessageType.CANCEL_DOM_SELECTION:
+        console.log("[Background] Received CANCEL_DOM_SELECTION message");
+        await updateDomBadge(false);
+        sendResponse({ success: true });
+        break;
+
+      case MessageType.CAPTURE_DOM:
+        console.log("[Background] Received CAPTURE_DOM message");
+        await handleCaptureDom(message.data, sendResponse);
+        break;
+
       default:
         console.warn("Unknown message type:", message.type);
         sendResponse({ error: "Unknown message type" });
@@ -480,6 +497,85 @@ async function updateRecordingIcon(isRecording: boolean) {
     }
   } catch (error) {
     console.error("[Background] Failed to update icon:", error);
+  }
+}
+
+/**
+ * 更新 DOM 选择图标
+ */
+async function updateDomBadge(isSelecting: boolean) {
+  try {
+    if (isSelecting) {
+      console.log("[Background] Setting DOM selection badge");
+      await browser.action.setBadgeText({ text: "DOM" });
+      await browser.action.setBadgeBackgroundColor({ color: "#3b82f6" });
+      await browser.action.setBadgeTextColor({ color: "#FFFFFF" });
+      console.log("[Background] DOM badge set successfully");
+    } else {
+      console.log("[Background] Clearing DOM badge");
+      await browser.action.setBadgeText({ text: "" });
+      console.log("[Background] DOM badge cleared successfully");
+    }
+  } catch (error) {
+    console.error("[Background] Failed to update DOM badge:", error);
+  }
+}
+
+/**
+ * 处理 DOM 截图
+ */
+async function handleCaptureDom(
+  data: {
+    dataUrl: string;
+    svgDataUrl: string;
+    width: number;
+    height: number;
+  },
+  sendResponse: (response?: unknown) => void
+) {
+  try {
+    console.log("[Background] Processing DOM capture");
+
+    // 清除 badge
+    await updateDomBadge(false);
+
+    const fileName = generateFileName(ImageFormat.PNG);
+
+    // 存储 SVG 数据供后续导出使用
+    const resultId = `dom_screenshot_${Date.now()}`;
+    await browser.storage.local.set({
+      [resultId]: {
+        dataUrl: data.dataUrl,
+        svgDataUrl: data.svgDataUrl,
+        fileName,
+        width: data.width,
+        height: data.height,
+        size: 0,
+        type: "image",
+      },
+      [`${resultId}_svg`]: data.svgDataUrl, // 单独存储 SVG
+    });
+
+    // 打开结果页面
+    const resultUrl = browser.runtime.getURL("/result.html");
+    const params = new URLSearchParams({
+      id: resultId,
+    });
+
+    await browser.tabs.create({
+      url: `${resultUrl}?${params.toString()}`,
+    });
+
+    sendResponse({
+      success: true,
+      fileName,
+      width: data.width,
+      height: data.height,
+    });
+  } catch (error) {
+    console.error("[Background] DOM capture failed:", error);
+    await updateDomBadge(false);
+    sendResponse({ error: String(error) });
   }
 }
 

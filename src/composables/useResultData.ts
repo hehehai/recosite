@@ -14,6 +14,7 @@ export interface ResultData {
 export function useResultData() {
   const resultType = ref<ResultType>("image");
   const mediaData = ref<string | null>(null);
+  const svgData = ref<string | null>(null); // SVG 数据
   const fileName = ref<string>("");
   const width = ref<number>(0);
   const height = ref<number>(0);
@@ -49,7 +50,10 @@ export function useResultData() {
   async function loadResultData(resultId: string) {
     try {
       const { browser } = await import("wxt/browser");
-      const storageData = await browser.storage.local.get(resultId);
+      const storageData = await browser.storage.local.get([
+        resultId,
+        `${resultId}_svg`,
+      ]);
       const data = storageData[resultId] as ResultData;
 
       if (!data) {
@@ -65,12 +69,18 @@ export function useResultData() {
       fileSize.value = data.size || 0;
       resultType.value = data.type || "image";
 
+      // 加载 SVG 数据（如果存在）
+      const svgKey = `${resultId}_svg`;
+      if (storageData[svgKey]) {
+        svgData.value = storageData[svgKey] as string;
+      }
+
       // 从文件名提取原始格式
       const ext = fileName.value.split(".").pop()?.toLowerCase() || "";
       originalFormat.value = ext;
 
       // 清理 storage 数据
-      await browser.storage.local.remove(resultId);
+      await browser.storage.local.remove([resultId, svgKey]);
 
       loading.value = false;
     } catch (err) {
@@ -82,6 +92,7 @@ export function useResultData() {
   return {
     resultType,
     mediaData,
+    svgData,
     fileName,
     width,
     height,

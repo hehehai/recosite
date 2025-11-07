@@ -63,6 +63,19 @@ export interface ScreenshotResult {
 }
 
 /**
+ * DOM 截图状态
+ */
+export const DomCaptureState = {
+  IDLE: "idle",
+  SELECTING: "selecting",
+  SELECTED: "selected",
+  CAPTURING: "capturing",
+} as const;
+
+export type DomCaptureState =
+  (typeof DomCaptureState)[keyof typeof DomCaptureState];
+
+/**
  * 消息类型
  */
 export const MessageType = {
@@ -74,6 +87,10 @@ export const MessageType = {
   STOP_RECORDING: "stop_recording",
   GET_RECORDING_STATUS: "get_recording_status",
   RECORDING_COMPLETE: "recording_complete",
+  START_DOM_SELECTION: "start_dom_selection",
+  CANCEL_DOM_SELECTION: "cancel_dom_selection",
+  CONFIRM_DOM_SELECTION: "confirm_dom_selection",
+  CAPTURE_DOM: "capture_dom",
 } as const;
 
 export type MessageType = (typeof MessageType)[keyof typeof MessageType];
