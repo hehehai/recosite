@@ -293,6 +293,8 @@ async function captureSelectedElement() {
       allowTaint: true,
       // 使用 CORS 代理
       useCORS: true,
+      // 禁用缓存，因为用户每次只截取一个元素，不需要保留缓存
+      cache: "disabled" as const,
     };
 
     // 生成 PNG 数据 URL
