@@ -20,8 +20,17 @@ export default defineConfig({
       "storage", // 用于存储录制数据
     ],
     host_permissions: ["<all_urls>"],
+    web_accessible_resources: [
+      {
+        resources: ["content-scripts/dom-selector.js"],
+        matches: ["<all_urls>"],
+      },
+    ],
   },
   vite: () => ({
     plugins: [tailwindcss()],
+    build: {
+      minify: false, // 禁用压缩以避免 UTF-8 编码问题
+    },
   }),
 });

@@ -137,18 +137,33 @@
         return;
       }
 
-      // 注入 DOM 选择器脚本
-      await browser.scripting.executeScript({
-        target: { tabId: tab.id },
-        files: ["/content-scripts/dom-selector.js"],
-      });
+      try {
+        // Content script 已通过 manifest 自动注入，直接发送消息
+        await browser.tabs.sendMessage(tab.id, {
+          type: MessageType.START_DOM_SELECTION,
+        });
 
-      // 发送开始选择消息
-      await browser.tabs.sendMessage(tab.id, {
-        type: MessageType.START_DOM_SELECTION,
-      });
+        window.close();
+      } catch (err) {
+        // 如果 content script 未加载（新标签页或扩展刚安装）
+        // 自动刷新页面并重试
+        console.log("[Popup] Content script not loaded, reloading tab...");
 
-      window.close();
+        await browser.tabs.reload(tab.id);
+
+        // 等待页面加载完成
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        try {
+          await browser.tabs.sendMessage(tab.id, {
+            type: MessageType.START_DOM_SELECTION,
+          });
+          window.close();
+        } catch (retryErr) {
+          error("加载失败，请手动刷新页面后重试");
+          isCapturing.value = false;
+        }
+      }
     } catch (err) {
       error(`DOM截图失败: ${err}`);
       isCapturing.value = false;
