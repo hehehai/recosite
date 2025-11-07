@@ -286,25 +286,34 @@ async function captureSelectedElement() {
     // 等待一帧，确保清理完成
     await new Promise((resolve) => requestAnimationFrame(resolve));
 
-    // 使用 snapdom 截取 DOM
-    const options = {
+    // PNG 导出选项
+    const pngOptions = {
       backgroundColor: "#ffffff",
-      // 允许跨域图片（尽可能）
       allowTaint: true,
-      // 使用 CORS 代理
       useCORS: true,
-      // 禁用缓存，因为用户每次只截取一个元素，不需要保留缓存
       cache: "disabled" as const,
     };
 
     // 生成 PNG 数据 URL
-    const pngImage = await snapdom.toPng(element, options);
+    const pngImage = await snapdom.toPng(element, pngOptions);
     const dataUrl = pngImage.src;
 
     // 同时生成 SVG 版本供后续导出使用
     let svgDataUrl = "";
     try {
-      const svgElement = await snapdom.toSvg(element, options);
+      // SVG 导出使用更宽松的选项，避免图片加载失败导致整个 SVG 损坏
+      const svgOptions = {
+        backgroundColor: "#ffffff",
+        allowTaint: true,
+        useCORS: true,
+        cache: "disabled" as const,
+        // 为失败的图片提供占位符，避免不完整的标签
+        placeholders: true,
+        // 设置超时时间，避免等待太久
+        fetchTimeout: 5000,
+      };
+
+      const svgElement = await snapdom.toSvg(element, svgOptions);
 
       // 清理 SVG，移除可能导致问题的空图片或未完成的图片标签
       const svgString = svgElement.outerHTML;
