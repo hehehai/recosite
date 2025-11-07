@@ -28,10 +28,10 @@
         <div
           class="pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg shadow-lg ring-1 ring-black ring-opacity-5"
           :class="{
-            'bg-white dark:bg-gray-800': notification.type === 'info',
-            'bg-green-50 dark:bg-green-900/30': notification.type === 'success',
-            'bg-red-50 dark:bg-red-900/30': notification.type === 'error',
-          }"
+                        'bg-white dark:bg-gray-800': notification.type === 'info',
+                        'bg-green-50 dark:bg-green-900/30': notification.type === 'success',
+                        'bg-red-50 dark:bg-red-900/30': notification.type === 'error',
+                    }"
         >
           <div class="p-4">
             <div class="flex items-start">
@@ -83,10 +83,10 @@
                 <p
                   class="text-sm font-medium"
                   :class="{
-                    'text-gray-900 dark:text-white': notification.type === 'info',
-                    'text-green-800 dark:text-green-200': notification.type === 'success',
-                    'text-red-800 dark:text-red-200': notification.type === 'error',
-                  }"
+                                    'text-gray-900 dark:text-white': notification.type === 'info',
+                                    'text-green-800 dark:text-green-200': notification.type === 'success',
+                                    'text-red-800 dark:text-red-200': notification.type === 'error',
+                                }"
                 >
                   {{ notification.message }}
                 </p>
@@ -96,10 +96,10 @@
                   type="button"
                   class="inline-flex rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2"
                   :class="{
-                    'text-gray-400 hover:text-gray-500 focus:ring-gray-500': notification.type === 'info',
-                    'text-green-500 hover:text-green-600 focus:ring-green-500': notification.type === 'success',
-                    'text-red-500 hover:text-red-600 focus:ring-red-500': notification.type === 'error',
-                  }"
+                                        'text-gray-400 hover:text-gray-500 focus:ring-gray-500': notification.type === 'info',
+                                        'text-green-500 hover:text-green-600 focus:ring-green-500': notification.type === 'success',
+                                        'text-red-500 hover:text-red-600 focus:ring-red-500': notification.type === 'error',
+                                    }"
                   @click="emit('close')"
                 >
                   <span class="sr-only">关闭</span>

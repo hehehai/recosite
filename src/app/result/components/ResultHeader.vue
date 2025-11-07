@@ -25,7 +25,7 @@
         <!-- Logo 和标题 -->
         <div class="flex items-center gap-4">
           <div
-            class="flex size-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-purple-600"
+            class="flex size-10 items-center justify-center rounded-lg bg-linear-to-br from-blue-500 to-purple-600"
           >
             <svg
               v-if="!isVideo"

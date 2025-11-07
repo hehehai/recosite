@@ -579,7 +579,7 @@
       <!-- Controls -->
       <div
         ref="controlsElement"
-        class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 transition-opacity"
+        class="absolute bottom-0 left-0 right-0 bg-linear-to-t from-black/80 to-transparent p-4 transition-opacity"
         :class="hasVideo ? 'opacity-0' : 'opacity-100'"
         @click.stop
       >
