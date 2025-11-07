@@ -1,4 +1,5 @@
 import { snapdom } from "@zumer/snapdom";
+import { elementToSVG, inlineResources } from "dom-to-svg";
 import { browser } from "wxt/browser";
 import { MessageType } from "@/types/screenshot";
 
@@ -53,7 +54,7 @@ function createConfirmDialog(element: HTMLElement): HTMLDivElement {
   dialog.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
 
   const rect = element.getBoundingClientRect();
-  dialog.style.left = `${rect.left + rect.width / 2 - 80}px`;
+  dialog.style.left = `${rect.left + rect.width / 2 - 120}px`;
   dialog.style.top = `${rect.top + rect.height / 2 - 20}px`;
 
   // 取消按钮
@@ -71,9 +72,9 @@ function createConfirmDialog(element: HTMLElement): HTMLDivElement {
     unselectElement();
   };
 
-  // 确认按钮
+  // PNG 确认按钮
   const confirmBtn = document.createElement("button");
-  confirmBtn.textContent = "确认";
+  confirmBtn.textContent = "PNG";
   confirmBtn.style.padding = "8px 16px";
   confirmBtn.style.border = "none";
   confirmBtn.style.borderRadius = "6px";
@@ -83,11 +84,27 @@ function createConfirmDialog(element: HTMLElement): HTMLDivElement {
   confirmBtn.style.fontSize = "14px";
   confirmBtn.style.fontWeight = "500";
   confirmBtn.onclick = async () => {
-    await captureSelectedElement();
+    await captureSelectedElement("png");
+  };
+
+  // SVG 确认按钮
+  const svgBtn = document.createElement("button");
+  svgBtn.textContent = "SVG";
+  svgBtn.style.padding = "8px 16px";
+  svgBtn.style.border = "none";
+  svgBtn.style.borderRadius = "6px";
+  svgBtn.style.backgroundColor = "#10b981";
+  svgBtn.style.color = "white";
+  svgBtn.style.cursor = "pointer";
+  svgBtn.style.fontSize = "14px";
+  svgBtn.style.fontWeight = "500";
+  svgBtn.onclick = async () => {
+    await captureSelectedElement("svg");
   };
 
   dialog.appendChild(cancelBtn);
   dialog.appendChild(confirmBtn);
+  dialog.appendChild(svgBtn);
 
   return dialog;
 }
@@ -271,7 +288,7 @@ function unselectElement() {
 /**
  * 截取选中的元素
  */
-async function captureSelectedElement() {
+async function captureSelectedElement(format: "png" | "svg" = "png") {
   if (!selectedElement) {
     return;
   }
@@ -286,68 +303,63 @@ async function captureSelectedElement() {
     // 等待一帧，确保清理完成
     await new Promise((resolve) => requestAnimationFrame(resolve));
 
-    // PNG 导出选项
-    const pngOptions = {
-      backgroundColor: "#ffffff",
-      allowTaint: true,
-      useCORS: true,
-      cache: "disabled" as const,
-    };
+    if (format === "svg") {
+      // 使用 dom-to-svg 生成 SVG
+      const svgDocument = elementToSVG(element);
 
-    // 生成 PNG 数据 URL
-    const pngImage = await snapdom.toPng(element, pngOptions);
-    const dataUrl = pngImage.src;
+      // 内联所有外部资源（CSS、字体、图片等）
+      await inlineResources(svgDocument.documentElement);
 
-    // 同时生成 SVG 版本供后续导出使用
-    let svgDataUrl = "";
-    try {
-      // SVG 导出使用更宽松的选项，避免图片加载失败导致整个 SVG 损坏
-      const svgOptions = {
+      // 设置 SVG 尺寸
+      const rect = element.getBoundingClientRect();
+      svgDocument.documentElement.setAttribute("width", String(rect.width));
+      svgDocument.documentElement.setAttribute("height", String(rect.height));
+
+      // 序列化 SVG
+      const serializer = new XMLSerializer();
+      const svgString = serializer.serializeToString(svgDocument);
+
+      // 创建 SVG Blob
+      const svgBlob = new Blob([svgString], {
+        type: "image/svg+xml;charset=utf-8",
+      });
+      const svgDataUrl = URL.createObjectURL(svgBlob);
+
+      // 发送 SVG 结果到 background
+      await browser.runtime.sendMessage({
+        type: MessageType.CAPTURE_DOM,
+        data: {
+          dataUrl: svgDataUrl,
+          svgDataUrl,
+          width: rect.width,
+          height: rect.height,
+          format: "svg",
+        },
+      });
+    } else {
+      // PNG 格式使用 snapdom
+      const pngOptions = {
         backgroundColor: "#ffffff",
         allowTaint: true,
         useCORS: true,
         cache: "disabled" as const,
-        // 为失败的图片提供占位符，避免不完整的标签
-        placeholders: true,
-        // 设置超时时间，避免等待太久
-        fetchTimeout: 5000,
       };
 
-      const svgElement = await snapdom.toSvg(element, svgOptions);
+      const pngImage = await snapdom.toPng(element, pngOptions);
+      const dataUrl = pngImage.src;
 
-      // 清理 SVG，移除可能导致问题的空图片或未完成的图片标签
-      const svgString = svgElement.outerHTML;
-
-      // 检查 SVG 是否有效（基本验证）
-      if (svgString?.includes("<svg") && svgString.includes("</svg>")) {
-        // 使用 XMLSerializer 确保 SVG 格式正确
-        const serializer = new XMLSerializer();
-        const cleanSvgString = serializer.serializeToString(svgElement);
-
-        const svgBlob = new Blob([cleanSvgString], {
-          type: "image/svg+xml;charset=utf-8",
-        });
-        svgDataUrl = URL.createObjectURL(svgBlob);
-      } else {
-        console.warn(
-          "[DOM Selector] Generated SVG appears invalid, skipping SVG export"
-        );
-      }
-    } catch (svgError) {
-      console.warn("[DOM Selector] Failed to generate SVG:", svgError);
-      // SVG 生成失败不影响 PNG 导出
+      // 发送 PNG 结果到 background
+      await browser.runtime.sendMessage({
+        type: MessageType.CAPTURE_DOM,
+        data: {
+          dataUrl,
+          svgDataUrl: "",
+          width: element.offsetWidth,
+          height: element.offsetHeight,
+          format: "png",
+        },
+      });
     }
-
-    // 发送结果到 background
-    await browser.runtime.sendMessage({
-      type: MessageType.CAPTURE_DOM,
-      data: {
-        dataUrl,
-        svgDataUrl,
-        width: element.offsetWidth,
-        height: element.offsetHeight,
-      },
-    });
   } catch (error) {
     console.error("DOM capture failed:", error);
     // 确保即使出错也清理 UI

@@ -70,6 +70,11 @@
   // 当前可用的导出格式（如果有 SVG 数据，添加 SVG 选项）
   const availableFormats = computed(() => {
     if (resultType.value === "image") {
+      // 如果原始格式是 SVG，只显示 SVG
+      if (originalFormat.value === "svg") {
+        return ["svg"];
+      }
+      // 如果有 SVG 数据，添加 SVG 选项
       return svgData.value
         ? [...imageExportFormats, "svg"]
         : imageExportFormats;

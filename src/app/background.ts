@@ -148,6 +148,7 @@ async function handleMessage(
             svgDataUrl: string;
             width: number;
             height: number;
+            format?: string;
           },
           sendResponse
         );
@@ -538,6 +539,7 @@ async function handleCaptureDom(
     svgDataUrl: string;
     width: number;
     height: number;
+    format?: string;
   },
   sendResponse: (response?: unknown) => void
 ) {
@@ -547,9 +549,11 @@ async function handleCaptureDom(
     // 清除 badge
     await updateDomBadge(false);
 
-    const fileName = generateFileName(ImageFormat.PNG);
+    // 根据格式生成文件名
+    const format = data.format === "svg" ? "svg" : ImageFormat.PNG;
+    const fileName = generateFileName(format);
 
-    // 存储 SVG 数据供后续导出使用
+    // 存储数据供后续导出使用
     const resultId = `dom_screenshot_${Date.now()}`;
     await browser.storage.local.set({
       [resultId]: {
@@ -560,8 +564,9 @@ async function handleCaptureDom(
         height: data.height,
         size: 0,
         type: "image",
+        isSvg: data.format === "svg", // 标记是否为纯 SVG
       },
-      [`${resultId}_svg`]: data.svgDataUrl, // 单独存储 SVG
+      [`${resultId}_svg`]: data.svgDataUrl, // 单独存储 SVG（如果有）
     });
 
     // 打开结果页面
