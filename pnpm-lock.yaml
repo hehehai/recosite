@@ -8,12 +8,12 @@ importers:
 
   .:
     dependencies:
+      '@zumer/snapdom':
+        specifier: ^1.9.14
+        version: 1.9.14
       mediabunny:
         specifier: ^1.24.3
         version: 1.24.3
-      snapdom:
-        specifier: ^0.1.2
-        version: 0.1.2
       vue:
         specifier: ^3.5.21
         version: 3.5.22(typescript@5.9.3)
@@ -672,6 +672,9 @@ packages:
 
   '@wxt-dev/storage@1.2.6':
     resolution: {integrity: sha512-f6AknnpJvhNHW4s0WqwSGCuZAj0fjP3EVNPBO5kB30pY+3Zt/nqZGqJN6FgBLCSkYjPJ8VL1hNX5LMVmvxQoDw==}
+
+  '@zumer/snapdom@1.9.14':
+    resolution: {integrity: sha512-kQARFS/jf+fsIFv9qxfNp8YMeun5tTyhFDk3iv47Lywk5YRldhINWicEZI15fP3FDUCeo8ok+BP0CtnDRFMFRg==}
 
   acorn@8.15.0:
     resolution: {integrity: sha512-NZyJarBfL7nWwIq+FDL6Zp/yHEhePMNnnJ0y3qfieCrmNvYct8uvtiV41UvlSe6apAfk0fY1FbWx+NwfmpvtTg==}
@@ -1717,9 +1720,6 @@ packages:
     resolution: {integrity: sha512-iOBWFgUX7caIZiuutICxVgX1SdxwAVFFKwt1EvMYYec/NWO5meOJ6K5uQxhrYBdQJne4KxiqZc+KptFOWFSI9w==}
     engines: {node: '>=18'}
 
-  snapdom@0.1.2:
-    resolution: {integrity: sha512-N9cvtICohWdAByQoF972u5BsSUhhEWPTvK11SXAt6mMHjfltXtEBy58ucsag/LF70JXEg7WvaaKH11qq1w6+GA==}
-
   sonic-boom@4.2.0:
     resolution: {integrity: sha512-INb7TM37/mAcsGmc9hyyI6+QR3rR1zVRu36B0NeGXKnOOLiZOfER5SA+N7X7k3yUYRzLWafduTDvJAfDswwEww==}
 
@@ -2560,6 +2560,8 @@ snapshots:
       '@wxt-dev/browser': 0.1.4
       async-mutex: 0.5.0
       dequal: 2.0.3
+
+  '@zumer/snapdom@1.9.14': {}
 
   acorn@8.15.0: {}
 
@@ -3557,8 +3559,6 @@ snapshots:
     dependencies:
       ansi-styles: 6.2.3
       is-fullwidth-code-point: 5.1.0
-
-  snapdom@0.1.2: {}
 
   sonic-boom@4.2.0:
     dependencies:

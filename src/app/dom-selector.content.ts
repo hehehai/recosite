@@ -1,4 +1,4 @@
-import snapdom from "snapdom";
+import { snapdom } from "@zumer/snapdom";
 import { browser } from "wxt/browser";
 import { MessageType } from "@/types/screenshot";
 
@@ -273,16 +273,14 @@ async function captureSelectedElement() {
     }
 
     // 使用 snapdom 截取 DOM
-    const capture = snapdom(selectedElement, {
-      backgroundColor: "#ffffff",
-    });
+    const options = { backgroundColor: "#ffffff" };
 
     // 生成 PNG 数据 URL
-    const pngImage = await capture.toPng();
+    const pngImage = await snapdom.toPng(selectedElement, options);
     const dataUrl = pngImage.src;
 
     // 同时生成 SVG 版本供后续导出使用
-    const svgElement = await capture.toSvg();
+    const svgElement = await snapdom.toSvg(selectedElement, options);
     const svgBlob = new Blob([svgElement.outerHTML], {
       type: "image/svg+xml",
     });
