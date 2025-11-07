@@ -127,17 +127,27 @@
       isCapturing.value = true;
       lastResult.value = null;
 
-      // 通过 background 处理 DOM 选择，类似于选区截图
-      const response = await browser.runtime.sendMessage({
-        type: MessageType.START_DOM_SELECTION,
+      const [tab] = await browser.tabs.query({
+        active: true,
+        currentWindow: true,
       });
 
-      if (response.error) {
-        error(`DOM截图失败: ${response.error}`);
+      if (!tab.id) {
+        error("未找到活动标签页");
         return;
       }
 
-      // 关闭 popup，让用户在页面上选择 DOM
+      // 注入 DOM 选择器脚本
+      await browser.scripting.executeScript({
+        target: { tabId: tab.id },
+        files: ["/content-scripts/dom-selector.js"],
+      });
+
+      // 发送开始选择消息
+      await browser.tabs.sendMessage(tab.id, {
+        type: MessageType.START_DOM_SELECTION,
+      });
+
       window.close();
     } catch (err) {
       error(`DOM截图失败: ${err}`);

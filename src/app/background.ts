@@ -130,7 +130,8 @@ async function handleMessage(
 
       case MessageType.START_DOM_SELECTION:
         console.log("[Background] Received START_DOM_SELECTION message");
-        await handleStartDomSelection(sendResponse);
+        await updateDomBadge(true);
+        sendResponse({ success: true });
         break;
 
       case MessageType.CANCEL_DOM_SELECTION:
@@ -264,48 +265,6 @@ async function handleCaptureFullPage(
 /**
  * 处理选区截图
  */
-/**
- * 处理 DOM 选择请求
- */
-async function handleStartDomSelection(
-  sendResponse: (response?: unknown) => void
-) {
-  try {
-    // 获取当前活动标签页
-    const [tab] = await browser.tabs.query({
-      active: true,
-      currentWindow: true,
-    });
-
-    if (!tab.id) {
-      sendResponse({ error: "No active tab found" });
-      return;
-    }
-
-    // 注入 DOM 选择器脚本
-    await browser.scripting.executeScript({
-      target: { tabId: tab.id },
-      files: ["/content-scripts/dom-selector.js"],
-    });
-
-    // 等待脚本初始化
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
-    // 更新 badge
-    await updateDomBadge(true);
-
-    // 发送开始选择消息
-    await browser.tabs.sendMessage(tab.id, {
-      type: MessageType.START_DOM_SELECTION,
-    });
-
-    sendResponse({ success: true });
-  } catch (error) {
-    console.error("[Background] Failed to start DOM selection:", error);
-    sendResponse({ error: String(error) });
-  }
-}
-
 async function handleStartSelection(
   data: { format: ImageFormat; quality?: number },
   sendResponse: (response?: unknown) => void
