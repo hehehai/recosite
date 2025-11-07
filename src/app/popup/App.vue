@@ -1,8 +1,11 @@
 <script setup lang="ts">
-  import { onMounted, ref, watch } from "vue";
-  import { sendMessage } from "webext-bridge/popup";
+  import { ref } from "vue";
   import { browser } from "wxt/browser";
+  import ActionButton from "@/components/ActionButton.vue";
+  import StatusCard from "@/components/StatusCard.vue";
   import Toast from "@/components/Toast.vue";
+  import ToggleSwitch from "@/components/ToggleSwitch.vue";
+  import { useRecordingState, useTabPersistence } from "@/composables";
   import { useToast } from "@/composables/useToast";
   import {
     ImageFormat,
@@ -19,62 +22,18 @@
     height: number;
   } | null>(null);
 
-  // 当前激活的标签页
-  const activeTab = ref<"screenshot" | "recording">("screenshot");
+  // Tab 持久化
+  const { activeTab } = useTabPersistence("screenshot");
 
-  // 录制状态
-  const recordingState = ref<RecordingState>(RecordingState.IDLE);
-  const lastRecordingResult = ref<{
-    fileName: string;
-    size: number;
-  } | null>(null);
+  // 录制状态管理
+  const { recordingState, lastRecordingResult, toggleRecording } =
+    useRecordingState();
 
   // 录制选项
   const recordingOptions = ref({
     systemAudio: true,
     microphone: true,
     camera: true,
-  });
-
-  // 检查录制状态
-  async function checkRecordingStatus() {
-    try {
-      const response = await sendMessage(
-        "recording:get-status",
-        {},
-        "background"
-      );
-      recordingState.value = response.state;
-    } catch (err) {
-      console.error("Failed to get recording status:", err);
-    }
-  }
-
-  // 从 storage 加载上次的 tab 位置
-  async function loadLastActiveTab() {
-    try {
-      const result = await browser.storage.local.get("activeTab");
-      if (result.activeTab) {
-        activeTab.value = result.activeTab as "screenshot" | "recording";
-      }
-    } catch (err) {
-      console.error("Failed to load last active tab:", err);
-    }
-  }
-
-  // 监听 tab 变化并保存到 storage
-  watch(activeTab, async (newTab) => {
-    try {
-      await browser.storage.local.set({ activeTab: newTab });
-    } catch (err) {
-      console.error("Failed to save active tab:", err);
-    }
-  });
-
-  // 页面加载时检查录制状态和恢复 tab 位置
-  onMounted(() => {
-    loadLastActiveTab();
-    checkRecordingStatus();
   });
 
   async function captureViewport() {
@@ -168,7 +127,6 @@
       isCapturing.value = true;
       lastResult.value = null;
 
-      // 获取当前活动标签页
       const [tab] = await browser.tabs.query({
         active: true,
         currentWindow: true,
@@ -179,18 +137,15 @@
         return;
       }
 
-      // 注入 DOM 选择器脚本
       await browser.scripting.executeScript({
         target: { tabId: tab.id },
         files: ["/content-scripts/dom-selector.js"],
       });
 
-      // 发送开始选择消息
       await browser.tabs.sendMessage(tab.id, {
         type: MessageType.START_DOM_SELECTION,
       });
 
-      // 关闭 popup
       window.close();
     } catch (err) {
       error(`DOM截图失败: ${err}`);
@@ -198,55 +153,14 @@
     }
   }
 
-  async function toggleRecording() {
-    try {
-      if (recordingState.value === RecordingState.RECORDING) {
-        // 停止录制
-        recordingState.value = RecordingState.PROCESSING;
-        lastRecordingResult.value = null;
-
-        const response = await sendMessage(
-          "recording:stop-request",
-          {},
-          "background"
-        );
-
-        if (response.error) {
-          error(`停止录制失败: ${response.error}`);
-          recordingState.value = RecordingState.IDLE;
-          return;
-        }
-
-        if (response.fileName && response.size !== undefined) {
-          lastRecordingResult.value = {
-            fileName: response.fileName,
-            size: response.size,
-          };
-        }
-        recordingState.value = RecordingState.IDLE;
-      } else {
-        // 开始录制
-        lastRecordingResult.value = null;
-
-        const response = await sendMessage(
-          "recording:start-request",
-          {
-            format: VideoFormat.WEBM,
-          },
-          "background"
-        );
-
-        if (response.error) {
-          error(`开始录制失败: ${response.error}`);
-          return;
-        }
-
-        // 只有成功时才更新状态
-        recordingState.value = RecordingState.RECORDING;
-      }
-    } catch (err) {
-      error(`录制操作失败: ${err}`);
-      recordingState.value = RecordingState.IDLE;
+  async function handleToggleRecording() {
+    const result = await toggleRecording(VideoFormat.WEBM);
+    if (!result.success && result.error) {
+      error(
+        recordingState.value === RecordingState.RECORDING
+          ? `停止录制失败: ${result.error}`
+          : `开始录制失败: ${result.error}`
+      );
     }
   }
 
@@ -272,147 +186,128 @@
           <!-- 左侧：全页截图和DOM截图垂直排列 -->
           <div class="flex flex-col gap-2.5">
             <!-- 全页截图 -->
-            <button
-              type="button"
-              class="flex-1 rounded-lg bg-white dark:bg-gray-800 shadow-sm transition-all hover:shadow-md disabled:opacity-50 border-2 border-transparent hover:border-blue-500 active:border-green-500 flex flex-col items-center justify-center gap-1.5"
+            <ActionButton
+              label="全页截图"
               :disabled="isCapturing"
               @click="captureFullPage"
             >
-              <svg
-                class="w-10 h-10 text-gray-600 dark:text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <rect
-                  x="3"
-                  y="3"
-                  width="18"
-                  height="18"
-                  rx="2"
-                  stroke-width="1.5"
-                />
-              </svg>
-              <span class="text-xs font-medium text-gray-800 dark:text-gray-200"
-                >全页截图</span
-              >
-            </button>
+              <template #icon>
+                <svg
+                  class="w-full h-full"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <rect
+                    x="3"
+                    y="3"
+                    width="18"
+                    height="18"
+                    rx="2"
+                    stroke-width="1.5"
+                  />
+                </svg>
+              </template>
+            </ActionButton>
 
             <!-- DOM截图 -->
-            <button
-              type="button"
-              class="flex-1 rounded-lg bg-white dark:bg-gray-800 shadow-sm transition-all hover:shadow-md disabled:opacity-50 border-2 border-transparent hover:border-blue-500 active:border-green-500 flex flex-col items-center justify-center gap-1.5"
+            <ActionButton
+              label="DOM截图"
               :disabled="isCapturing"
               @click="captureDom"
             >
-              <svg
-                class="w-10 h-10 text-gray-600 dark:text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M3 9h18M3 15h18M9 3v18M15 3v18"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                />
-                <rect
-                  x="3"
-                  y="3"
-                  width="18"
-                  height="18"
-                  rx="2"
-                  stroke-width="1.5"
-                />
-              </svg>
-              <span class="text-xs font-medium text-gray-800 dark:text-gray-200"
-                >DOM截图</span
-              >
-            </button>
+              <template #icon>
+                <svg
+                  class="w-full h-full"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M3 9h18M3 15h18M9 3v18M15 3v18"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                  />
+                  <rect
+                    x="3"
+                    y="3"
+                    width="18"
+                    height="18"
+                    rx="2"
+                    stroke-width="1.5"
+                  />
+                </svg>
+              </template>
+            </ActionButton>
           </div>
 
-          <!-- 右侧：两个按钮垂直排列 -->
+          <!-- 右侧：视窗截图和选区截图 -->
           <div class="flex flex-col gap-2.5">
             <!-- 视窗截图 -->
-            <button
-              type="button"
-              class="flex-1 rounded-lg bg-white dark:bg-gray-800 shadow-sm transition-all hover:shadow-md disabled:opacity-50 border-2 border-transparent hover:border-blue-500 active:border-green-500 flex flex-col items-center justify-center gap-1.5"
+            <ActionButton
+              label="视窗截图"
               :disabled="isCapturing"
               @click="captureViewport"
             >
-              <svg
-                class="w-10 h-10 text-gray-600 dark:text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <rect
-                  x="4"
-                  y="6"
-                  width="16"
-                  height="12"
-                  rx="2"
-                  stroke-width="1.5"
-                />
-              </svg>
-              <span class="text-xs font-medium text-gray-800 dark:text-gray-200"
-                >视窗截图</span
-              >
-            </button>
+              <template #icon>
+                <svg
+                  class="w-full h-full"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <rect
+                    x="4"
+                    y="6"
+                    width="16"
+                    height="12"
+                    rx="2"
+                    stroke-width="1.5"
+                  />
+                </svg>
+              </template>
+            </ActionButton>
 
             <!-- 选区截图 -->
-            <button
-              type="button"
-              class="flex-1 rounded-lg bg-white dark:bg-gray-800 shadow-sm transition-all hover:shadow-md disabled:opacity-50 border-2 border-transparent hover:border-blue-500 active:border-green-500 flex flex-col items-center justify-center gap-1.5"
+            <ActionButton
+              label="选区截图"
               :disabled="isCapturing"
               @click="captureSelection"
             >
-              <svg
-                class="w-10 h-10 text-gray-600 dark:text-gray-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M3 12 L8 12 M12 3 L12 8 M16 12 L21 12 M12 16 L12 21"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                />
-                <path
-                  d="M8 8 L16 16 M16 8 L8 16"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                  opacity="0.5"
-                />
-              </svg>
-              <span class="text-xs font-medium text-gray-800 dark:text-gray-200"
-                >选区截图</span
-              >
-            </button>
+              <template #icon>
+                <svg
+                  class="w-full h-full"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="M3 12 L8 12 M12 3 L12 8 M16 12 L21 12 M12 16 L12 21"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                  />
+                  <path
+                    d="M8 8 L16 16 M16 8 L8 16"
+                    stroke-width="1.5"
+                    stroke-linecap="round"
+                    opacity="0.5"
+                  />
+                </svg>
+              </template>
+            </ActionButton>
           </div>
         </div>
 
         <!-- 状态提示 -->
-        <div
-          v-if="isCapturing"
-          class="mt-2.5 rounded-lg bg-blue-50 dark:bg-blue-900/30 p-2.5 text-center"
-        >
-          <div class="text-xs text-blue-700 dark:text-blue-300">截图中...</div>
-        </div>
+        <StatusCard v-if="isCapturing" type="info" message="截图中..."/>
 
         <!-- 结果显示 -->
-        <div
+        <StatusCard
           v-if="lastResult"
-          class="mt-2.5 rounded-lg bg-green-50 dark:bg-green-900/30 p-2.5"
-        >
-          <div class="text-xs text-green-700 dark:text-green-300">
-            <div class="font-medium">截图成功！</div>
-            <div class="mt-0.5">
-              {{ lastResult.fileName }}({{ lastResult.width }}×
-              {{ lastResult.height }})
-            </div>
-          </div>
-        </div>
+          type="success"
+          title="截图成功！"
+          :message="`${lastResult.fileName}(${lastResult.width}×${lastResult.height})`"
+        />
       </div>
 
       <!-- 录制标签页内容 -->
@@ -420,66 +315,48 @@
         <!-- 录制类型选择 -->
         <div class="grid grid-cols-2 gap-2.5 h-full">
           <!-- 页面录制 -->
-          <button
-            type="button"
-            :class="[
-                        'rounded-lg p-5 shadow-sm transition-all hover:shadow-md border-2 flex flex-col items-center justify-center gap-1.5',
-                        recordingState === RecordingState.RECORDING
-                            ? 'bg-red-50 dark:bg-red-900/20 border-red-500 animate-pulse'
-                            : 'bg-white dark:bg-gray-800 border-transparent hover:border-blue-500 active:border-green-500'
-                    ]"
+          <ActionButton
+            label="录制中"
+            sublabel="点击停止录制"
+            :active="recordingState === RecordingState.RECORDING"
+            :animate="recordingState === RecordingState.RECORDING"
             :disabled="recordingState === RecordingState.PROCESSING || isCapturing"
-            @click="toggleRecording"
+            @click="handleToggleRecording"
           >
-            <svg
-              v-if="recordingState !== RecordingState.RECORDING"
-              class="w-10 h-10 text-gray-600 dark:text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <rect
-                x="3"
-                y="3"
-                width="18"
-                height="18"
-                rx="2"
-                stroke-width="1.5"
-              />
-            </svg>
-            <svg
-              v-else
-              class="w-10 h-10 text-red-600 dark:text-red-400"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <circle cx="12" cy="12" r="8"/>
-              <rect x="9" y="9" width="6" height="6" fill="white" rx="1"/>
-            </svg>
-            <span
-              v-if="recordingState !== RecordingState.RECORDING"
-              class="text-xs font-medium text-gray-800 dark:text-gray-200"
-              >页面录制</span
-            >
-            <div v-else class="text-center">
-              <div class="text-xs font-bold text-red-600 dark:text-red-400">
-                录制中
-              </div>
-              <div class="text-[10px] text-red-500 dark:text-red-500 mt-0.5">
-                点击停止录制
-              </div>
-            </div>
-          </button>
+            <template #icon>
+              <svg
+                v-if="recordingState !== RecordingState.RECORDING"
+                class="w-full h-full"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <rect
+                  x="3"
+                  y="3"
+                  width="18"
+                  height="18"
+                  rx="2"
+                  stroke-width="1.5"
+                />
+              </svg>
+              <svg
+                v-else
+                class="w-full h-full"
+                fill="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <circle cx="12" cy="12" r="8"/>
+                <rect x="9" y="9" width="6" height="6" fill="white" rx="1"/>
+              </svg>
+            </template>
+          </ActionButton>
 
           <!-- 窗口录制（暂不实现） -->
-          <button
-            type="button"
-            class="rounded-lg bg-white dark:bg-gray-800 p-5 shadow-sm transition-all opacity-50 cursor-not-allowed border-2 border-transparent"
-            disabled
-          >
-            <div class="flex flex-col items-center gap-1.5">
+          <ActionButton label="窗口录制" :disabled="true">
+            <template #icon>
               <svg
-                class="w-10 h-10 text-gray-600 dark:text-gray-400"
+                class="w-full h-full"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -489,21 +366,14 @@
                   stroke-width="1.5"
                 />
               </svg>
-              <span class="text-xs font-medium text-gray-800 dark:text-gray-200"
-                >窗口录制</span
-              >
-            </div>
-          </button>
+            </template>
+          </ActionButton>
 
           <!-- 桌面录制（暂不实现） -->
-          <button
-            type="button"
-            class="rounded-lg bg-white dark:bg-gray-800 p-5 shadow-sm transition-all opacity-50 cursor-not-allowed border-2 border-transparent"
-            disabled
-          >
-            <div class="flex flex-col items-center gap-1.5">
+          <ActionButton label="桌面录制" :disabled="true">
+            <template #icon>
               <svg
-                class="w-10 h-10 text-gray-600 dark:text-gray-400"
+                class="w-full h-full"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -522,121 +392,47 @@
                   stroke-linecap="round"
                 />
               </svg>
-              <span class="text-xs font-medium text-gray-800 dark:text-gray-200"
-                >桌面录制</span
-              >
-            </div>
-          </button>
+            </template>
+          </ActionButton>
 
           <!-- 录制选项 -->
           <div
             class="rounded-lg bg-white dark:bg-gray-800 p-4 shadow-sm border border-gray-200 dark:border-gray-700"
           >
             <div class="space-y-3">
-              <!-- 系统音频 -->
-              <div class="flex items-center justify-between">
-                <span
-                  class="text-xs font-medium text-gray-700 dark:text-gray-300"
-                  >系统音频</span
-                >
-                <button
-                  type="button"
-                  :class="[
-                                    'relative inline-flex h-5 w-9 items-center rounded-full transition-colors',
-                                    recordingOptions.systemAudio ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
-                                ]"
-                  @click="recordingOptions.systemAudio = !recordingOptions.systemAudio"
-                >
-                  <span
-                    :class="[
-                                        'inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform',
-                                        recordingOptions.systemAudio ? 'translate-x-5' : 'translate-x-0.5'
-                                    ]"
-                  />
-                </button>
-              </div>
-
-              <!-- 麦克风 -->
-              <div class="flex items-center justify-between">
-                <span
-                  class="text-xs font-medium text-gray-700 dark:text-gray-300"
-                  >麦克风</span
-                >
-                <button
-                  type="button"
-                  :class="[
-                                    'relative inline-flex h-5 w-9 items-center rounded-full transition-colors',
-                                    recordingOptions.microphone ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
-                                ]"
-                  @click="recordingOptions.microphone = !recordingOptions.microphone"
-                >
-                  <span
-                    :class="[
-                                        'inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform',
-                                        recordingOptions.microphone ? 'translate-x-5' : 'translate-x-0.5'
-                                    ]"
-                  />
-                </button>
-              </div>
-
-              <!-- 摄像头 -->
-              <div class="flex items-center justify-between">
-                <span
-                  class="text-xs font-medium text-gray-700 dark:text-gray-300"
-                  >摄像头</span
-                >
-                <button
-                  type="button"
-                  :class="[
-                                    'relative inline-flex h-5 w-9 items-center rounded-full transition-colors',
-                                    recordingOptions.camera ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
-                                ]"
-                  @click="recordingOptions.camera = !recordingOptions.camera"
-                >
-                  <span
-                    :class="[
-                                        'inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform',
-                                        recordingOptions.camera ? 'translate-x-5' : 'translate-x-0.5'
-                                    ]"
-                  />
-                </button>
-              </div>
+              <ToggleSwitch
+                v-model="recordingOptions.systemAudio"
+                label="系统音频"
+              />
+              <ToggleSwitch
+                v-model="recordingOptions.microphone"
+                label="麦克风"
+              />
+              <ToggleSwitch v-model="recordingOptions.camera" label="摄像头"/>
             </div>
           </div>
         </div>
 
         <!-- 录制状态提示 -->
-        <div
+        <StatusCard
           v-if="recordingState === RecordingState.RECORDING"
-          class="rounded-lg bg-red-50 dark:bg-red-900/30 p-2.5 text-center"
-        >
-          <div class="text-xs text-red-700 dark:text-red-300">
-            <div class="font-medium">🔴 正在录制中...</div>
-          </div>
-        </div>
+          type="error"
+          message="🔴 正在录制中..."
+        />
 
-        <div
+        <StatusCard
           v-if="recordingState === RecordingState.PROCESSING"
-          class="rounded-lg bg-blue-50 dark:bg-blue-900/30 p-2.5 text-center"
-        >
-          <div class="text-xs text-blue-700 dark:text-blue-300">
-            处理录制文件中...
-          </div>
-        </div>
+          type="info"
+          message="处理录制文件中..."
+        />
 
         <!-- 录制结果显示 -->
-        <div
+        <StatusCard
           v-if="lastRecordingResult"
-          class="rounded-lg bg-green-50 dark:bg-green-900/30 p-2.5"
-        >
-          <div class="text-xs text-green-700 dark:text-green-300">
-            <div class="font-medium">录制成功！</div>
-            <div class="mt-0.5">
-              {{ lastRecordingResult.fileName }}(
-              {{ formatFileSize(lastRecordingResult.size) }})
-            </div>
-          </div>
-        </div>
+          type="success"
+          title="录制成功！"
+          :message="`${lastRecordingResult.fileName}( ${formatFileSize(lastRecordingResult.size)})`"
+        />
       </div>
     </div>
 
@@ -652,7 +448,7 @@
                     'flex flex-col items-center justify-center gap-1 transition-colors border-t-2',
                     activeTab === 'screenshot'
                         ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                        : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                        : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
                 ]"
           @click="activeTab = 'screenshot'"
         >
@@ -679,7 +475,7 @@
                     'flex flex-col items-center justify-center gap-1 transition-colors border-t-2',
                     activeTab === 'recording'
                         ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                        : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                        : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
                 ]"
           @click="activeTab = 'recording'"
         >
