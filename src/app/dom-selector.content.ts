@@ -291,7 +291,13 @@ async function captureSelectedElement() {
     }
 
     // 使用 snapdom 截取 DOM
-    const options = { backgroundColor: "#ffffff" };
+    const options = {
+      backgroundColor: "#ffffff",
+      // 允许跨域图片（尽可能）
+      allowTaint: true,
+      // 使用 CORS 代理
+      useCORS: true,
+    };
 
     // 生成 PNG 数据 URL
     const pngImage = await snapdom.toPng(element, options);
@@ -321,7 +327,50 @@ async function captureSelectedElement() {
     console.error("DOM capture failed:", error);
     // 确保即使出错也清理 UI
     stopDomSelection();
+
+    // 显示错误提示
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    let userMessage = "DOM 截图失败";
+
+    if (errorMsg.includes("EncodingError") || errorMsg.includes("decode")) {
+      userMessage =
+        "该元素包含无法处理的图片资源（可能是跨域图片），请尝试选择其父元素或其他元素";
+    } else if (errorMsg.includes("tainted") || errorMsg.includes("CORS")) {
+      userMessage = "该元素包含跨域资源，无法截图。请尝试选择其他元素";
+    }
+
+    // 显示错误提示（3秒后自动消失）
+    showErrorNotification(userMessage);
   }
+}
+
+/**
+ * 显示错误通知
+ */
+function showErrorNotification(message: string) {
+  const notification = document.createElement("div");
+  notification.style.position = "fixed";
+  notification.style.top = "20px";
+  notification.style.left = "50%";
+  notification.style.transform = "translateX(-50%)";
+  notification.style.zIndex = "2147483647";
+  notification.style.padding = "12px 24px";
+  notification.style.backgroundColor = "#ef4444";
+  notification.style.color = "white";
+  notification.style.borderRadius = "8px";
+  notification.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
+  notification.style.fontSize = "14px";
+  notification.style.fontWeight = "500";
+  notification.textContent = message;
+
+  document.body.appendChild(notification);
+
+  // 3秒后自动移除
+  setTimeout(() => {
+    if (notification.parentNode) {
+      notification.parentNode.removeChild(notification);
+    }
+  }, 3000);
 }
 
 /**
