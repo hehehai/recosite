@@ -302,11 +302,32 @@ async function captureSelectedElement() {
     const dataUrl = pngImage.src;
 
     // 同时生成 SVG 版本供后续导出使用
-    const svgElement = await snapdom.toSvg(element, options);
-    const svgBlob = new Blob([svgElement.outerHTML], {
-      type: "image/svg+xml",
-    });
-    const svgDataUrl = URL.createObjectURL(svgBlob);
+    let svgDataUrl = "";
+    try {
+      const svgElement = await snapdom.toSvg(element, options);
+
+      // 清理 SVG，移除可能导致问题的空图片或未完成的图片标签
+      const svgString = svgElement.outerHTML;
+
+      // 检查 SVG 是否有效（基本验证）
+      if (svgString?.includes("<svg") && svgString.includes("</svg>")) {
+        // 使用 XMLSerializer 确保 SVG 格式正确
+        const serializer = new XMLSerializer();
+        const cleanSvgString = serializer.serializeToString(svgElement);
+
+        const svgBlob = new Blob([cleanSvgString], {
+          type: "image/svg+xml;charset=utf-8",
+        });
+        svgDataUrl = URL.createObjectURL(svgBlob);
+      } else {
+        console.warn(
+          "[DOM Selector] Generated SVG appears invalid, skipping SVG export"
+        );
+      }
+    } catch (svgError) {
+      console.warn("[DOM Selector] Failed to generate SVG:", svgError);
+      // SVG 生成失败不影响 PNG 导出
+    }
 
     // 发送结果到 background
     await browser.runtime.sendMessage({

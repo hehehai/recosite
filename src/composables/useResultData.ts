@@ -69,10 +69,14 @@ export function useResultData() {
       fileSize.value = data.size || 0;
       resultType.value = data.type || "image";
 
-      // 加载 SVG 数据（如果存在）
+      // 加载 SVG 数据（如果存在且有效）
       const svgKey = `${resultId}_svg`;
       if (storageData[svgKey]) {
-        svgData.value = storageData[svgKey] as string;
+        const svgValue = storageData[svgKey] as string;
+        // 确保 SVG 数据不为空
+        if (svgValue && svgValue.length > 0) {
+          svgData.value = svgValue;
+        }
       }
 
       // 从文件名提取原始格式
