@@ -142,7 +142,15 @@ async function handleMessage(
 
       case MessageType.CAPTURE_DOM:
         console.log("[Background] Received CAPTURE_DOM message");
-        await handleCaptureDom(message.data, sendResponse);
+        await handleCaptureDom(
+          message.data as {
+            dataUrl: string;
+            svgDataUrl: string;
+            width: number;
+            height: number;
+          },
+          sendResponse
+        );
         break;
 
       default:
