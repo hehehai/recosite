@@ -1,12 +1,28 @@
+import { domToImage, domToSvg } from "snapdom";
 import { browser } from "wxt/browser";
 import { MessageType } from "@/types/screenshot";
-import { domToImage, domToSvg } from "snapdom";
 
 let isSelecting = false;
 let selectedElement: HTMLElement | null = null;
 let overlayElement: HTMLDivElement | null = null;
 let confirmDialogElement: HTMLDivElement | null = null;
 let highlightElement: HTMLDivElement | null = null;
+
+export default defineContentScript({
+  registration: "runtime",
+  matches: ["<all_urls>"],
+
+  async main() {
+    // 监听来自 background 的消息
+    browser.runtime.onMessage.addListener((message) => {
+      if (message.type === MessageType.START_DOM_SELECTION) {
+        startDomSelection();
+      } else if (message.type === MessageType.CANCEL_DOM_SELECTION) {
+        stopDomSelection();
+      }
+    });
+  },
+});
 
 /**
  * 创建高亮遮罩
@@ -126,7 +142,9 @@ function createInstructionOverlay(): HTMLDivElement {
  * 更新高亮位置
  */
 function updateHighlight(element: HTMLElement) {
-  if (!highlightElement) return;
+  if (!highlightElement) {
+    return;
+  }
 
   const rect = element.getBoundingClientRect();
   highlightElement.style.left = `${rect.left + window.scrollX}px`;
@@ -139,7 +157,9 @@ function updateHighlight(element: HTMLElement) {
  * 鼠标移动处理
  */
 function handleMouseMove(e: MouseEvent) {
-  if (!isSelecting || selectedElement) return;
+  if (!isSelecting || selectedElement) {
+    return;
+  }
 
   const target = e.target as HTMLElement;
   if (
@@ -151,7 +171,7 @@ function handleMouseMove(e: MouseEvent) {
     return;
   }
 
-  if (highlightElement && highlightElement.parentNode) {
+  if (highlightElement?.parentNode) {
     highlightElement.parentNode.removeChild(highlightElement);
   }
 
@@ -164,7 +184,9 @@ function handleMouseMove(e: MouseEvent) {
  * 点击处理
  */
 function handleClick(e: MouseEvent) {
-  if (!isSelecting || selectedElement) return;
+  if (!isSelecting || selectedElement) {
+    return;
+  }
 
   e.preventDefault();
   e.stopPropagation();
@@ -189,7 +211,7 @@ function selectElement(element: HTMLElement) {
   selectedElement = element;
 
   // 移除悬停高亮
-  if (highlightElement && highlightElement.parentNode) {
+  if (highlightElement?.parentNode) {
     highlightElement.parentNode.removeChild(highlightElement);
     highlightElement = null;
   }
@@ -222,12 +244,12 @@ function selectElement(element: HTMLElement) {
 function unselectElement() {
   selectedElement = null;
 
-  if (highlightElement && highlightElement.parentNode) {
+  if (highlightElement?.parentNode) {
     highlightElement.parentNode.removeChild(highlightElement);
     highlightElement = null;
   }
 
-  if (confirmDialogElement && confirmDialogElement.parentNode) {
+  if (confirmDialogElement?.parentNode) {
     confirmDialogElement.parentNode.removeChild(confirmDialogElement);
     confirmDialogElement = null;
   }
@@ -237,14 +259,16 @@ function unselectElement() {
  * 截取选中的元素
  */
 async function captureSelectedElement() {
-  if (!selectedElement) return;
+  if (!selectedElement) {
+    return;
+  }
 
   try {
     // 临时移除高亮和对话框
-    if (highlightElement && highlightElement.parentNode) {
+    if (highlightElement?.parentNode) {
       highlightElement.parentNode.removeChild(highlightElement);
     }
-    if (confirmDialogElement && confirmDialogElement.parentNode) {
+    if (confirmDialogElement?.parentNode) {
       confirmDialogElement.parentNode.removeChild(confirmDialogElement);
     }
 
@@ -280,8 +304,10 @@ async function captureSelectedElement() {
 /**
  * 开始 DOM 选择
  */
-export function startDomSelection() {
-  if (isSelecting) return;
+function startDomSelection() {
+  if (isSelecting) {
+    return;
+  }
 
   isSelecting = true;
   selectedElement = null;
@@ -306,8 +332,10 @@ export function startDomSelection() {
 /**
  * 停止 DOM 选择
  */
-export function stopDomSelection() {
-  if (!isSelecting) return;
+function stopDomSelection() {
+  if (!isSelecting) {
+    return;
+  }
 
   isSelecting = false;
   selectedElement = null;
@@ -320,17 +348,17 @@ export function stopDomSelection() {
   document.body.style.cursor = "";
 
   // 移除所有覆盖层
-  if (overlayElement && overlayElement.parentNode) {
+  if (overlayElement?.parentNode) {
     overlayElement.parentNode.removeChild(overlayElement);
     overlayElement = null;
   }
 
-  if (highlightElement && highlightElement.parentNode) {
+  if (highlightElement?.parentNode) {
     highlightElement.parentNode.removeChild(highlightElement);
     highlightElement = null;
   }
 
-  if (confirmDialogElement && confirmDialogElement.parentNode) {
+  if (confirmDialogElement?.parentNode) {
     confirmDialogElement.parentNode.removeChild(confirmDialogElement);
     confirmDialogElement = null;
   }
@@ -340,12 +368,3 @@ export function stopDomSelection() {
     type: MessageType.CANCEL_DOM_SELECTION,
   });
 }
-
-// 监听来自 background 的消息
-browser.runtime.onMessage.addListener((message) => {
-  if (message.type === MessageType.START_DOM_SELECTION) {
-    startDomSelection();
-  } else if (message.type === MessageType.CANCEL_DOM_SELECTION) {
-    stopDomSelection();
-  }
-});
