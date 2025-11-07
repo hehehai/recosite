@@ -127,22 +127,17 @@
       isCapturing.value = true;
       lastResult.value = null;
 
-      const [tab] = await browser.tabs.query({
-        active: true,
-        currentWindow: true,
-      });
-
-      if (!tab.id) {
-        error("未找到活动标签页");
-        return;
-      }
-
-      // 直接发送消息到已注册的 content script
-      // dom-selector.content.ts 使用 runtime 注册，会自动在所有页面可用
-      await browser.tabs.sendMessage(tab.id, {
+      // 通过 background 处理 DOM 选择，类似于选区截图
+      const response = await browser.runtime.sendMessage({
         type: MessageType.START_DOM_SELECTION,
       });
 
+      if (response.error) {
+        error(`DOM截图失败: ${response.error}`);
+        return;
+      }
+
+      // 关闭 popup，让用户在页面上选择 DOM
       window.close();
     } catch (err) {
       error(`DOM截图失败: ${err}`);
