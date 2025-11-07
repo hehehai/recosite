@@ -470,6 +470,7 @@ async function updateRecordingIcon(isRecording: boolean) {
       // 设置红色徽章表示正在录制
       await browser.action.setBadgeText({ text: "REC" });
       await browser.action.setBadgeBackgroundColor({ color: "#FF0000" });
+      await browser.action.setBadgeTextColor({ color: "#FFFFFF" });
       console.log("[Background] Recording badge set successfully");
     } else {
       console.log("[Background] Clearing recording badge");

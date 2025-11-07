@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { sendMessage } from "webext-bridge/popup";
 import { browser } from "wxt/browser";
 import Toast from "@/components/Toast.vue";
@@ -50,8 +50,30 @@ async function checkRecordingStatus() {
     }
 }
 
-// 页面加载时检查录制状态
+// 从 storage 加载上次的 tab 位置
+async function loadLastActiveTab() {
+    try {
+        const result = await browser.storage.local.get("activeTab");
+        if (result.activeTab) {
+            activeTab.value = result.activeTab as "screenshot" | "recording";
+        }
+    } catch (err) {
+        console.error("Failed to load last active tab:", err);
+    }
+}
+
+// 监听 tab 变化并保存到 storage
+watch(activeTab, async (newTab) => {
+    try {
+        await browser.storage.local.set({ activeTab: newTab });
+    } catch (err) {
+        console.error("Failed to save active tab:", err);
+    }
+});
+
+// 页面加载时检查录制状态和恢复 tab 位置
 onMounted(() => {
+    loadLastActiveTab();
     checkRecordingStatus();
 });
 
@@ -214,7 +236,7 @@ function formatFileSize(bytes: number): string {
                 <div class="grid grid-cols-2 gap-2.5 h-full">
                     <!-- 左侧：全页截图 -->
                     <button type="button"
-                        class="rounded-lg bg-white dark:bg-gray-800 shadow-sm transition hover:shadow-md disabled:opacity-50 border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center gap-1.5"
+                        class="rounded-lg bg-white dark:bg-gray-800 shadow-sm transition-all hover:shadow-md disabled:opacity-50 border-2 border-transparent hover:border-blue-500 active:border-green-500 flex flex-col items-center justify-center gap-1.5"
                         :disabled="isCapturing" @click="captureFullPage">
                         <svg class="w-10 h-10 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor"
                             viewBox="0 0 24 24">
@@ -227,7 +249,7 @@ function formatFileSize(bytes: number): string {
                     <div class="flex flex-col gap-2.5">
                         <!-- 视窗截图 -->
                         <button type="button"
-                            class="flex-1 rounded-lg bg-white dark:bg-gray-800 shadow-sm transition hover:shadow-md disabled:opacity-50 border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center gap-1.5"
+                            class="flex-1 rounded-lg bg-white dark:bg-gray-800 shadow-sm transition-all hover:shadow-md disabled:opacity-50 border-2 border-transparent hover:border-blue-500 active:border-green-500 flex flex-col items-center justify-center gap-1.5"
                             :disabled="isCapturing" @click="captureViewport">
                             <svg class="w-10 h-10 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
@@ -238,7 +260,7 @@ function formatFileSize(bytes: number): string {
 
                         <!-- 选区截图 -->
                         <button type="button"
-                            class="flex-1 rounded-lg bg-white dark:bg-gray-800 shadow-sm transition hover:shadow-md disabled:opacity-50 border border-gray-200 dark:border-gray-700 flex flex-col items-center justify-center gap-1.5"
+                            class="flex-1 rounded-lg bg-white dark:bg-gray-800 shadow-sm transition-all hover:shadow-md disabled:opacity-50 border-2 border-transparent hover:border-blue-500 active:border-green-500 flex flex-col items-center justify-center gap-1.5"
                             :disabled="isCapturing" @click="captureSelection">
                             <svg class="w-10 h-10 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
@@ -273,20 +295,34 @@ function formatFileSize(bytes: number): string {
                 <!-- 录制类型选择 -->
                 <div class="grid grid-cols-2 gap-2.5 h-full">
                     <!-- 页面录制 -->
-                    <button type="button"
-                        class="rounded-lg bg-white dark:bg-gray-800 p-5 shadow-sm transition hover:shadow-md border-2 border-blue-500">
-                        <div class="flex flex-col items-center gap-1.5">
-                            <svg class="w-10 h-10 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <rect x="3" y="3" width="18" height="18" rx="2" stroke-width="1.5" />
-                            </svg>
-                            <span class="text-xs font-medium text-gray-800 dark:text-gray-200">页面录制</span>
+                    <button type="button" :class="[
+                        'rounded-lg p-5 shadow-sm transition-all hover:shadow-md border-2 flex flex-col items-center justify-center gap-1.5',
+                        recordingState === RecordingState.RECORDING
+                            ? 'bg-red-50 dark:bg-red-900/20 border-red-500 animate-pulse'
+                            : 'bg-white dark:bg-gray-800 border-transparent hover:border-blue-500 active:border-green-500'
+                    ]" :disabled="recordingState === RecordingState.PROCESSING || isCapturing"
+                        @click="toggleRecording">
+                        <svg v-if="recordingState !== RecordingState.RECORDING"
+                            class="w-10 h-10 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24">
+                            <rect x="3" y="3" width="18" height="18" rx="2" stroke-width="1.5" />
+                        </svg>
+                        <svg v-else class="w-10 h-10 text-red-600 dark:text-red-400" fill="currentColor"
+                            viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="8" />
+                            <rect x="9" y="9" width="6" height="6" fill="white" rx="1" />
+                        </svg>
+                        <span v-if="recordingState !== RecordingState.RECORDING"
+                            class="text-xs font-medium text-gray-800 dark:text-gray-200">页面录制</span>
+                        <div v-else class="text-center">
+                            <div class="text-xs font-bold text-red-600 dark:text-red-400">录制中</div>
+                            <div class="text-[10px] text-red-500 dark:text-red-500 mt-0.5">点击停止录制</div>
                         </div>
                     </button>
 
                     <!-- 窗口录制（暂不实现） -->
                     <button type="button"
-                        class="rounded-lg bg-white dark:bg-gray-800 p-5 shadow-sm transition opacity-50 cursor-not-allowed border border-gray-200 dark:border-gray-700"
+                        class="rounded-lg bg-white dark:bg-gray-800 p-5 shadow-sm transition-all opacity-50 cursor-not-allowed border-2 border-transparent"
                         disabled>
                         <div class="flex flex-col items-center gap-1.5">
                             <svg class="w-10 h-10 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor"
@@ -301,7 +337,7 @@ function formatFileSize(bytes: number): string {
 
                     <!-- 桌面录制（暂不实现） -->
                     <button type="button"
-                        class="rounded-lg bg-white dark:bg-gray-800 p-5 shadow-sm transition opacity-50 cursor-not-allowed border border-gray-200 dark:border-gray-700"
+                        class="rounded-lg bg-white dark:bg-gray-800 p-5 shadow-sm transition-all opacity-50 cursor-not-allowed border-2 border-transparent"
                         disabled>
                         <div class="flex flex-col items-center gap-1.5">
                             <svg class="w-10 h-10 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor"
