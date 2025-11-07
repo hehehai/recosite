@@ -10,12 +10,14 @@ let confirmDialogElement: HTMLDivElement | null = null;
 let highlightElement: HTMLDivElement | null = null;
 
 export default defineContentScript({
-  registration: "runtime",
   matches: ["<all_urls>"],
 
   async main() {
-    // 监听来自 background 的消息
+    console.log("[DOM Selector] Content script loaded");
+
+    // 监听来自 popup 的消息
     browser.runtime.onMessage.addListener((message) => {
+      console.log("[DOM Selector] Received message:", message.type);
       if (message.type === MessageType.START_DOM_SELECTION) {
         startDomSelection();
       } else if (message.type === MessageType.CANCEL_DOM_SELECTION) {

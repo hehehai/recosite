@@ -137,11 +137,8 @@
         return;
       }
 
-      await browser.scripting.executeScript({
-        target: { tabId: tab.id },
-        files: ["/content-scripts/dom-selector.js"],
-      });
-
+      // 直接发送消息到已注册的 content script
+      // dom-selector.content.ts 使用 runtime 注册，会自动在所有页面可用
       await browser.tabs.sendMessage(tab.id, {
         type: MessageType.START_DOM_SELECTION,
       });
