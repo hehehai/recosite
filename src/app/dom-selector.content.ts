@@ -280,12 +280,14 @@ async function captureSelectedElement() {
   const element = selectedElement;
 
   try {
-    // 临时移除高亮和对话框
+    // 临时移除高亮和对话框（但不移除提示覆盖层，让 stopDomSelection 统一清理）
     if (highlightElement?.parentNode) {
       highlightElement.parentNode.removeChild(highlightElement);
+      highlightElement = null;
     }
     if (confirmDialogElement?.parentNode) {
       confirmDialogElement.parentNode.removeChild(confirmDialogElement);
+      confirmDialogElement = null;
     }
 
     // 使用 snapdom 截取 DOM
@@ -302,7 +304,7 @@ async function captureSelectedElement() {
     });
     const svgDataUrl = URL.createObjectURL(svgBlob);
 
-    // 停止选择模式
+    // 立即清理所有 UI 元素和状态
     stopDomSelection();
 
     // 发送结果到 background
@@ -317,6 +319,7 @@ async function captureSelectedElement() {
     });
   } catch (error) {
     console.error("DOM capture failed:", error);
+    // 确保即使出错也清理 UI
     stopDomSelection();
   }
 }
