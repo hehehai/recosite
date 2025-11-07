@@ -280,15 +280,11 @@ async function captureSelectedElement() {
   const element = selectedElement;
 
   try {
-    // 临时移除高亮和对话框（但不移除提示覆盖层，让 stopDomSelection 统一清理）
-    if (highlightElement?.parentNode) {
-      highlightElement.parentNode.removeChild(highlightElement);
-      highlightElement = null;
-    }
-    if (confirmDialogElement?.parentNode) {
-      confirmDialogElement.parentNode.removeChild(confirmDialogElement);
-      confirmDialogElement = null;
-    }
+    // 先立即清理所有 UI 元素和状态（在截图之前）
+    stopDomSelection();
+
+    // 等待一帧，确保清理完成
+    await new Promise((resolve) => requestAnimationFrame(resolve));
 
     // 使用 snapdom 截取 DOM
     const options = {
@@ -309,9 +305,6 @@ async function captureSelectedElement() {
       type: "image/svg+xml",
     });
     const svgDataUrl = URL.createObjectURL(svgBlob);
-
-    // 立即清理所有 UI 元素和状态
-    stopDomSelection();
 
     // 发送结果到 background
     await browser.runtime.sendMessage({
