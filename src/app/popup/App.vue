@@ -333,7 +333,7 @@
         <div class="grid grid-cols-2 gap-2.5 h-full">
           <!-- 页面录制 -->
           <ActionButton
-            label="录制中"
+            :label="recordingState === RecordingState.RECORDING ? '录制中' : '页面录制'"
             sublabel="点击停止录制"
             :active="recordingState === RecordingState.RECORDING"
             :animate="recordingState === RecordingState.RECORDING"
@@ -417,10 +417,6 @@
             class="rounded-lg bg-white dark:bg-gray-800 p-4 shadow-sm border border-gray-200 dark:border-gray-700"
           >
             <div class="space-y-3">
-              <ToggleSwitch
-                v-model="recordingOptions.systemAudio"
-                label="系统音频"
-              />
               <ToggleSwitch
                 v-model="recordingOptions.microphone"
                 label="麦克风"
