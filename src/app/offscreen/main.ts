@@ -56,6 +56,16 @@ async function handleStartRecording(
     console.log("[Offscreen] Recording options:", options);
     console.log("[Offscreen] Target size:", targetSize);
 
+    // 调试目标尺寸和约束应用
+    if (targetSize) {
+      console.log(
+        "[Offscreen] Applying resolution:",
+        targetSize.width !== targetSize.originalWidth
+          ? `${targetSize.width}x${targetSize.height}`
+          : "original"
+      );
+    }
+
     // 从 streamId 获取 MediaStream
     const stream = await navigator.mediaDevices.getUserMedia({
       audio: {

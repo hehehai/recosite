@@ -110,6 +110,19 @@ export type RecordingState =
   (typeof RecordingState)[keyof typeof RecordingState];
 
 /**
+ * 视频分辨率选项
+ */
+export const VideoResolution = {
+  AUTO: "auto", // 自动（页面原始尺寸）
+  HD: "720p", // 1280x720
+  FHD: "1080p", // 1920x1080
+  UHD: "4k", // 3840x2160
+} as const;
+
+export type VideoResolution =
+  (typeof VideoResolution)[keyof typeof VideoResolution];
+
+/**
  * 录制配置选项
  */
 export interface RecordingOptions {
@@ -117,6 +130,7 @@ export interface RecordingOptions {
   videoBitsPerSecond?: number;
   audioBitsPerSecond?: number;
   sizeSettings?: ExportSizeSettings;
+  resolution?: VideoResolution;
 }
 
 /**

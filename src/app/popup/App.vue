@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { ref } from "vue";
+  import { onMounted, ref, watch } from "vue";
   import { browser } from "wxt/browser";
   import ActionButton from "@/components/ActionButton.vue";
   import StatusCard from "@/components/StatusCard.vue";
@@ -12,6 +12,7 @@
     MessageType,
     RecordingState,
     VideoFormat,
+    VideoResolution,
   } from "@/types/screenshot";
 
   const { error } = useToast();
@@ -34,7 +35,53 @@
     systemAudio: true,
     microphone: true,
     camera: true,
+    resolution: VideoResolution.AUTO as VideoResolution,
   });
+
+  // 从本地存储加载录制选项
+  async function loadRecordingOptions() {
+    try {
+      const { browser: browserAPI } = await import("wxt/browser");
+      const result = await browserAPI.storage.local.get(["recordingOptions"]);
+      if (result.recordingOptions) {
+        recordingOptions.value = {
+          ...recordingOptions.value,
+          ...result.recordingOptions,
+        };
+      }
+    } catch (loadError) {
+      console.warn("[Popup] Failed to load recording options:", loadError);
+    }
+  }
+
+  // 保存录制选项到本地存储
+  async function saveRecordingOptions() {
+    try {
+      const { browser: browserAPI } = await import("wxt/browser");
+      await browserAPI.storage.local.set({
+        recordingOptions: recordingOptions.value,
+      });
+    } catch (saveError) {
+      console.warn("[Popup] Failed to save recording options:", saveError);
+    }
+  }
+
+  // 监听录制选项变化并保存
+  watch(
+    recordingOptions,
+    () => {
+      saveRecordingOptions();
+    },
+    { deep: true }
+  );
+
+  // 分辨率选项
+  const resolutionOptions = [
+    { value: VideoResolution.AUTO, label: "自动", description: "页面原始尺寸" },
+    { value: VideoResolution.HD, label: "720p", description: "1280×720" },
+    { value: VideoResolution.FHD, label: "1080p", description: "1920×1080" },
+    { value: VideoResolution.UHD, label: "4K", description: "3840×2160" },
+  ];
 
   async function captureViewport() {
     try {
@@ -171,7 +218,11 @@
   }
 
   async function handleToggleRecording() {
-    const result = await toggleRecording(VideoFormat.WEBM);
+    const result = await toggleRecording(VideoFormat.WEBM, {
+      microphone: recordingOptions.value.microphone,
+      camera: recordingOptions.value.camera,
+      resolution: recordingOptions.value.resolution,
+    });
     if (!result.success && result.error) {
       error(
         recordingState.value === RecordingState.RECORDING
@@ -190,6 +241,11 @@
     }
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
   }
+
+  // 组件挂载时加载录制选项
+  onMounted(() => {
+    loadRecordingOptions();
+  });
 </script>
 
 <template>
@@ -416,12 +472,36 @@
           <div
             class="rounded-lg bg-white dark:bg-gray-800 p-4 shadow-sm border border-gray-200 dark:border-gray-700"
           >
-            <div class="space-y-3">
+            <div class="space-y-2">
               <ToggleSwitch
                 v-model="recordingOptions.microphone"
                 label="麦克风"
               />
               <ToggleSwitch v-model="recordingOptions.camera" label="摄像头"/>
+
+              <!-- 分辨率选择 -->
+              <div
+                v-if="recordingOptions.camera"
+                class="flex items-center justify-between gap-1"
+              >
+                <label
+                  class="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  分辨率
+                </label>
+                <select
+                  v-model="recordingOptions.resolution"
+                  class="w-16 rounded-lg border border-gray-300 bg-white px-1 py-0.5 h-7 text-xs font-medium text-gray-700 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                >
+                  <option
+                    v-for="option in resolutionOptions"
+                    :key="option.value"
+                    :value="option.value"
+                  >
+                    {{ option.label }}
+                  </option>
+                </select>
+              </div>
             </div>
           </div>
         </div>

@@ -34,13 +34,20 @@ export function useRecordingState() {
   /**
    * 开始录制
    */
-  async function startRecording(format: VideoFormat = VideoFormat.WEBM) {
+  async function startRecording(
+    format: VideoFormat = VideoFormat.WEBM,
+    options?: {
+      microphone?: boolean;
+      camera?: boolean;
+      resolution?: import("@/types/screenshot").VideoResolution;
+    }
+  ) {
     try {
       lastRecordingResult.value = null;
 
       const response = await sendMessage(
         "recording:start-request",
-        { format },
+        { format, ...options },
         "background"
       );
 
@@ -98,11 +105,18 @@ export function useRecordingState() {
   /**
    * 切换录制状态（开始/停止）
    */
-  async function toggleRecording(format?: VideoFormat) {
+  async function toggleRecording(
+    format?: VideoFormat,
+    options?: {
+      microphone?: boolean;
+      camera?: boolean;
+      resolution?: import("@/types/screenshot").VideoResolution;
+    }
+  ) {
     if (recordingState.value === RecordingState.RECORDING) {
       return await stopRecording();
     }
-    return await startRecording(format);
+    return await startRecording(format, options);
   }
 
   // 初始化时检查录制状态

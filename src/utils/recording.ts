@@ -3,9 +3,28 @@ import {
   MessageType,
   type RecordingOptions,
   type VideoFormat,
+  VideoResolution,
 } from "@/types/screenshot";
 
 const OFFSCREEN_DOCUMENT_PATH = "offscreen.html";
+
+/**
+ * 获取分辨率对应的尺寸
+ */
+function getResolutionDimensions(
+  resolution: VideoResolution
+): { width: number; height: number } | null {
+  switch (resolution) {
+    case VideoResolution.HD:
+      return { width: 1280, height: 720 };
+    case VideoResolution.FHD:
+      return { width: 1920, height: 1080 };
+    case VideoResolution.UHD:
+      return { width: 3840, height: 2160 };
+    default:
+      return null; // 使用页面原始尺寸 (AUTO 或其他值)
+  }
+}
 
 /**
  * 确保 offscreen document 已创建
@@ -87,11 +106,23 @@ export async function startRecording(
       url: `${tab.url?.substring(0, 100)}...`,
     });
 
-    // 如果有尺寸设置，调整录制大小
+    // 确定录制尺寸
     let targetWidth = tab.width || 0;
     let targetHeight = tab.height || 0;
 
-    if (options.sizeSettings && options.sizeSettings.scale !== 1) {
+    // 优先使用分辨率设置
+    if (options.resolution && options.resolution !== VideoResolution.AUTO) {
+      const resolutionDimensions = getResolutionDimensions(options.resolution);
+      if (resolutionDimensions) {
+        targetWidth = resolutionDimensions.width;
+        targetHeight = resolutionDimensions.height;
+        console.log(
+          `[Recording] Using specified resolution: ${options.resolution} (${targetWidth}x${targetHeight})`
+        );
+      }
+    }
+    // 如果没有分辨率设置，检查尺寸设置
+    else if (options.sizeSettings && options.sizeSettings.scale !== 1) {
       const originalWidth = tab.width || 0;
       const originalHeight = tab.height || 0;
       targetWidth = Math.round(originalWidth * options.sizeSettings.scale);

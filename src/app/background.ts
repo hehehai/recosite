@@ -362,6 +362,7 @@ async function handleStartRecording(
       videoBitsPerSecond: data.videoBitsPerSecond,
       audioBitsPerSecond: data.audioBitsPerSecond,
       sizeSettings: data.sizeSettings,
+      resolution: data.resolution,
     };
     recordingStateManager.currentRecordingOptions = options;
 
@@ -671,6 +672,7 @@ async function handleStartRecordingBridge(data: RecordingOptions) {
       format: data.format || VideoFormat.WEBM,
       videoBitsPerSecond: data.videoBitsPerSecond,
       audioBitsPerSecond: data.audioBitsPerSecond,
+      resolution: data.resolution,
     };
 
     const result = await startRecording(tab.id, options);
