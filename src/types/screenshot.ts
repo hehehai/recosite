@@ -1,3 +1,5 @@
+import type { ExportSizeSettings } from "@/composables/useExportSize";
+
 /**
  * 截图类型
  */
@@ -114,6 +116,7 @@ export interface RecordingOptions {
   format: VideoFormat;
   videoBitsPerSecond?: number;
   audioBitsPerSecond?: number;
+  sizeSettings?: ExportSizeSettings;
 }
 
 /**

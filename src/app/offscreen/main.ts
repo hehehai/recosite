@@ -38,13 +38,23 @@ browser.runtime.onMessage.addListener((message, _sender, sendResponse) => {
  * 开始录制
  */
 async function handleStartRecording(
-  data: { streamId: string; options: RecordingOptions },
+  data: {
+    streamId: string;
+    options: RecordingOptions;
+    targetSize?: {
+      width: number;
+      height: number;
+      originalWidth: number;
+      originalHeight: number;
+    };
+  },
   sendResponse: (response?: unknown) => void
 ) {
   try {
-    const { streamId, options } = data;
+    const { streamId, options, targetSize } = data;
     console.log("[Offscreen] Starting recording with streamId:", streamId);
     console.log("[Offscreen] Recording options:", options);
+    console.log("[Offscreen] Target size:", targetSize);
 
     // 从 streamId 获取 MediaStream
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -60,6 +70,14 @@ async function handleStartRecording(
         mandatory: {
           chromeMediaSource: "tab",
           chromeMediaSourceId: streamId,
+          // 如果有目标尺寸，设置录制分辨率
+          ...(targetSize &&
+            targetSize.width !== targetSize.originalWidth && {
+              minWidth: targetSize.width,
+              maxWidth: targetSize.width,
+              minHeight: targetSize.height,
+              maxHeight: targetSize.height,
+            }),
         },
       },
     });
@@ -68,6 +86,17 @@ async function handleStartRecording(
       video: stream.getVideoTracks().length,
       audio: stream.getAudioTracks().length,
     });
+
+    // 获取视频轨道的实际约束
+    const videoTrack = stream.getVideoTracks()[0];
+    if (videoTrack) {
+      const settings = videoTrack.getSettings();
+      console.log("[Offscreen] Video track settings:", {
+        width: settings.width,
+        height: settings.height,
+        frameRate: settings.frameRate,
+      });
+    }
 
     // 确定 MIME 类型
     let mimeType = "video/webm;codecs=vp9,opus";
@@ -88,11 +117,13 @@ async function handleStartRecording(
 
     // 创建 MediaRecorder
     recordedChunks = [];
-    mediaRecorder = new MediaRecorder(stream, {
+    const mediaRecorderOptions: MediaRecorderOptions = {
       mimeType,
       videoBitsPerSecond: options.videoBitsPerSecond || 2_500_000, // 2.5 Mbps
       audioBitsPerSecond: options.audioBitsPerSecond || 128_000, // 128 kbps
-    });
+    };
+
+    mediaRecorder = new MediaRecorder(stream, mediaRecorderOptions);
 
     // 监听数据可用事件
     mediaRecorder.ondataavailable = (event) => {

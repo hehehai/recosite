@@ -12,6 +12,10 @@
 
   const props = defineProps<{
     dataUrl: string;
+    targetWidth?: number;
+    targetHeight?: number;
+    originalWidth?: number;
+    originalHeight?: number;
   }>();
 
   const canvas = ref<HTMLCanvasElement | null>(null);
@@ -466,15 +470,36 @@
       if (videoTrack && canvas.value) {
         const videoCanBeTransparent = await videoTrack.canBeTransparent();
 
+        // 使用目标尺寸或原始尺寸
+        const canvasWidth = props.targetWidth || videoTrack.displayWidth;
+        const canvasHeight = props.targetHeight || videoTrack.displayHeight;
+
+        console.log("[VideoPlayer] Canvas dimensions:", {
+          canvasWidth,
+          canvasHeight,
+          targetWidth: props.targetWidth,
+          targetHeight: props.targetHeight,
+          displayWidth: videoTrack.displayWidth,
+          displayHeight: videoTrack.displayHeight,
+        });
+
         videoSink = new CanvasSink(videoTrack, {
           poolSize: 2,
           fit: "contain",
           alpha: videoCanBeTransparent,
+          width: canvasWidth,
+          height: canvasHeight,
         });
 
-        canvas.value.width = videoTrack.displayWidth;
-        canvas.value.height = videoTrack.displayHeight;
+        canvas.value.width = canvasWidth;
+        canvas.value.height = canvasHeight;
         context = canvas.value.getContext("2d");
+
+        // 设置画布样式以确保正确的宽高比
+        if (props.originalWidth && props.originalHeight) {
+          const aspectRatio = props.originalWidth / props.originalHeight;
+          canvas.value.style.aspectRatio = aspectRatio.toString();
+        }
       }
 
       if (audioTrack) {
@@ -522,6 +547,23 @@
     () => {
       pause();
       initPlayer().catch(console.error);
+    }
+  );
+
+  // 监听尺寸变化
+  watch(
+    [
+      () => props.targetWidth,
+      () => props.targetHeight,
+      () => props.originalWidth,
+      () => props.originalHeight,
+    ],
+    () => {
+      if (canvas.value && context && hasVideo.value) {
+        // 重新初始化播放器以应用新尺寸
+        pause();
+        initPlayer().catch(console.error);
+      }
     }
   );
 </script>

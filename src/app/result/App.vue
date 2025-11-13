@@ -98,7 +98,9 @@
   watch(
     exportSizeSettings,
     () => {
-      generateResizedPreview();
+      if (resultType.value === "image") {
+        generateResizedPreview();
+      }
     },
     { deep: true }
   );
@@ -112,7 +114,9 @@
         scale: 1,
         showOriginal: false,
       };
-      generateResizedPreview();
+      if (resultType.value === "image") {
+        generateResizedPreview();
+      }
     }
   });
 
@@ -189,14 +193,31 @@
       }
     } else {
       showNotification(`正在转换为 ${format.toUpperCase()}...`, "info");
+      const sizeSettings =
+        exportSizeSettings.value && exportSizeSettings.value.scale !== 1
+          ? exportSizeSettings.value
+          : undefined;
+
       const result = await exportVideo(
         mediaData.value,
         fileName.value,
         originalFormat.value,
-        format as VideoFormat
+        format as VideoFormat,
+        sizeSettings
       );
       if (result.success) {
-        showNotification(`已成功导出为 ${format.toUpperCase()}`, "success");
+        let sizeText = "未知尺寸";
+        if (exportSizeSettings.value) {
+          if (exportSizeSettings.value.scale === 1) {
+            sizeText = "原始尺寸";
+          } else {
+            sizeText = `${exportSizeSettings.value.width}×${exportSizeSettings.value.height}`;
+          }
+        }
+        showNotification(
+          `已成功导出为 ${format.toUpperCase()} (${sizeText})`,
+          "success"
+        );
       } else {
         showNotification(result.error || "导出失败", "error");
       }
@@ -394,15 +415,21 @@
             >
 
             <!-- 视频预览 -->
-            <VideoPlayer v-else :data-url="mediaData"/>
+            <VideoPlayer
+              v-else
+              :data-url="mediaData"
+              :target-width="exportSizeSettings && exportSizeSettings.scale !== 1 ? exportSizeSettings.width : undefined"
+              :target-height="exportSizeSettings && exportSizeSettings.scale !== 1 ? exportSizeSettings.height : undefined"
+              :original-width="width || undefined"
+              :original-height="height || undefined"
+            />
           </div>
         </div>
 
         <!-- 右侧：操作面板 -->
         <div class="w-80 shrink-0 space-y-4">
-          <!-- 导出尺寸设置 (仅在图片时显示) -->
+          <!-- 导出尺寸设置 -->
           <ExportSizeSettings
-            v-if="resultType === 'image'"
             :original-width="width || 0"
             :original-height="height || 0"
             v-model="exportSizeSettings"

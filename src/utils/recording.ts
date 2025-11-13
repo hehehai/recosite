@@ -79,6 +79,26 @@ export async function startRecording(
     // 确保 offscreen document 已创建
     await ensureOffscreenDocument();
 
+    // 获取标签页信息以支持页面视窗大小录制
+    const tab = await browser.tabs.get(tabId);
+    console.log("[Recording] Tab info:", {
+      width: tab.width,
+      height: tab.height,
+      url: `${tab.url?.substring(0, 100)}...`,
+    });
+
+    // 如果有尺寸设置，调整录制大小
+    let targetWidth = tab.width;
+    let targetHeight = tab.height;
+
+    if (options.sizeSettings && options.sizeSettings.scale !== 1) {
+      targetWidth = Math.round(tab.width * options.sizeSettings.scale);
+      targetHeight = Math.round(tab.height * options.sizeSettings.scale);
+      console.log(
+        `[Recording] Adjusted recording size: ${targetWidth}x${targetHeight} (scale: ${options.sizeSettings.scale})`
+      );
+    }
+
     // 获取标签页的 MediaStream ID
     console.log("[Recording] Getting MediaStream ID for tab:", tabId);
 
@@ -98,6 +118,12 @@ export async function startRecording(
       data: {
         streamId,
         options,
+        targetSize: {
+          width: targetWidth,
+          height: targetHeight,
+          originalWidth: tab.width,
+          originalHeight: tab.height,
+        },
       },
     });
 

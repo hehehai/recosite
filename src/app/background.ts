@@ -26,6 +26,7 @@ import {
 const recordingStateManager = {
   state: RecordingState.IDLE as RecordingState,
   tabId: null as number | null,
+  currentRecordingOptions: null as RecordingOptions | null,
 };
 
 export default defineBackground(() => {
@@ -355,18 +356,21 @@ async function handleStartRecording(
     recordingStateManager.state = RecordingState.RECORDING;
     recordingStateManager.tabId = tab.id;
 
+    // 存储录制选项
+    const options: RecordingOptions = {
+      format: data.format || VideoFormat.WEBM,
+      videoBitsPerSecond: data.videoBitsPerSecond,
+      audioBitsPerSecond: data.audioBitsPerSecond,
+      sizeSettings: data.sizeSettings,
+    };
+    recordingStateManager.currentRecordingOptions = options;
+
     // 更新图标为录制中
     console.log("[Background] Updating icon to show recording status");
     await updateRecordingIcon(true);
 
     // 开始录制
     console.log("[Background] Calling startRecording...");
-    const options: RecordingOptions = {
-      format: data.format || VideoFormat.WEBM,
-      videoBitsPerSecond: data.videoBitsPerSecond,
-      audioBitsPerSecond: data.audioBitsPerSecond,
-    };
-
     const result = await startRecording(tab.id, options);
 
     if (!result.success) {
@@ -375,6 +379,7 @@ async function handleStartRecording(
       console.log("[Background] Restoring state to IDLE");
       recordingStateManager.state = RecordingState.IDLE;
       recordingStateManager.tabId = null;
+      recordingStateManager.currentRecordingOptions = null;
       await updateRecordingIcon(false);
 
       sendResponse({ error: result.error });
@@ -429,6 +434,7 @@ async function handleStopRecording(
       console.log("[Background] Restoring state to IDLE");
       recordingStateManager.state = RecordingState.IDLE;
       recordingStateManager.tabId = null;
+      recordingStateManager.currentRecordingOptions = null;
       await updateRecordingIcon(false);
 
       sendResponse({ error: result.error || "Failed to stop recording" });
@@ -452,8 +458,43 @@ async function handleStopRecording(
       reader.readAsDataURL(blob);
     });
 
+    // 获取录制时的实际尺寸
+    const targetSize =
+      recordingStateManager.currentRecordingOptions?.sizeSettings;
+    let videoWidth = 0;
+    let videoHeight = 0;
+
+    if (recordingStateManager.tabId) {
+      try {
+        const tab = await browser.tabs.get(recordingStateManager.tabId);
+        videoWidth = tab.width || 0;
+        videoHeight = tab.height || 0;
+
+        // 如果有尺寸设置，应用调整后的尺寸
+        if (targetSize && targetSize.scale !== 1) {
+          videoWidth = Math.round(videoWidth * targetSize.scale);
+          videoHeight = Math.round(videoHeight * targetSize.scale);
+        }
+
+        console.log("[Background] Video dimensions:", {
+          videoWidth,
+          videoHeight,
+          originalScale: targetSize?.scale,
+        });
+      } catch (tabError) {
+        console.warn("[Background] Failed to get tab dimensions:", tabError);
+      }
+    }
+
     // 打开结果页面显示录屏
-    await openResultPage(dataUrl, fileName, 0, 0, result.size || 0, "video");
+    await openResultPage(
+      dataUrl,
+      fileName,
+      videoWidth,
+      videoHeight,
+      result.size || 0,
+      "video"
+    );
 
     // 关闭 offscreen document
     console.log("[Background] Closing offscreen document...");
@@ -463,6 +504,7 @@ async function handleStopRecording(
     console.log("[Background] Restoring state to IDLE");
     recordingStateManager.state = RecordingState.IDLE;
     recordingStateManager.tabId = null;
+    recordingStateManager.currentRecordingOptions = null;
     await updateRecordingIcon(false);
 
     console.log("[Background] Recording completed successfully");
@@ -639,6 +681,7 @@ async function handleStartRecordingBridge(data: RecordingOptions) {
       console.log("[Background] Restoring state to IDLE");
       recordingStateManager.state = RecordingState.IDLE;
       recordingStateManager.tabId = null;
+      recordingStateManager.currentRecordingOptions = null;
       await updateRecordingIcon(false);
 
       return { success: false, error: result.error };
@@ -688,6 +731,7 @@ async function handleStopRecordingBridge() {
       console.log("[Background] Restoring state to IDLE");
       recordingStateManager.state = RecordingState.IDLE;
       recordingStateManager.tabId = null;
+      recordingStateManager.currentRecordingOptions = null;
       await updateRecordingIcon(false);
 
       return {
@@ -713,8 +757,46 @@ async function handleStopRecordingBridge() {
       reader.readAsDataURL(blob);
     });
 
+    // 获取录制时的实际尺寸
+    const targetSize =
+      recordingStateManager.currentRecordingOptions?.sizeSettings;
+    let videoWidth = 0;
+    let videoHeight = 0;
+
+    if (recordingStateManager.tabId) {
+      try {
+        const tab = await browser.tabs.get(recordingStateManager.tabId);
+        videoWidth = tab.width || 0;
+        videoHeight = tab.height || 0;
+
+        // 如果有尺寸设置，应用调整后的尺寸
+        if (targetSize && targetSize.scale !== 1) {
+          videoWidth = Math.round(videoWidth * targetSize.scale);
+          videoHeight = Math.round(videoHeight * targetSize.scale);
+        }
+
+        console.log("[Background] Video dimensions (bridge):", {
+          videoWidth,
+          videoHeight,
+          originalScale: targetSize?.scale,
+        });
+      } catch (tabError) {
+        console.warn(
+          "[Background] Failed to get tab dimensions (bridge):",
+          tabError
+        );
+      }
+    }
+
     // 打开结果页面显示录屏
-    await openResultPage(dataUrl, fileName, 0, 0, result.size || 0, "video");
+    await openResultPage(
+      dataUrl,
+      fileName,
+      videoWidth,
+      videoHeight,
+      result.size || 0,
+      "video"
+    );
 
     // 关闭 offscreen document
     console.log("[Background] Closing offscreen document...");
@@ -724,6 +806,7 @@ async function handleStopRecordingBridge() {
     console.log("[Background] Restoring state to IDLE");
     recordingStateManager.state = RecordingState.IDLE;
     recordingStateManager.tabId = null;
+    recordingStateManager.currentRecordingOptions = null;
     await updateRecordingIcon(false);
 
     console.log("[Background] Recording completed successfully");
