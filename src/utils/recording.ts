@@ -88,12 +88,14 @@ export async function startRecording(
     });
 
     // 如果有尺寸设置，调整录制大小
-    let targetWidth = tab.width;
-    let targetHeight = tab.height;
+    let targetWidth = tab.width || 0;
+    let targetHeight = tab.height || 0;
 
     if (options.sizeSettings && options.sizeSettings.scale !== 1) {
-      targetWidth = Math.round(tab.width * options.sizeSettings.scale);
-      targetHeight = Math.round(tab.height * options.sizeSettings.scale);
+      const originalWidth = tab.width || 0;
+      const originalHeight = tab.height || 0;
+      targetWidth = Math.round(originalWidth * options.sizeSettings.scale);
+      targetHeight = Math.round(originalHeight * options.sizeSettings.scale);
       console.log(
         `[Recording] Adjusted recording size: ${targetWidth}x${targetHeight} (scale: ${options.sizeSettings.scale})`
       );
