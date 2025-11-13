@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { computed, onMounted, ref } from "vue";
+  import { computed, onMounted, ref, watch } from "vue";
   import {
     useImageExport,
     useNotification,
@@ -8,6 +8,7 @@
     useVideoMetadata,
   } from "@/composables";
   import type { ImageFormat, VideoFormat } from "@/types/screenshot";
+  import ExportSizeSettings from "./components/ExportSizeSettings.vue";
   import NotificationToast from "./components/NotificationToast.vue";
   import ResultHeader from "./components/ResultHeader.vue";
   import VideoMetadataDialog from "./components/VideoMetadataDialog.vue";
@@ -52,6 +53,17 @@
   );
   const copySuccess = ref(false);
 
+  // 导出尺寸设置
+  const exportSizeSettings = ref({
+    width: width.value || 0,
+    height: height.value || 0,
+    scale: 1,
+    showOriginal: false,
+  });
+
+  // 预览图片URL（用于显示调整后的尺寸）
+  const previewImageUrl = ref<string>("");
+
   // Regex 常量
   const FILE_EXTENSION_REGEX = /\.\w+$/;
 
@@ -80,6 +92,28 @@
         : imageExportFormats;
     }
     return videoExportFormats;
+  });
+
+  // 监听导出尺寸设置变化
+  watch(
+    exportSizeSettings,
+    () => {
+      generateResizedPreview();
+    },
+    { deep: true }
+  );
+
+  // 监听媒体数据加载完成
+  watch([mediaData, width, height], () => {
+    if (mediaData.value && width.value && height.value) {
+      exportSizeSettings.value = {
+        width: width.value,
+        height: height.value,
+        scale: 1,
+        showOriginal: false,
+      };
+      generateResizedPreview();
+    }
   });
 
   onMounted(async () => {
@@ -128,14 +162,28 @@
         return;
       }
 
+      // 准备导出的图片数据
+      let exportData = mediaData.value;
+
+      // 如果需要调整尺寸且不是显示原图，使用调整后的数据
+      if (!exportSizeSettings.value.showOriginal && previewImageUrl.value) {
+        exportData = previewImageUrl.value;
+      }
+
       const result = await exportImage(
-        mediaData.value,
+        exportData,
         fileName.value,
         originalFormat.value,
         format as ImageFormat
       );
       if (result.success) {
-        showNotification(`已导出为 ${format.toUpperCase()}`, "success");
+        const sizeText = exportSizeSettings.value.showOriginal
+          ? "原始尺寸"
+          : `${exportSizeSettings.value.width}×${exportSizeSettings.value.height}`;
+        showNotification(
+          `已导出为 ${format.toUpperCase()} (${sizeText})`,
+          "success"
+        );
       } else {
         showNotification(result.error || "导出失败", "error");
       }
@@ -221,6 +269,50 @@
       }
     }
   }
+
+  // 生成调整后的图片预览
+  async function generateResizedPreview() {
+    if (
+      !mediaData.value ||
+      resultType.value !== "image" ||
+      exportSizeSettings.value.showOriginal
+    ) {
+      previewImageUrl.value = mediaData.value || "";
+      return;
+    }
+
+    try {
+      // 创建图片元素
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = mediaData.value!;
+      });
+
+      // 创建canvas来调整尺寸
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      if (!ctx) {
+        throw new Error("无法获取 canvas context");
+      }
+
+      canvas.width = exportSizeSettings.value.width;
+      canvas.height = exportSizeSettings.value.height;
+
+      // 绘制调整后的图片
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+      // 转换为data URL
+      previewImageUrl.value = canvas.toDataURL("image/png");
+    } catch (previewError) {
+      console.error("生成预览图片失败:", previewError);
+      previewImageUrl.value = mediaData.value || "";
+    }
+  }
 </script>
 
 <template>
@@ -296,7 +388,7 @@
             <!-- 图片预览 -->
             <img
               v-if="resultType === 'image'"
-              :src="mediaData"
+              :src="previewImageUrl || mediaData"
               :alt="fileName"
               class="max-h-full max-w-full rounded shadow-lg"
             >
@@ -308,6 +400,14 @@
 
         <!-- 右侧：操作面板 -->
         <div class="w-80 shrink-0 space-y-4">
+          <!-- 导出尺寸设置 (仅在图片时显示) -->
+          <ExportSizeSettings
+            v-if="resultType === 'image'"
+            :original-width="width || 0"
+            :original-height="height || 0"
+            v-model="exportSizeSettings"
+          />
+
           <!-- 快速操作 -->
           <div
             class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-800 dark:bg-gray-900"
