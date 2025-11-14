@@ -15,11 +15,9 @@ Recosite is a modern, feature-rich browser extension that enables you to capture
 ## 🎥 Demo
 
 <div align="center">
-  <video controls autoplay loop muted>
-    <source src="https://cdn.actnow.dev/public/recosite-shot.mp4" type="video/mp4">
-    Your browser does not support the video tag.
-  </video>
+  <video src="https://github.com/user-attachments/assets/259f304c-c2e9-4a95-9a42-552a5de7e2c3" width="70%"> </video>
 </div>
+
 
 > Watch a quick demonstration of Recosite's screenshot and video recording features in action.
 
