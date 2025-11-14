@@ -27,13 +27,18 @@ Recosite is a modern, feature-rich browser extension that enables you to capture
 - **📸 Viewport Screenshot** - Capture the currently visible area instantly
 - **📄 Full-Page Screenshot** - Automatically scroll and stitch the entire page
 - **✂️ Selection Screenshot** - Drag to select and capture any specific region
-- **🎨 Multiple Formats** - Export as PNG or JPEG with quality control
+- **🎨 DOM Element Capture** - Click to select and capture any DOM element precisely
+- **🖼️ Multiple Formats** - Export as PNG or JPEG with quality control
 - **📐 Size Adjustment** - Resize images with preset scales (0.25x to 3x) or custom dimensions
 - **👁️ Live Preview** - Compare original and adjusted sizes before export
 
 ### Video Recording
-- **🎥 Tab Recording** - Record any browser tab with audio support
+- **🎥 Page Recording** - Record any browser tab with audio support
+- **🪟 Window Recording** - Capture specific application windows
+- **🖥️ Desktop Recording** - Record entire screen with system audio
 - **📹 Resolution Control** - Choose from AUTO, 720p (HD), 1080p (FHD), or 4K (UHD) recording quality
+- **🎙️ Audio Options** - Control system audio, microphone, and camera settings
+- **🔴 Auto-Stop Detection** - Automatically stop recording when user clicks "Stop Sharing"
 - **🔄 Format Conversion** - Convert to MP4, MOV, WebM, or GIF
 - **📊 Metadata Extraction** - View detailed video information (codec, resolution, bitrate, etc.)
 - **📐 Video Resizing** - Adjust video dimensions with the same flexible sizing options as images
@@ -43,9 +48,10 @@ Recosite is a modern, feature-rich browser extension that enables you to capture
 ### User Experience
 - **🎯 Intuitive UI** - Clean, modern interface with dark mode support
 - **📦 Automatic Download** - Smart file naming and instant downloads
-- **🔔 Toast Notifications** - Friendly feedback for all operations
+- **🔔 Status Notifications** - Collapsible status cards with friendly feedback
 - **📱 Responsive Design** - Works seamlessly across different screen sizes
 - **🎬 Custom Video Player** - Built-in player with advanced playback controls
+- **⚡ Type-Safe Development** - Built with TypeScript for reliability
 
 ## 📸 Screenshots
 
@@ -54,14 +60,18 @@ Recosite is a modern, feature-rich browser extension that enables you to capture
 ## 🌐 Supported Browsers
 
 - **Chrome** - Version 88 and above (Manifest V3)
-- **Edge** - Version 88 and above (Manifest V3)
+  - 🔄 Currently under review on Chrome Web Store
+  - Manual installation available for testing
 - **Firefox** - Support coming soon
+- **Edge** - Version 88 and above (Manifest V3) - Coming soon
+
+> **Note**: This extension is currently only available for Chrome and is under review on the Chrome Web Store. Firefox and Edge support will be added in future releases.
 
 ## 📥 Installation
 
-### From Web Store
+### From Chrome Web Store
 
-> Chrome Web Store and Firefox Add-ons store listings are coming soon!
+> 🔄 **Status**: Currently under review on Chrome Web Store. Once approved, you'll be able to install directly from the store.
 
 ### Manual Installation (Development)
 
@@ -133,52 +143,86 @@ npm run compile
 
 ## 🏗️ Tech Stack
 
-- **[WXT](https://wxt.dev/)** - Modern browser extension framework
-- **[Vue 3](https://vuejs.org/)** - Progressive JavaScript framework
+### Core Framework
+- **[WXT](https://wxt.dev/)** - Modern browser extension framework with Manifest V3 support
+- **[Vue 3](https://vuejs.org/)** - Progressive JavaScript framework with Composition API
+- **[TypeScript](https://www.typescriptlang.org/)** - Type-safe JavaScript for better developer experience
+
+### Styling & UI
 - **[Tailwind CSS 4](https://tailwindcss.com/)** - Utility-first CSS framework
-- **[TypeScript](https://www.typescriptlang.org/)** - Type-safe JavaScript
+- **[UnoCSS Icons](https://unocss.dev/presets/icons)** - Pure CSS icons from Iconify
+
+### Media Processing
+- **[MediaBunny](https://github.com/TrebledJ/mediabunny)** - Web-based video conversion and processing
+- **[Snapdom](https://github.com/zumersalad/snapdom)** - DOM element to image conversion
+
+### Development Tools
 - **[Biome](https://biomejs.dev/)** - Fast code formatter and linter
-- **[MediaBunny](https://github.com/TrebledJ/mediabunny)** - Web-based media processing
 - **[Vite](https://vitejs.dev/)** - Next-generation frontend tooling
+- **[webext-bridge](https://github.com/serversideup/webext-bridge)** - Type-safe messaging between extension contexts
+
+### Browser APIs
+- **Chrome Extension APIs** - Tab capture, Desktop capture, Offscreen documents
+- **MediaStream Recording API** - High-quality video recording
+- **Canvas API** - Image manipulation and export
 
 ## 📁 Project Structure
 
 ```
 recosite/
 ├── src/
-│   ├── app/                      # Application entry points
-│   │   ├── background.ts        # Background service worker
-│   │   ├── offscreen/           # Offscreen document for recording
-│   │   ├── popup/               # Extension popup UI
-│   │   └── result/              # Result page for viewing captures
-│   │       └── components/      # Result page components
-│   │           ├── ExportSizeSettings.vue  # Size adjustment UI
-│   │           └── VideoPlayer.vue         # Custom video player
-│   ├── components/              # Reusable Vue components
-│   │   ├── SelectionTool.vue   # Visual selection tool
-│   │   └── Toast.vue           # Notification component
-│   ├── composables/             # Vue composition functions
-│   │   ├── useImageExport.ts   # Image export logic
-│   │   ├── useVideoExport.ts   # Video conversion logic
-│   │   ├── useVideoMetadata.ts # Video metadata extraction
-│   │   ├── useExportSize.ts    # Size adjustment logic
-│   │   ├── useRecordingState.ts # Recording state management
-│   │   └── useToast.ts         # Toast notification system
-│   ├── content-scripts/         # Content scripts
-│   │   └── selection.ts        # Selection tool injection
-│   ├── constants/               # Shared constants
-│   │   └── export-size.ts      # Export size presets and limits
-│   ├── types/                   # TypeScript type definitions
-│   │   ├── screenshot.ts       # Screenshot and recording types
-│   │   └── bridge.d.ts         # Message bridge types
-│   └── utils/                   # Utility functions
-│       ├── screenshot.ts       # Screenshot capture utilities
-│       ├── recording.ts        # Video recording utilities
-│       ├── canvas.ts           # Canvas manipulation
-│       └── file.ts             # File handling
-├── public/                      # Static assets
-├── wxt.config.ts               # WXT configuration
-└── package.json                # Project dependencies
+│   ├── app/                         # Application entry points
+│   │   ├── background.ts           # Background service worker (recording orchestration)
+│   │   ├── dom-selector.content.ts # DOM element selection tool
+│   │   ├── offscreen/              # Offscreen document for media recording
+│   │   │   └── main.ts            # MediaRecorder and stream handling
+│   │   ├── popup/                  # Extension popup UI
+│   │   │   ├── App.vue            # Main popup component with tabs
+│   │   │   └── index.ts           # Popup entry point
+│   │   └── result/                 # Result page for viewing captures
+│   │       ├── index.ts           # Result page entry
+│   │       ├── App.vue            # Result page main component
+│   │       └── components/        # Result page components
+│   │           ├── ExportSizeSettings.vue  # Size adjustment controls
+│   │           ├── ImageResult.vue         # Image preview and export
+│   │           ├── VideoPlayer.vue         # Custom video player
+│   │           └── VideoResult.vue         # Video preview and export
+│   ├── components/                  # Reusable Vue components
+│   │   ├── ActionButton.vue        # Action button with loading state
+│   │   ├── StatusCard.vue          # Collapsible status notification
+│   │   ├── Toast.vue               # Toast notification system
+│   │   └── ToggleSwitch.vue        # Toggle switch component
+│   ├── composables/                 # Vue composition functions
+│   │   ├── useImageExport.ts       # Image format conversion and export
+│   │   ├── useVideoExport.ts       # Video format conversion with MediaBunny
+│   │   ├── useVideoMetadata.ts     # Video metadata extraction
+│   │   ├── useExportSize.ts        # Size adjustment calculations
+│   │   ├── useRecordingState.ts    # Recording state management
+│   │   ├── useTabPersistence.ts    # Tab state persistence
+│   │   └── useToast.ts             # Toast notification management
+│   ├── constants/                   # Shared constants
+│   │   ├── export-size.ts          # Export size presets and limits
+│   │   └── recording.ts            # Recording bitrates and timing
+│   ├── types/                       # TypeScript type definitions
+│   │   ├── screenshot.ts           # Screenshot and recording types
+│   │   └── bridge.d.ts             # Webext-bridge message types
+│   └── utils/                       # Utility functions
+│       ├── screenshot.ts           # Screenshot capture utilities
+│       ├── recording.ts            # Video recording utilities
+│       ├── recordingConfig.ts      # Recording configuration helpers
+│       ├── recordingState.ts       # Recording state management
+│       ├── canvas.ts               # Canvas manipulation
+│       ├── file.ts                 # File handling and downloads
+│       └── icon.ts                 # Extension icon management
+├── public/                          # Static assets
+│   ├── icon/                       # Extension icons (16-512px)
+│   ├── icon.svg                    # Main icon source
+│   └── offscreen.html              # Offscreen document HTML
+├── wxt.config.ts                   # WXT framework configuration
+├── tailwind.config.ts              # Tailwind CSS configuration
+├── uno.config.ts                   # UnoCSS configuration
+├── biome.json                      # Biome linter/formatter config
+└── package.json                    # Project dependencies
 ```
 
 ## 🤝 Contributing
@@ -214,7 +258,7 @@ If you find this project helpful, please consider:
 - ⭐ Starring the repository on GitHub
 - 🐛 Reporting bugs or suggesting features through [Issues](https://github.com/hehehai/recosite/issues)
 - 📢 Sharing it with others who might find it useful
-- ☕ [Buying me a coffee](https://github.com/hehehai) (Coming soon)
+- 🤝 Contributing to the project with pull requests
 
 ## 📮 Contact
 
