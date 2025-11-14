@@ -26,6 +26,14 @@ export default defineConfig({
         matches: ["<all_urls>"],
       },
     ],
+    icons: {
+      16: "icon/16.png",
+      32: "icon/32.png",
+      48: "icon/48.png",
+      64: "icon/64.png",
+      128: "icon/128.png",
+      512: "icon/512.png",
+    },
   },
   vite: () => ({
     plugins: [tailwindcss()],

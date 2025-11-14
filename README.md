@@ -1,5 +1,6 @@
 <div align="center">
-  <h1>🎬 Recosite</h1>
+  <img src="public/icon.svg" alt="Recosite Logo" width="128" height="128">
+  <h1>Recosite</h1>
   <p>A powerful browser extension for capturing web pages as images and recording screen interactions as videos</p>
 
   [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -11,6 +12,12 @@
 
 Recosite is a modern, feature-rich browser extension that enables you to capture web pages in multiple ways - from simple viewport screenshots to full-page scrolling captures and precise selection-based captures. It also supports recording web interactions as videos with advanced format conversion capabilities.
 
+## 🎥 Demo
+
+https://github.com/user-attachments/assets/demo-video.mp4
+
+> Watch a quick demonstration of Recosite's screenshot and video recording features in action.
+
 ## ✨ Features
 
 ### Screenshot Capabilities
@@ -18,18 +25,24 @@ Recosite is a modern, feature-rich browser extension that enables you to capture
 - **📄 Full-Page Screenshot** - Automatically scroll and stitch the entire page
 - **✂️ Selection Screenshot** - Drag to select and capture any specific region
 - **🎨 Multiple Formats** - Export as PNG or JPEG with quality control
+- **📐 Size Adjustment** - Resize images with preset scales (0.25x to 3x) or custom dimensions
+- **👁️ Live Preview** - Compare original and adjusted sizes before export
 
 ### Video Recording
 - **🎥 Tab Recording** - Record any browser tab with audio support
+- **📹 Resolution Control** - Choose from AUTO, 720p (HD), 1080p (FHD), or 4K (UHD) recording quality
 - **🔄 Format Conversion** - Convert to MP4, MOV, WebM, or GIF
 - **📊 Metadata Extraction** - View detailed video information (codec, resolution, bitrate, etc.)
+- **📐 Video Resizing** - Adjust video dimensions with the same flexible sizing options as images
 - **⚡ High Performance** - Powered by MediaBunny for efficient processing
+- **💾 Persistent Settings** - Recording preferences saved across sessions
 
 ### User Experience
 - **🎯 Intuitive UI** - Clean, modern interface with dark mode support
 - **📦 Automatic Download** - Smart file naming and instant downloads
 - **🔔 Toast Notifications** - Friendly feedback for all operations
 - **📱 Responsive Design** - Works seamlessly across different screen sizes
+- **🎬 Custom Video Player** - Built-in player with advanced playback controls
 
 ## 📸 Screenshots
 
@@ -135,6 +148,9 @@ recosite/
 │   │   ├── offscreen/           # Offscreen document for recording
 │   │   ├── popup/               # Extension popup UI
 │   │   └── result/              # Result page for viewing captures
+│   │       └── components/      # Result page components
+│   │           ├── ExportSizeSettings.vue  # Size adjustment UI
+│   │           └── VideoPlayer.vue         # Custom video player
 │   ├── components/              # Reusable Vue components
 │   │   ├── SelectionTool.vue   # Visual selection tool
 │   │   └── Toast.vue           # Notification component
@@ -142,11 +158,15 @@ recosite/
 │   │   ├── useImageExport.ts   # Image export logic
 │   │   ├── useVideoExport.ts   # Video conversion logic
 │   │   ├── useVideoMetadata.ts # Video metadata extraction
+│   │   ├── useExportSize.ts    # Size adjustment logic
+│   │   ├── useRecordingState.ts # Recording state management
 │   │   └── useToast.ts         # Toast notification system
 │   ├── content-scripts/         # Content scripts
 │   │   └── selection.ts        # Selection tool injection
+│   ├── constants/               # Shared constants
+│   │   └── export-size.ts      # Export size presets and limits
 │   ├── types/                   # TypeScript type definitions
-│   │   ├── screenshot.ts       # Screenshot types
+│   │   ├── screenshot.ts       # Screenshot and recording types
 │   │   └── bridge.d.ts         # Message bridge types
 │   └── utils/                   # Utility functions
 │       ├── screenshot.ts       # Screenshot capture utilities
