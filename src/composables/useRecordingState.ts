@@ -1,6 +1,6 @@
 import { onMounted, ref } from "vue";
 import { sendMessage } from "webext-bridge/popup";
-import { RecordingState, VideoFormat } from "@/types/screenshot";
+import { RecordingState, RecordingType, VideoFormat } from "@/types/screenshot";
 
 interface RecordingResult {
   fileName: string;
@@ -13,6 +13,7 @@ interface RecordingResult {
  */
 export function useRecordingState() {
   const recordingState = ref<RecordingState>(RecordingState.IDLE);
+  const recordingType = ref<RecordingType>(RecordingType.TAB);
   const lastRecordingResult = ref<RecordingResult | null>(null);
 
   /**
@@ -26,6 +27,9 @@ export function useRecordingState() {
         "background"
       );
       recordingState.value = response.state;
+      if (response.recordingType) {
+        recordingType.value = response.recordingType;
+      }
     } catch (err) {
       console.error("Failed to get recording status:", err);
     }
@@ -37,6 +41,7 @@ export function useRecordingState() {
   async function startRecording(
     format: VideoFormat = VideoFormat.WEBM,
     options?: {
+      type?: RecordingType;
       microphone?: boolean;
       camera?: boolean;
       resolution?: import("@/types/screenshot").VideoResolution;
@@ -45,9 +50,10 @@ export function useRecordingState() {
     try {
       lastRecordingResult.value = null;
 
+      const type = options?.type || RecordingType.TAB;
       const response = await sendMessage(
         "recording:start-request",
-        { format, ...options },
+        { type, format, ...options },
         "background"
       );
 
@@ -56,6 +62,7 @@ export function useRecordingState() {
       }
 
       recordingState.value = RecordingState.RECORDING;
+      recordingType.value = type;
       return { success: true };
     } catch (err) {
       recordingState.value = RecordingState.IDLE;
@@ -108,6 +115,7 @@ export function useRecordingState() {
   async function toggleRecording(
     format?: VideoFormat,
     options?: {
+      type?: RecordingType;
       microphone?: boolean;
       camera?: boolean;
       resolution?: import("@/types/screenshot").VideoResolution;
@@ -126,6 +134,7 @@ export function useRecordingState() {
 
   return {
     recordingState,
+    recordingType,
     lastRecordingResult,
     checkRecordingStatus,
     startRecording,

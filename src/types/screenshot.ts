@@ -98,6 +98,17 @@ export const MessageType = {
 export type MessageType = (typeof MessageType)[keyof typeof MessageType];
 
 /**
+ * 录制类型
+ */
+export const RecordingType = {
+  TAB: "tab", // 标签页录制
+  WINDOW: "window", // 窗口录制
+  DESKTOP: "desktop", // 桌面录制（暂未实现）
+} as const;
+
+export type RecordingType = (typeof RecordingType)[keyof typeof RecordingType];
+
+/**
  * 录制状态
  */
 export const RecordingState = {
@@ -126,11 +137,14 @@ export type VideoResolution =
  * 录制配置选项
  */
 export interface RecordingOptions {
+  type?: RecordingType; // 录制类型
   format: VideoFormat;
   videoBitsPerSecond?: number;
   audioBitsPerSecond?: number;
   sizeSettings?: ExportSizeSettings;
   resolution?: VideoResolution;
+  microphone?: boolean;
+  camera?: boolean;
 }
 
 /**

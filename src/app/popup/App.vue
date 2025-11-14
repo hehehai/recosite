@@ -1,5 +1,6 @@
 <script setup lang="ts">
   import { onMounted, ref, watch } from "vue";
+  import { sendMessage } from "webext-bridge/popup";
   import { browser } from "wxt/browser";
   import ActionButton from "@/components/ActionButton.vue";
   import StatusCard from "@/components/StatusCard.vue";
@@ -9,7 +10,6 @@
   import { useToast } from "@/composables/useToast";
   import {
     ImageFormat,
-    MessageType,
     RecordingState,
     VideoFormat,
     VideoResolution,
@@ -27,8 +27,12 @@
   const { activeTab } = useTabPersistence("screenshot");
 
   // 录制状态管理
-  const { recordingState, lastRecordingResult, toggleRecording } =
-    useRecordingState();
+  const {
+    recordingState,
+    recordingType,
+    lastRecordingResult,
+    toggleRecording,
+  } = useRecordingState();
 
   // 录制选项
   const recordingOptions = ref({
@@ -88,12 +92,13 @@
       isCapturing.value = true;
       lastResult.value = null;
 
-      const response = await browser.runtime.sendMessage({
-        type: MessageType.CAPTURE_VIEWPORT,
-        data: { format: ImageFormat.PNG, quality: 0.92 },
-      });
+      const response = await sendMessage(
+        "capture:viewport",
+        { format: ImageFormat.PNG, quality: 0.92 },
+        "background"
+      );
 
-      if (response.error) {
+      if (!response.success || response.error) {
         error(`截图失败: ${response.error}`);
         return;
       }
@@ -115,12 +120,13 @@
       isCapturing.value = true;
       lastResult.value = null;
 
-      const response = await browser.runtime.sendMessage({
-        type: MessageType.CAPTURE_FULL_PAGE,
-        data: { format: ImageFormat.PNG, quality: 0.92 },
-      });
+      const response = await sendMessage(
+        "capture:fullPage",
+        { format: ImageFormat.PNG, quality: 0.92 },
+        "background"
+      );
 
-      if (response.error) {
+      if (!response.success || response.error) {
         error(`长截图失败: ${response.error}`);
         return;
       }
@@ -142,17 +148,18 @@
       isCapturing.value = true;
       lastResult.value = null;
 
-      const response = await browser.runtime.sendMessage({
-        type: MessageType.START_SELECTION,
-        data: { format: ImageFormat.PNG, quality: 0.92 },
-      });
+      const response = await sendMessage(
+        "capture:selection",
+        { format: ImageFormat.PNG, quality: 0.92 },
+        "background"
+      );
 
       if (response.cancelled) {
         isCapturing.value = false;
         return;
       }
 
-      if (response.error) {
+      if (!response.success || response.error) {
         error(`选区截图失败: ${response.error}`);
         return;
       }
@@ -185,10 +192,12 @@
       }
 
       try {
-        // Content script 已通过 manifest 自动注入，直接发送消息
-        await browser.tabs.sendMessage(tab.id, {
-          type: MessageType.START_DOM_SELECTION,
-        });
+        // 使用 webext-bridge 发送消息到 content script
+        await sendMessage(
+          "dom:start-selection",
+          {},
+          `content-script@${tab.id}`
+        );
 
         window.close();
       } catch (err) {
@@ -202,9 +211,11 @@
         await new Promise((resolve) => setTimeout(resolve, 1000));
 
         try {
-          await browser.tabs.sendMessage(tab.id, {
-            type: MessageType.START_DOM_SELECTION,
-          });
+          await sendMessage(
+            "dom:start-selection",
+            {},
+            `content-script@${tab.id}`
+          );
           window.close();
         } catch (retryErr) {
           error("加载失败，请手动刷新页面后重试");
@@ -217,8 +228,9 @@
     }
   }
 
-  async function handleToggleRecording() {
+  async function handleToggleRecording(type = "tab") {
     const result = await toggleRecording(VideoFormat.WEBM, {
+      type: type as any,
       microphone: recordingOptions.value.microphone,
       camera: recordingOptions.value.camera,
       resolution: recordingOptions.value.resolution,
@@ -327,27 +339,39 @@
         <div class="grid grid-cols-2 gap-2.5 h-full">
           <!-- 页面录制 -->
           <ActionButton
-            :label="recordingState === RecordingState.RECORDING ? '录制中' : '页面录制'"
-            sublabel="点击停止录制"
-            :active="recordingState === RecordingState.RECORDING"
-            :animate="recordingState === RecordingState.RECORDING"
-            :disabled="recordingState === RecordingState.PROCESSING || isCapturing"
-            @click="handleToggleRecording"
+            :label="recordingState === RecordingState.RECORDING && recordingType === 'tab' ? '录制中' : '页面录制'"
+            :sublabel="recordingState === RecordingState.RECORDING && recordingType === 'tab' ? '点击停止录制' : undefined"
+            :active="recordingState === RecordingState.RECORDING && recordingType === 'tab'"
+            :animate="recordingState === RecordingState.RECORDING && recordingType === 'tab'"
+            :disabled="recordingState === RecordingState.PROCESSING || isCapturing || (recordingState === RecordingState.RECORDING && recordingType !== 'tab')"
+            @click="handleToggleRecording('tab')"
           >
             <template #icon>
               <span
                 :class="['text-3xl', {
-                    'i-hugeicons-file-video': recordingState === RecordingState.IDLE,
-                    'i-hugeicons-stop-circle': recordingState === RecordingState.RECORDING,
+                    'i-hugeicons-file-video': recordingState === RecordingState.IDLE || recordingType !== 'tab',
+                    'i-hugeicons-stop-circle': recordingState === RecordingState.RECORDING && recordingType === 'tab',
                 }]"
               />
             </template>
           </ActionButton>
 
-          <!-- 窗口录制（暂不实现） -->
-          <ActionButton label="窗口录制" :disabled="true">
+          <!-- 窗口录制 -->
+          <ActionButton
+            :label="recordingState === RecordingState.RECORDING && recordingType === 'window' ? '录制中' : '窗口录制'"
+            :sublabel="recordingState === RecordingState.RECORDING && recordingType === 'window' ? '点击停止录制' : undefined"
+            :active="recordingState === RecordingState.RECORDING && recordingType === 'window'"
+            :animate="recordingState === RecordingState.RECORDING && recordingType === 'window'"
+            :disabled="recordingState === RecordingState.PROCESSING || isCapturing || (recordingState === RecordingState.RECORDING && recordingType !== 'window')"
+            @click="handleToggleRecording('window')"
+          >
             <template #icon>
-              <span class="i-hugeicons-video-ai text-3xl"/>
+              <span
+                :class="['text-3xl', {
+                    'i-hugeicons-video-ai': recordingState === RecordingState.IDLE || recordingType !== 'window',
+                    'i-hugeicons-stop-circle': recordingState === RecordingState.RECORDING && recordingType === 'window',
+                }]"
+              />
             </template>
           </ActionButton>
 

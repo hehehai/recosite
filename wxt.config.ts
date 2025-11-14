@@ -16,6 +16,7 @@ export default defineConfig({
       "scripting",
       "downloads",
       "tabCapture", // 用于捕获标签页内容进行录制
+      "desktopCapture", // 用于窗口和桌面录制
       "offscreen", // 用于创建 offscreen document 进行录制
       "storage", // 用于存储录制数据
     ],
