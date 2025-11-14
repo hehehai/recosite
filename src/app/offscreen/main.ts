@@ -1,14 +1,16 @@
 import { browser } from "wxt/browser";
+import { RECORDING_BITRATES, RECORDING_TIMING } from "@/constants/recording";
 import type { RecordingOptions } from "@/types/screenshot";
+import { getMediaRecorderOptions } from "@/utils/recordingConfig";
 
 let mediaRecorder: MediaRecorder | null = null;
 let recordedChunks: Blob[] = [];
-let isStopping = false; // 防止重复停止
+let isStopping = false; // Prevent duplicate stops
 let autoStoppedData: {
   data: number[];
   size: number;
   mimeType: string;
-} | null = null; // 存储自动停止时的录制数据
+} | null = null; // Store recording data when auto-stopped
 
 console.log("[Offscreen] Document loaded and ready");
 console.log("[Offscreen] Setting up message listeners...");
@@ -62,11 +64,27 @@ async function handleStartWindowCapture(data: {
     const { options } = data;
 
     // 使用 getDisplayMedia 直接显示窗口/屏幕选择器
+    // selfBrowserSurface: "exclude" 用于排除当前标签页
+    // displaySurface 用于控制选择器默认聚焦的面板（window/monitor）
+    // 注意：无法完全隐藏"Chrome 标签"面板，这是浏览器的安全限制
     console.log("[Offscreen] Calling getDisplayMedia...");
-    const stream = await navigator.mediaDevices.getDisplayMedia({
-      video: true,
+    console.log("[Offscreen] displaySurface:", options.displaySurface);
+
+    // Chrome-specific extensions to DisplayMediaStreamOptions
+    // TypeScript types don't include these yet, so we use type assertion
+    const displayMediaOptions = {
+      video: options.displaySurface
+        ? {
+            displaySurface: options.displaySurface,
+          }
+        : true,
       audio: false, // 窗口捕获不支持系统音频
-    });
+      selfBrowserSurface: "exclude", // 排除当前标签页
+      surfaceSwitching: "exclude", // 禁用动态切换按钮
+    } as DisplayMediaStreamOptions;
+
+    const stream =
+      await navigator.mediaDevices.getDisplayMedia(displayMediaOptions);
 
     console.log("[Offscreen] Got MediaStream with tracks:", {
       video: stream.getVideoTracks().length,
@@ -111,15 +129,17 @@ async function handleStartWindowCapture(data: {
       });
     }
 
-    // 创建 MediaRecorder
+    // Create MediaRecorder
     const mimeType = `video/${options.format}`;
     console.log("[Offscreen] Creating MediaRecorder with mimeType:", mimeType);
 
-    mediaRecorder = new MediaRecorder(stream, {
-      mimeType,
-      videoBitsPerSecond: options.videoBitsPerSecond || 8_000_000,
-      audioBitsPerSecond: options.audioBitsPerSecond || 128_000,
-    });
+    const recorderOptions = getMediaRecorderOptions(
+      options.format,
+      options.videoBitsPerSecond || RECORDING_BITRATES.VIDEO_HIGH,
+      options.audioBitsPerSecond || RECORDING_BITRATES.AUDIO
+    );
+
+    mediaRecorder = new MediaRecorder(stream, recorderOptions);
 
     recordedChunks = [];
 
@@ -176,8 +196,8 @@ async function handleStartWindowCapture(data: {
       console.error("[Offscreen] MediaRecorder error:", event);
     };
 
-    // 开始录制
-    mediaRecorder.start(1000); // 每秒生成一个数据块
+    // Start recording
+    mediaRecorder.start(RECORDING_TIMING.DATA_COLLECTION_INTERVAL);
     console.log(
       "[Offscreen] MediaRecorder started, state:",
       mediaRecorder.state
@@ -319,13 +339,13 @@ async function handleStartRecording(data: {
 
     console.log("[Offscreen] Using MIME type:", mimeType);
 
-    // 创建 MediaRecorder
+    // Create MediaRecorder
     recordedChunks = [];
-    const mediaRecorderOptions: MediaRecorderOptions = {
-      mimeType,
-      videoBitsPerSecond: options.videoBitsPerSecond || 2_500_000, // 2.5 Mbps
-      audioBitsPerSecond: options.audioBitsPerSecond || 128_000, // 128 kbps
-    };
+    const mediaRecorderOptions = getMediaRecorderOptions(
+      options.format,
+      options.videoBitsPerSecond || RECORDING_BITRATES.VIDEO_STANDARD,
+      options.audioBitsPerSecond || RECORDING_BITRATES.AUDIO
+    );
 
     mediaRecorder = new MediaRecorder(stream, mediaRecorderOptions);
 
@@ -355,8 +375,8 @@ async function handleStartRecording(data: {
       console.error("[Offscreen] MediaRecorder error:", event);
     };
 
-    // 开始录制（每秒收集一次数据）
-    mediaRecorder.start(1000);
+    // Start recording (collect data every second)
+    mediaRecorder.start(RECORDING_TIMING.DATA_COLLECTION_INTERVAL);
     console.log("[Offscreen] MediaRecorder started successfully");
 
     return { success: true };

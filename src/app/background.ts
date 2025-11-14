@@ -1,5 +1,6 @@
 import { onMessage, sendMessage } from "webext-bridge/background";
 import { browser } from "wxt/browser";
+import { RECORDING_BADGE } from "@/constants/recording";
 import {
   ImageFormat,
   type RecordingOptions,
@@ -14,18 +15,24 @@ import {
   generateRecordingFileName,
   stopRecording,
 } from "@/utils/recording";
+import { prepareRecordingOptions } from "@/utils/recordingConfig";
+import {
+  type RecordingStateManager,
+  resetRecordingUI,
+  setRecordingBadge,
+} from "@/utils/recordingState";
 import {
   captureFullPage,
   captureSelection,
   captureViewport,
 } from "@/utils/screenshot";
 
-// 录制状态管理
-const recordingStateManager = {
-  state: RecordingState.IDLE as RecordingState,
-  recordingType: RecordingType.TAB as RecordingType,
-  tabId: null as number | null,
-  currentRecordingOptions: null as RecordingOptions | null,
+// Recording state management
+const recordingStateManager: RecordingStateManager = {
+  state: RecordingState.IDLE,
+  recordingType: RecordingType.TAB,
+  tabId: null,
+  currentRecordingOptions: null,
 };
 
 export default defineBackground(() => {
@@ -328,26 +335,17 @@ async function handleStartRecording(data: RecordingOptions) {
   try {
     console.log("[Background] handleStartRecording called with data:", data);
 
-    // 检查是否已经在录制
+    // Check if already recording
     if (recordingStateManager.state === RecordingState.RECORDING) {
       console.warn("[Background] Already recording, rejecting request");
       return { success: false, error: "Already recording" };
     }
 
-    const recordingType = data.type || RecordingType.TAB;
+    // Prepare recording options with business rules applied
+    const options = prepareRecordingOptions(data);
+    const recordingType = options.type!;
     console.log("[Background] Recording type:", recordingType);
 
-    // 存储录制选项
-    const options: RecordingOptions = {
-      type: recordingType,
-      format: data.format || VideoFormat.WEBM,
-      videoBitsPerSecond: data.videoBitsPerSecond,
-      audioBitsPerSecond: data.audioBitsPerSecond,
-      sizeSettings: data.sizeSettings,
-      resolution: data.resolution,
-      microphone: data.microphone,
-      camera: data.camera,
-    };
     recordingStateManager.currentRecordingOptions = options;
 
     // 更新状态
@@ -367,9 +365,7 @@ async function handleStartRecording(data: RecordingOptions) {
 
     if (!tab.id) {
       console.error("[Background] No active tab found");
-      recordingStateManager.state = RecordingState.IDLE;
-      recordingStateManager.currentRecordingOptions = null;
-      await updateRecordingIcon(false);
+      await resetRecordingUI(recordingStateManager);
       return { success: false, error: "No active tab found" };
     }
 
@@ -392,15 +388,10 @@ async function handleStartRecording(data: RecordingOptions) {
     }
 
     if (!result.success) {
-      // 录制失败，恢复状态
+      // Recording failed, restore state
       console.error("[Background] Recording failed:", result.error);
       console.log("[Background] Restoring state to IDLE");
-      recordingStateManager.state = RecordingState.IDLE;
-      recordingStateManager.recordingType = RecordingType.TAB;
-      recordingStateManager.tabId = null;
-      recordingStateManager.currentRecordingOptions = null;
-      await updateRecordingIcon(false);
-
+      await resetRecordingUI(recordingStateManager);
       return { success: false, error: result.error };
     }
 
@@ -411,15 +402,10 @@ async function handleStartRecording(data: RecordingOptions) {
       recordingType,
     };
   } catch (error) {
-    // 发生错误，恢复状态
+    // Error occurred, restore state
     console.error("[Background] Error in handleStartRecording:", error);
     console.log("[Background] Restoring state to IDLE");
-    recordingStateManager.state = RecordingState.IDLE;
-    recordingStateManager.recordingType = RecordingType.TAB;
-    recordingStateManager.tabId = null;
-    recordingStateManager.currentRecordingOptions = null;
-    await updateRecordingIcon(false);
-
+    await resetRecordingUI(recordingStateManager);
     return { success: false, error: String(error) };
   }
 }
@@ -495,15 +481,10 @@ async function handleStopRecording() {
     const result = await stopRecording();
 
     if (!(result.success && result.data)) {
-      // 停止失败，恢复状态
+      // Stop failed, restore state
       console.error("[Background] Failed to stop recording:", result.error);
       console.log("[Background] Restoring state to IDLE");
-      recordingStateManager.state = RecordingState.IDLE;
-      recordingStateManager.recordingType = RecordingType.TAB;
-      recordingStateManager.tabId = null;
-      recordingStateManager.currentRecordingOptions = null;
-      await updateRecordingIcon(false);
-
+      await resetRecordingUI(recordingStateManager);
       return {
         success: false,
         error: result.error || "Failed to stop recording",
@@ -569,13 +550,9 @@ async function handleStopRecording() {
     console.log("[Background] Closing offscreen document...");
     await closeOffscreenDocument();
 
-    // 恢复状态
+    // Restore state
     console.log("[Background] Restoring state to IDLE");
-    recordingStateManager.state = RecordingState.IDLE;
-    recordingStateManager.recordingType = RecordingType.TAB;
-    recordingStateManager.tabId = null;
-    recordingStateManager.currentRecordingOptions = null;
-    await updateRecordingIcon(false);
+    await resetRecordingUI(recordingStateManager);
 
     console.log("[Background] Recording completed successfully");
     return {
@@ -584,61 +561,41 @@ async function handleStopRecording() {
       size: result.size,
     };
   } catch (error) {
-    // 发生错误，恢复状态
+    // Error occurred, restore state and cleanup
     console.error("[Background] Error in handleStopRecording:", error);
     console.log("[Background] Restoring state to IDLE and cleaning up");
-    recordingStateManager.state = RecordingState.IDLE;
-    recordingStateManager.recordingType = RecordingType.TAB;
-    recordingStateManager.tabId = null;
-    recordingStateManager.currentRecordingOptions = null;
-    await updateRecordingIcon(false);
-    await closeOffscreenDocument();
-
+    await resetRecordingUI(recordingStateManager);
     return { success: false, error: String(error) };
   }
 }
 
 /**
- * 更新录制图标
+ * Update recording icon
  */
 async function updateRecordingIcon(isRecording: boolean) {
-  try {
-    if (isRecording) {
-      console.log("[Background] Setting recording badge");
-      // 设置红色徽章表示正在录制
-      await browser.action.setBadgeText({ text: "REC" });
-      await browser.action.setBadgeBackgroundColor({ color: "#FF0000" });
-      await browser.action.setBadgeTextColor({ color: "#FFFFFF" });
-      console.log("[Background] Recording badge set successfully");
-    } else {
-      console.log("[Background] Clearing recording badge");
-      // 清除徽章
-      await browser.action.setBadgeText({ text: "" });
-      console.log("[Background] Recording badge cleared successfully");
-    }
-  } catch (error) {
-    console.error("[Background] Failed to update icon:", error);
+  if (isRecording) {
+    await setRecordingBadge(
+      RECORDING_BADGE.TEXT.RECORDING,
+      RECORDING_BADGE.COLORS.RECORDING_BG,
+      RECORDING_BADGE.COLORS.TEXT
+    );
+  } else {
+    await setRecordingBadge("", "", "");
   }
 }
 
 /**
- * 更新 DOM 选择图标
+ * Update DOM selection badge
  */
 async function updateDomBadge(isSelecting: boolean) {
-  try {
-    if (isSelecting) {
-      console.log("[Background] Setting DOM selection badge");
-      await browser.action.setBadgeText({ text: "DOM" });
-      await browser.action.setBadgeBackgroundColor({ color: "#3b82f6" });
-      await browser.action.setBadgeTextColor({ color: "#FFFFFF" });
-      console.log("[Background] DOM badge set successfully");
-    } else {
-      console.log("[Background] Clearing DOM badge");
-      await browser.action.setBadgeText({ text: "" });
-      console.log("[Background] DOM badge cleared successfully");
-    }
-  } catch (error) {
-    console.error("[Background] Failed to update DOM badge:", error);
+  if (isSelecting) {
+    await setRecordingBadge(
+      RECORDING_BADGE.TEXT.DOM_SELECTION,
+      RECORDING_BADGE.COLORS.DOM_BG,
+      RECORDING_BADGE.COLORS.TEXT
+    );
+  } else {
+    await setRecordingBadge("", "", "");
   }
 }
 

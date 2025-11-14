@@ -145,6 +145,7 @@ export interface RecordingOptions {
   resolution?: VideoResolution;
   microphone?: boolean;
   camera?: boolean;
+  displaySurface?: "window" | "monitor"; // 控制选择器默认聚焦的面板
 }
 
 /**
