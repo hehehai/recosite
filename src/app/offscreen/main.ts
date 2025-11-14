@@ -1,7 +1,25 @@
 import { browser } from "wxt/browser";
 import { RECORDING_BITRATES, RECORDING_TIMING } from "@/constants/recording";
-import type { RecordingOptions } from "@/types/screenshot";
+import { type RecordingOptions, VideoResolution } from "@/types/screenshot";
 import { getMediaRecorderOptions } from "@/utils/recordingConfig";
+
+/**
+ * 获取分辨率对应的尺寸
+ */
+function getResolutionDimensions(
+  resolution: VideoResolution
+): { width: number; height: number } | null {
+  switch (resolution) {
+    case VideoResolution.HD:
+      return { width: 1280, height: 720 };
+    case VideoResolution.FHD:
+      return { width: 1920, height: 1080 };
+    case VideoResolution.UHD:
+      return { width: 3840, height: 2160 };
+    default:
+      return null; // 使用原始尺寸 (AUTO 或其他值)
+  }
+}
 
 let mediaRecorder: MediaRecorder | null = null;
 let recordedChunks: Blob[] = [];
@@ -70,14 +88,36 @@ async function handleStartWindowCapture(data: {
     console.log("[Offscreen] Calling getDisplayMedia...");
     console.log("[Offscreen] displaySurface:", options.displaySurface);
 
+    // 构建视频约束
+    const videoConstraints: MediaTrackConstraints & {
+      displaySurface?: "browser" | "window" | "monitor";
+    } = {};
+
+    // 设置 displaySurface 以聚焦特定面板
+    if (options.displaySurface) {
+      videoConstraints.displaySurface = options.displaySurface;
+    }
+
+    // 根据分辨率设置添加约束
+    if (options.resolution && options.resolution !== VideoResolution.AUTO) {
+      const resolutionDimensions = getResolutionDimensions(options.resolution);
+      if (resolutionDimensions) {
+        console.log(
+          `[Offscreen] Applying resolution: ${options.resolution} (${resolutionDimensions.width}x${resolutionDimensions.height})`
+        );
+        videoConstraints.width = {
+          ideal: resolutionDimensions.width,
+        };
+        videoConstraints.height = {
+          ideal: resolutionDimensions.height,
+        };
+      }
+    }
+
     // Chrome-specific extensions to DisplayMediaStreamOptions
     // TypeScript types don't include these yet, so we use type assertion
     const displayMediaOptions = {
-      video: options.displaySurface
-        ? {
-            displaySurface: options.displaySurface,
-          }
-        : true,
+      video: Object.keys(videoConstraints).length > 0 ? videoConstraints : true,
       audio: false, // 窗口捕获不支持系统音频
       selfBrowserSurface: "exclude", // 排除当前标签页
       surfaceSwitching: "exclude", // 禁用动态切换按钮

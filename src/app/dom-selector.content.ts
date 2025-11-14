@@ -1,6 +1,17 @@
 import { snapdom } from "@zumer/snapdom";
 import { ImageFormat } from "@/types/screenshot";
 
+/**
+ * 类型安全的样式设置工具函数
+ * 批量设置元素的样式属性
+ */
+function setStyles(
+  element: HTMLElement,
+  styles: Partial<CSSStyleDeclaration>
+): void {
+  Object.assign(element.style, styles);
+}
+
 let isSelecting = false;
 let selectedElement: HTMLElement | null = null;
 let overlayElement: HTMLDivElement | null = null;
@@ -44,12 +55,14 @@ export default defineContentScript({
  */
 function createHighlightOverlay(): HTMLDivElement {
   const overlay = document.createElement("div");
-  overlay.style.position = "absolute";
-  overlay.style.backgroundColor = "rgba(0, 0, 0, 0.1)";
-  overlay.style.border = "2px solid #3b82f6";
-  overlay.style.pointerEvents = "none";
-  overlay.style.zIndex = "2147483646";
-  overlay.style.transition = "all 0.1s ease";
+  setStyles(overlay, {
+    position: "absolute",
+    backgroundColor: "rgba(0, 0, 0, 0.1)",
+    border: "2px solid #3b82f6",
+    pointerEvents: "none",
+    zIndex: "2147483646",
+    transition: "all 0.1s ease",
+  });
   return overlay;
 }
 
@@ -58,30 +71,34 @@ function createHighlightOverlay(): HTMLDivElement {
  */
 function createConfirmDialog(element: HTMLElement): HTMLDivElement {
   const dialog = document.createElement("div");
-  dialog.style.position = "absolute";
-  dialog.style.zIndex = "2147483647";
-  dialog.style.display = "flex";
-  dialog.style.gap = "8px";
-  dialog.style.padding = "8px";
-  dialog.style.backgroundColor = "white";
-  dialog.style.borderRadius = "8px";
-  dialog.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
-
   const rect = element.getBoundingClientRect();
-  dialog.style.left = `${rect.left + rect.width / 2 - 120}px`;
-  dialog.style.top = `${rect.top + rect.height / 2 - 20}px`;
+
+  setStyles(dialog, {
+    position: "absolute",
+    zIndex: "2147483647",
+    display: "flex",
+    gap: "8px",
+    padding: "8px",
+    backgroundColor: "white",
+    borderRadius: "8px",
+    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+    left: `${rect.left + rect.width / 2 - 120}px`,
+    top: `${rect.top + rect.height / 2 - 20}px`,
+  });
 
   // 取消按钮
   const cancelBtn = document.createElement("button");
   cancelBtn.textContent = "取消";
-  cancelBtn.style.padding = "8px 16px";
-  cancelBtn.style.border = "none";
-  cancelBtn.style.borderRadius = "6px";
-  cancelBtn.style.backgroundColor = "#e5e7eb";
-  cancelBtn.style.color = "#374151";
-  cancelBtn.style.cursor = "pointer";
-  cancelBtn.style.fontSize = "14px";
-  cancelBtn.style.fontWeight = "500";
+  setStyles(cancelBtn, {
+    padding: "8px 16px",
+    border: "none",
+    borderRadius: "6px",
+    backgroundColor: "#e5e7eb",
+    color: "#374151",
+    cursor: "pointer",
+    fontSize: "14px",
+    fontWeight: "500",
+  });
   cancelBtn.onclick = () => {
     unselectElement();
   };
@@ -89,14 +106,16 @@ function createConfirmDialog(element: HTMLElement): HTMLDivElement {
   // 确认按钮
   const confirmBtn = document.createElement("button");
   confirmBtn.textContent = "确认";
-  confirmBtn.style.padding = "8px 16px";
-  confirmBtn.style.border = "none";
-  confirmBtn.style.borderRadius = "6px";
-  confirmBtn.style.backgroundColor = "#3b82f6";
-  confirmBtn.style.color = "white";
-  confirmBtn.style.cursor = "pointer";
-  confirmBtn.style.fontSize = "14px";
-  confirmBtn.style.fontWeight = "500";
+  setStyles(confirmBtn, {
+    padding: "8px 16px",
+    border: "none",
+    borderRadius: "6px",
+    backgroundColor: "#3b82f6",
+    color: "white",
+    cursor: "pointer",
+    fontSize: "14px",
+    fontWeight: "500",
+  });
   confirmBtn.onclick = async () => {
     await captureSelectedElement();
   };
@@ -112,37 +131,43 @@ function createConfirmDialog(element: HTMLElement): HTMLDivElement {
  */
 function createInstructionOverlay(): HTMLDivElement {
   const overlay = document.createElement("div");
-  overlay.style.position = "fixed";
-  overlay.style.top = "20px";
-  overlay.style.right = "20px";
-  overlay.style.zIndex = "2147483647";
-  overlay.style.padding = "12px 20px";
-  overlay.style.backgroundColor = "white";
-  overlay.style.borderRadius = "8px";
-  overlay.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
-  overlay.style.display = "flex";
-  overlay.style.alignItems = "center";
-  overlay.style.gap = "12px";
-  overlay.style.fontSize = "14px";
-  overlay.style.color = "#374151";
+  setStyles(overlay, {
+    position: "fixed",
+    top: "20px",
+    right: "20px",
+    zIndex: "2147483647",
+    padding: "12px 20px",
+    backgroundColor: "white",
+    borderRadius: "8px",
+    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    fontSize: "14px",
+    color: "#374151",
+  });
 
   const text = document.createElement("div");
   text.textContent = "选择任意DOM后点击确认";
-  text.style.fontWeight = "500";
+  setStyles(text, {
+    fontWeight: "500",
+  });
 
   const closeBtn = document.createElement("button");
   closeBtn.innerHTML = "×";
-  closeBtn.style.border = "none";
-  closeBtn.style.background = "none";
-  closeBtn.style.fontSize = "20px";
-  closeBtn.style.cursor = "pointer";
-  closeBtn.style.color = "#9ca3af";
-  closeBtn.style.padding = "0";
-  closeBtn.style.width = "20px";
-  closeBtn.style.height = "20px";
-  closeBtn.style.display = "flex";
-  closeBtn.style.alignItems = "center";
-  closeBtn.style.justifyContent = "center";
+  setStyles(closeBtn, {
+    border: "none",
+    background: "none",
+    fontSize: "20px",
+    cursor: "pointer",
+    color: "#9ca3af",
+    padding: "0",
+    width: "20px",
+    height: "20px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  });
   closeBtn.onclick = () => {
     stopDomSelection();
   };
@@ -246,17 +271,19 @@ function selectElement(element: HTMLElement) {
 
   // 创建选中状态的遮罩
   const selectedOverlay = document.createElement("div");
-  selectedOverlay.style.position = "absolute";
-  selectedOverlay.style.backgroundColor = "rgba(59, 130, 246, 0.2)";
-  selectedOverlay.style.border = "2px solid #3b82f6";
-  selectedOverlay.style.pointerEvents = "none";
-  selectedOverlay.style.zIndex = "2147483646";
-
   const rect = element.getBoundingClientRect();
-  selectedOverlay.style.left = `${rect.left + window.scrollX}px`;
-  selectedOverlay.style.top = `${rect.top + window.scrollY}px`;
-  selectedOverlay.style.width = `${rect.width}px`;
-  selectedOverlay.style.height = `${rect.height}px`;
+
+  setStyles(selectedOverlay, {
+    position: "absolute",
+    backgroundColor: "rgba(59, 130, 246, 0.2)",
+    border: "2px solid #3b82f6",
+    pointerEvents: "none",
+    zIndex: "2147483646",
+    left: `${rect.left + window.scrollX}px`,
+    top: `${rect.top + window.scrollY}px`,
+    width: `${rect.width}px`,
+    height: `${rect.height}px`,
+  });
 
   document.body.appendChild(selectedOverlay);
   highlightElement = selectedOverlay;
@@ -352,18 +379,20 @@ async function captureSelectedElement() {
  */
 function showErrorNotification(message: string) {
   const notification = document.createElement("div");
-  notification.style.position = "fixed";
-  notification.style.top = "20px";
-  notification.style.left = "50%";
-  notification.style.transform = "translateX(-50%)";
-  notification.style.zIndex = "2147483647";
-  notification.style.padding = "12px 24px";
-  notification.style.backgroundColor = "#ef4444";
-  notification.style.color = "white";
-  notification.style.borderRadius = "8px";
-  notification.style.boxShadow = "0 4px 6px rgba(0, 0, 0, 0.1)";
-  notification.style.fontSize = "14px";
-  notification.style.fontWeight = "500";
+  setStyles(notification, {
+    position: "fixed",
+    top: "20px",
+    left: "50%",
+    transform: "translateX(-50%)",
+    zIndex: "2147483647",
+    padding: "12px 24px",
+    backgroundColor: "#ef4444",
+    color: "white",
+    borderRadius: "8px",
+    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
+    fontSize: "14px",
+    fontWeight: "500",
+  });
   notification.textContent = message;
 
   document.body.appendChild(notification);
