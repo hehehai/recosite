@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import { onMounted, ref, watch } from "vue";
+  import { computed, onMounted, ref, watch } from "vue";
   import { sendMessage } from "webext-bridge/popup";
   import { browser } from "wxt/browser";
   import ActionButton from "@/components/ActionButton.vue";
@@ -244,6 +244,11 @@
     }
   }
 
+  function handleCloseStatusCard() {
+    // 关闭 StatusCard，清除状态
+    lastResult.value = null;
+  }
+
   function formatFileSize(bytes: number): string {
     if (bytes < 1024) {
       return `${bytes} B`;
@@ -253,6 +258,61 @@
     }
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
   }
+
+  // 计算当前状态卡片的配置
+  const statusCardConfig = computed(() => {
+    // 截图状态
+    if (activeTab.value === "screenshot") {
+      if (isCapturing.value) {
+        return {
+          show: true,
+          type: "info" as const,
+          message: "截图中...",
+          closable: false,
+        };
+      }
+      if (lastResult.value) {
+        return {
+          show: true,
+          type: "success" as const,
+          title: "截图成功！",
+          message: `${lastResult.value.fileName} (${lastResult.value.width}×${lastResult.value.height})`,
+          closable: true,
+        };
+      }
+    }
+
+    // 录制状态
+    if (activeTab.value === "recording") {
+      if (recordingState.value === RecordingState.RECORDING) {
+        return {
+          show: true,
+          type: "error" as const,
+          message: "🔴 正在录制中...",
+          closable: false,
+        };
+      }
+      if (recordingState.value === RecordingState.PROCESSING) {
+        return {
+          show: true,
+          type: "info" as const,
+          message: "处理录制文件中...",
+          closable: false,
+        };
+      }
+      if (lastRecordingResult.value) {
+        return {
+          show: true,
+          type: "success" as const,
+          title: "录制成功！",
+          message: `${lastRecordingResult.value.fileName} (${formatFileSize(lastRecordingResult.value.size)})`,
+          closable: true,
+        };
+      }
+    }
+
+    return { show: false };
+  });
 
   // 组件挂载时加载录制选项
   onMounted(() => {
@@ -320,17 +380,6 @@
             </ActionButton>
           </div>
         </div>
-
-        <!-- 状态提示 -->
-        <StatusCard v-if="isCapturing" type="info" message="截图中..."/>
-
-        <!-- 结果显示 -->
-        <StatusCard
-          v-if="lastResult"
-          type="success"
-          title="截图成功！"
-          :message="`${lastResult.fileName}(${lastResult.width}×${lastResult.height})`"
-        />
       </div>
 
       <!-- 录制标签页内容 -->
@@ -375,18 +424,30 @@
             </template>
           </ActionButton>
 
-          <!-- 桌面录制（暂不实现） -->
-          <ActionButton label="桌面录制" :disabled="true">
+          <!-- 桌面录制 -->
+          <ActionButton
+            :label="recordingState === RecordingState.RECORDING && recordingType === 'desktop' ? '录制中' : '桌面录制'"
+            :sublabel="recordingState === RecordingState.RECORDING && recordingType === 'desktop' ? '点击停止录制' : undefined"
+            :active="recordingState === RecordingState.RECORDING && recordingType === 'desktop'"
+            :animate="recordingState === RecordingState.RECORDING && recordingType === 'desktop'"
+            :disabled="recordingState === RecordingState.PROCESSING || isCapturing || (recordingState === RecordingState.RECORDING && recordingType !== 'desktop')"
+            @click="handleToggleRecording('desktop')"
+          >
             <template #icon>
-              <span class="i-hugeicons-laptop-video text-3xl"/>
+              <span
+                :class="['text-3xl', {
+                    'i-hugeicons-laptop-video': recordingState === RecordingState.IDLE || recordingType !== 'desktop',
+                    'i-hugeicons-stop-circle': recordingState === RecordingState.RECORDING && recordingType === 'desktop',
+                }]"
+              />
             </template>
           </ActionButton>
 
           <!-- 录制选项 -->
           <div
-            class="rounded-lg bg-white dark:bg-gray-800 p-4 shadow-sm border border-gray-200 dark:border-gray-700"
+            class="rounded-lg bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700"
           >
-            <div class="space-y-2">
+            <div class="flex flex-col justify-between px-4 py-3 h-full w-full">
               <ToggleSwitch
                 v-model="recordingOptions.microphone"
                 label="麦克风"
@@ -394,10 +455,7 @@
               <ToggleSwitch v-model="recordingOptions.camera" label="摄像头"/>
 
               <!-- 分辨率选择 -->
-              <div
-                v-if="recordingOptions.camera"
-                class="flex items-center justify-between gap-1"
-              >
+              <div class="flex items-center justify-between gap-1">
                 <label
                   class="block text-sm font-medium text-gray-700 dark:text-gray-300"
                 >
@@ -419,27 +477,6 @@
             </div>
           </div>
         </div>
-
-        <!-- 录制状态提示 -->
-        <StatusCard
-          v-if="recordingState === RecordingState.RECORDING"
-          type="error"
-          message="🔴 正在录制中..."
-        />
-
-        <StatusCard
-          v-if="recordingState === RecordingState.PROCESSING"
-          type="info"
-          message="处理录制文件中..."
-        />
-
-        <!-- 录制结果显示 -->
-        <StatusCard
-          v-if="lastRecordingResult"
-          type="success"
-          title="录制成功！"
-          :message="`${lastRecordingResult.fileName}( ${formatFileSize(lastRecordingResult.size)})`"
-        />
       </div>
     </div>
 
@@ -481,5 +518,15 @@
         </button>
       </div>
     </div>
+
+    <!-- 状态卡片 - 固定在底部左侧，支持折叠 -->
+    <StatusCard
+      v-if="statusCardConfig.show"
+      :type="statusCardConfig.type!"
+      :title="statusCardConfig.title"
+      :message="statusCardConfig.message!"
+      :closable="statusCardConfig.closable!"
+      @close="handleCloseStatusCard"
+    />
   </div>
 </template>

@@ -374,12 +374,15 @@ async function handleStartRecording(data: RecordingOptions) {
 
     let result: { success: boolean; streamId?: string; error?: string };
 
-    if (recordingType === RecordingType.WINDOW) {
-      // 窗口录制
-      console.log("[Background] Starting window recording...");
+    if (
+      recordingType === RecordingType.WINDOW ||
+      recordingType === RecordingType.DESKTOP
+    ) {
+      // Window/Desktop recording using getDisplayMedia
+      console.log(`[Background] Starting ${recordingType} recording...`);
       result = await startWindowRecording(options, tabId);
     } else {
-      // 标签页录制（默认）
+      // Tab recording (default)
       console.log("[Background] Starting tab recording...");
       console.log("[Background] Active tab found:", tabId);
 
@@ -411,18 +414,20 @@ async function handleStartRecording(data: RecordingOptions) {
 }
 
 /**
- * 开始窗口录制
+ * Start window/desktop recording
+ * Uses getDisplayMedia API to show browser's share picker
+ * Supports both window and desktop (screen) recording types
  */
 async function startWindowRecording(
   options: RecordingOptions,
   _tabId: number
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    console.log("[Background] Starting window recording...");
+    console.log(`[Background] Starting ${options.type} recording...`);
 
-    // 注意：由于 desktopCapture streamId 在 offscreen document 中不可用（Chrome bug），
-    // 我们让 offscreen document 直接调用 getDisplayMedia() 来显示选择器
-    // 这是 Chrome 推荐的做法
+    // Note: desktopCapture streamId doesn't work in offscreen documents (Chrome bug)
+    // We let offscreen document call getDisplayMedia() directly to show the picker
+    // This is the recommended approach by Chrome
 
     // 确保 offscreen document 已创建
     const { ensureOffscreenDocument } = await import("@/utils/recording");
