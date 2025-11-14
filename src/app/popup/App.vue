@@ -265,21 +265,7 @@
               @click="captureFullPage"
             >
               <template #icon>
-                <svg
-                  class="w-full h-full"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <rect
-                    x="3"
-                    y="3"
-                    width="18"
-                    height="18"
-                    rx="2"
-                    stroke-width="1.5"
-                  />
-                </svg>
+                <span class="i-hugeicons-border-full text-3xl"/>
               </template>
             </ActionButton>
 
@@ -290,26 +276,7 @@
               @click="captureDom"
             >
               <template #icon>
-                <svg
-                  class="w-full h-full"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    d="M3 9h18M3 15h18M9 3v18M15 3v18"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                  />
-                  <rect
-                    x="3"
-                    y="3"
-                    width="18"
-                    height="18"
-                    rx="2"
-                    stroke-width="1.5"
-                  />
-                </svg>
+                <span class="i-hugeicons-cursor-pointer-02 text-3xl"/>
               </template>
             </ActionButton>
           </div>
@@ -323,21 +290,7 @@
               @click="captureViewport"
             >
               <template #icon>
-                <svg
-                  class="w-full h-full"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <rect
-                    x="4"
-                    y="6"
-                    width="16"
-                    height="12"
-                    rx="2"
-                    stroke-width="1.5"
-                  />
-                </svg>
+                <span class="i-hugeicons-cursor-in-window text-3xl"/>
               </template>
             </ActionButton>
 
@@ -348,24 +301,9 @@
               @click="captureSelection"
             >
               <template #icon>
-                <svg
-                  class="w-full h-full"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    d="M3 12 L8 12 M12 3 L12 8 M16 12 L21 12 M12 16 L12 21"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                  />
-                  <path
-                    d="M8 8 L16 16 M16 8 L8 16"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    opacity="0.5"
-                  />
-                </svg>
+                <span
+                  class="i-hugeicons-cursor-rectangle-selection-02 text-3xl"
+                />
               </template>
             </ActionButton>
           </div>
@@ -397,74 +335,26 @@
             @click="handleToggleRecording"
           >
             <template #icon>
-              <svg
-                v-if="recordingState !== RecordingState.RECORDING"
-                class="w-full h-full"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <rect
-                  x="3"
-                  y="3"
-                  width="18"
-                  height="18"
-                  rx="2"
-                  stroke-width="1.5"
-                />
-              </svg>
-              <svg
-                v-else
-                class="w-full h-full"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <circle cx="12" cy="12" r="8"/>
-                <rect x="9" y="9" width="6" height="6" fill="white" rx="1"/>
-              </svg>
+              <span
+                :class="['text-3xl', {
+                    'i-hugeicons-file-video': recordingState === RecordingState.IDLE,
+                    'i-hugeicons-stop-circle': recordingState === RecordingState.RECORDING,
+                }]"
+              />
             </template>
           </ActionButton>
 
           <!-- 窗口录制（暂不实现） -->
           <ActionButton label="窗口录制" :disabled="true">
             <template #icon>
-              <svg
-                class="w-full h-full"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  d="M3 9 L3 7 C3 5.89543 3.89543 5 5 5 L19 5 C20.1046 5 21 5.89543 21 7 L21 9 M3 9 L21 9 M3 9 L3 17 C3 18.1046 3.89543 19 5 19 L19 19 C20.1046 19 21 18.1046 21 17 L21 9"
-                  stroke-width="1.5"
-                />
-              </svg>
+              <span class="i-hugeicons-video-ai text-3xl"/>
             </template>
           </ActionButton>
 
           <!-- 桌面录制（暂不实现） -->
           <ActionButton label="桌面录制" :disabled="true">
             <template #icon>
-              <svg
-                class="w-full h-full"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <rect
-                  x="2"
-                  y="4"
-                  width="20"
-                  height="12"
-                  rx="2"
-                  stroke-width="1.5"
-                />
-                <path
-                  d="M8 20 L16 20 M12 16 L12 20"
-                  stroke-width="1.5"
-                  stroke-linecap="round"
-                />
-              </svg>
+              <span class="i-hugeicons-laptop-video text-3xl"/>
             </template>
           </ActionButton>
 
@@ -533,67 +423,37 @@
     <div
       class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
     >
-      <div class="grid grid-cols-2 h-16">
+      <div class="grid grid-cols-2 h-12">
         <!-- 截图标签 -->
         <button
           type="button"
           :class="[
-                    'flex flex-col items-center justify-center gap-1 transition-colors border-t-2',
+                    'flex items-center justify-center gap-1 transition-colors border-t-2',
                     activeTab === 'screenshot'
                         ? 'border-blue-500 text-blue-600 dark:text-blue-400'
                         : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
                 ]"
           @click="activeTab = 'screenshot'"
         >
-          <svg
-            class="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              d="M4 16 L4 18 C4 19.1046 4.89543 20 6 20 L18 20 C19.1046 20 20 19.1046 20 18 L20 16 M16 8 L12 4 M12 4 L8 8 M12 4 L12 16"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-          <span class="text-xs font-medium">截图</span>
+          <span class="i-hugeicons-image-03 text-lg"/>
+          <span class="text-sm font-medium">截图</span>
         </button>
 
         <!-- 录制标签 -->
         <button
           type="button"
           :class="[
-                    'flex flex-col items-center justify-center gap-1 transition-colors border-t-2',
+                    'flex items-center justify-center gap-1 transition-colors border-t-2',
                     activeTab === 'recording'
                         ? 'border-blue-500 text-blue-600 dark:text-blue-400'
                         : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
                 ]"
           @click="activeTab = 'recording'"
         >
-          <div class="relative">
-            <svg
-              v-if="recordingState !== RecordingState.RECORDING"
-              class="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <circle cx="12" cy="12" r="8" stroke-width="2"/>
-              <circle cx="12" cy="12" r="3" fill="currentColor"/>
-            </svg>
-            <svg
-              v-else
-              class="w-5 h-5 text-red-500"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <circle cx="12" cy="12" r="8"/>
-              <rect x="9" y="9" width="6" height="6" fill="white"/>
-            </svg>
-          </div>
-          <span class="text-xs font-medium">录制</span>
+          <span
+            :class="['i-hugeicons-projector text-lg', {'text-ref-500': recordingState === RecordingState.RECORDING}]"
+          />
+          <span class="text-sm font-medium">录制</span>
         </button>
       </div>
     </div>

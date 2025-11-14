@@ -36,7 +36,6 @@
     exportingFormat: imageExportingFormat,
     exportImage,
     copyToClipboard,
-    downloadFile: imageDownloadFile,
   } = useImageExport();
 
   const {
@@ -478,15 +477,15 @@
                     d="M5 13l4 4L19 7"
                   />
                 </svg>
-                <span
-                  >{{
-                                    copySuccess
-                                        ? "已复制"
-                                        : resultType === "image"
-                                            ? "复制到剪贴板"
-                                            : "下载视频"
-                                }}</span
-                >
+                <span>
+                  {{
+                      copySuccess
+                          ? "已复制"
+                          : resultType === "image"
+                              ? "复制到剪贴板"
+                              : "下载视频"
+                  }}
+                </span>
               </button>
             </div>
           </div>
