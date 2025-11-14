@@ -1,6 +1,5 @@
 import { browser } from "wxt/browser";
 import {
-  MessageType,
   type RecordingOptions,
   type VideoFormat,
   VideoResolution,
@@ -52,6 +51,11 @@ export async function ensureOffscreenDocument(): Promise<void> {
   });
 
   console.log("[Recording] Offscreen document created successfully");
+
+  // 等待 offscreen document 完全加载
+  console.log("[Recording] Waiting for offscreen document to be ready...");
+  await new Promise((resolve) => setTimeout(resolve, 100));
+  console.log("[Recording] Offscreen document should be ready now");
 }
 
 /**
@@ -147,7 +151,7 @@ export async function startRecording(
       "[Recording] Sending start recording message to offscreen document"
     );
     const response = await browser.runtime.sendMessage({
-      type: MessageType.START_RECORDING,
+      type: "recording:start-internal",
       data: {
         streamId,
         options,
@@ -195,7 +199,7 @@ export async function stopRecording(): Promise<{
     );
 
     const response = await browser.runtime.sendMessage({
-      type: MessageType.STOP_RECORDING,
+      type: "recording:stop-internal",
     });
 
     if (response.error) {

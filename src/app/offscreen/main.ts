@@ -1,59 +1,222 @@
 import { browser } from "wxt/browser";
-import { MessageType, type RecordingOptions } from "@/types/screenshot";
+import type { RecordingOptions } from "@/types/screenshot";
 
 let mediaRecorder: MediaRecorder | null = null;
 let recordedChunks: Blob[] = [];
 let isStopping = false; // 防止重复停止
+let autoStoppedData: {
+  data: number[];
+  size: number;
+  mimeType: string;
+} | null = null; // 存储自动停止时的录制数据
 
 console.log("[Offscreen] Document loaded and ready");
 console.log("[Offscreen] Setting up message listeners...");
 
-// 保留旧的消息监听器以兼容
+// 使用 browser.runtime.onMessage 监听消息（offscreen documents 使用传统消息传递）
 browser.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   console.log("[Offscreen] Received message:", message.type);
+
   switch (message.type) {
-    case MessageType.START_RECORDING:
-      handleStartRecording(message.data, sendResponse);
-      break;
+    case "recording:start-internal":
+      handleStartRecording(message.data).then(sendResponse);
+      return true; // 保持异步通道开启
 
-    case MessageType.STOP_RECORDING:
-      handleStopRecording(sendResponse);
-      break;
+    case "recording:start-window-capture":
+      handleStartWindowCapture(message.data).then(sendResponse);
+      return true; // 保持异步通道开启
 
-    case MessageType.GET_RECORDING_STATUS:
-      // Offscreen document 不处理状态查询，直接返回成功避免错误
-      console.log("[Offscreen] Ignoring GET_RECORDING_STATUS message");
-      sendResponse({ success: true });
-      break;
+    case "recording:stop-internal":
+      handleStopRecording().then(sendResponse);
+      return true; // 保持异步通道开启
+
+    case "recording:status-internal":
+      sendResponse({
+        isRecording:
+          mediaRecorder !== null && mediaRecorder.state === "recording",
+      });
+      return false;
 
     default:
       console.warn("[Offscreen] Unknown message type:", message.type);
       sendResponse({ error: `Unknown message type: ${message.type}` });
+      return false;
   }
-
-  return true; // 保持消息通道开启
 });
 
 /**
- * 开始录制
+ * 开始窗口录制（使用 getDisplayMedia）
  */
-async function handleStartRecording(
-  data: {
-    streamId: string;
-    options: RecordingOptions;
-    targetSize?: {
-      width: number;
-      height: number;
-      originalWidth: number;
-      originalHeight: number;
-    };
-  },
-  sendResponse: (response?: unknown) => void
-) {
+async function handleStartWindowCapture(data: {
+  options: RecordingOptions;
+}): Promise<{ success: boolean; error?: string }> {
+  console.log(
+    "[Offscreen] ========== handleStartWindowCapture called =========="
+  );
+  console.log(
+    "[Offscreen] Received options:",
+    JSON.stringify(data.options, null, 2)
+  );
+
   try {
-    const { streamId, options, targetSize } = data;
+    const { options } = data;
+
+    // 使用 getDisplayMedia 直接显示窗口/屏幕选择器
+    console.log("[Offscreen] Calling getDisplayMedia...");
+    const stream = await navigator.mediaDevices.getDisplayMedia({
+      video: true,
+      audio: false, // 窗口捕获不支持系统音频
+    });
+
+    console.log("[Offscreen] Got MediaStream with tracks:", {
+      video: stream.getVideoTracks().length,
+      audio: stream.getAudioTracks().length,
+    });
+
+    // 获取视频轨道的设置
+    const videoTrack = stream.getVideoTracks()[0];
+    if (videoTrack) {
+      const settings = videoTrack.getSettings();
+      console.log("[Offscreen] Video track settings:", {
+        width: settings.width,
+        height: settings.height,
+        frameRate: settings.frameRate,
+      });
+
+      // 监听视频轨道的 ended 事件（用户点击"停止分享"）
+      console.log("[Offscreen] Adding ended event listener to video track");
+      videoTrack.addEventListener("ended", () => {
+        console.log("[Offscreen] Video track ended - user stopped sharing");
+
+        // 只通知 background，让 background 来统一处理停止流程
+        // 不要在这里直接调用 mediaRecorder.stop()，避免重复停止
+        if (
+          !isStopping &&
+          mediaRecorder &&
+          mediaRecorder.state === "recording"
+        ) {
+          console.log(
+            "[Offscreen] Notifying background to stop recording due to stream end"
+          );
+          // 通知 background script 用户已停止分享
+          browser.runtime
+            .sendMessage({
+              type: "recording:track-ended",
+              data: {},
+            })
+            .catch((err) => {
+              console.error("[Offscreen] Failed to notify background:", err);
+            });
+        }
+      });
+    }
+
+    // 创建 MediaRecorder
+    const mimeType = `video/${options.format}`;
+    console.log("[Offscreen] Creating MediaRecorder with mimeType:", mimeType);
+
+    mediaRecorder = new MediaRecorder(stream, {
+      mimeType,
+      videoBitsPerSecond: options.videoBitsPerSecond || 8_000_000,
+      audioBitsPerSecond: options.audioBitsPerSecond || 128_000,
+    });
+
+    recordedChunks = [];
+
+    mediaRecorder.ondataavailable = (event) => {
+      if (event.data.size > 0) {
+        recordedChunks.push(event.data);
+        console.log(
+          `[Offscreen] Data available: ${event.data.size} bytes, total chunks: ${recordedChunks.length}`
+        );
+      }
+    };
+
+    mediaRecorder.onstop = async () => {
+      console.log(
+        "[Offscreen] MediaRecorder stopped, total chunks:",
+        recordedChunks.length
+      );
+
+      // 如果不是手动停止（isStopping = false），说明是流媒体自动关闭导致的
+      // 需要保存数据以便后续 background 请求时返回
+      if (!isStopping && recordedChunks.length > 0) {
+        console.log(
+          "[Offscreen] MediaRecorder auto-stopped, saving recorded data"
+        );
+
+        // 合并所有录制的数据块
+        const blob = new Blob(recordedChunks, { type: "video/webm" });
+        const arrayBuffer = await blob.arrayBuffer();
+        const uint8Array = new Uint8Array(arrayBuffer);
+
+        // 保存数据供后续请求使用
+        autoStoppedData = {
+          data: Array.from(uint8Array),
+          size: blob.size,
+          mimeType: blob.type,
+        };
+
+        console.log(
+          "[Offscreen] Saved auto-stopped data:",
+          autoStoppedData.size,
+          "bytes"
+        );
+      }
+
+      // 停止所有 tracks
+      if (mediaRecorder?.stream) {
+        for (const track of mediaRecorder.stream.getTracks()) {
+          track.stop();
+        }
+      }
+    };
+
+    mediaRecorder.onerror = (event) => {
+      console.error("[Offscreen] MediaRecorder error:", event);
+    };
+
+    // 开始录制
+    mediaRecorder.start(1000); // 每秒生成一个数据块
+    console.log(
+      "[Offscreen] MediaRecorder started, state:",
+      mediaRecorder.state
+    );
+
+    return { success: true };
+  } catch (error) {
+    console.error("[Offscreen] getUserMedia failed:", error);
+    console.error("[Offscreen] Error details:", {
+      name: error instanceof Error ? error.name : "unknown",
+      message: error instanceof Error ? error.message : String(error),
+    });
+    console.log("[Offscreen] Failed to start recording:", error);
+    return { success: false, error: String(error) };
+  }
+}
+
+/**
+ * 开始录制（标签页录制）
+ */
+async function handleStartRecording(data: {
+  streamId: string;
+  options: RecordingOptions;
+  isWindowCapture?: boolean;
+  targetSize?: {
+    width: number;
+    height: number;
+    originalWidth: number;
+    originalHeight: number;
+  };
+}): Promise<{ success: boolean; error?: string }> {
+  console.log("[Offscreen] ========== handleStartRecording called ==========");
+  console.log("[Offscreen] Received data:", JSON.stringify(data, null, 2));
+
+  try {
+    const { streamId, options, isWindowCapture, targetSize } = data;
     console.log("[Offscreen] Starting recording with streamId:", streamId);
     console.log("[Offscreen] Recording options:", options);
+    console.log("[Offscreen] Is window capture:", isWindowCapture);
     console.log("[Offscreen] Target size:", targetSize);
 
     // 调试目标尺寸和约束应用
@@ -66,19 +229,33 @@ async function handleStartRecording(
       );
     }
 
+    // 根据捕获类型确定 chromeMediaSource：
+    // - desktopCapture (窗口/屏幕) 使用 "desktop"
+    // - tabCapture (标签页) 使用 "tab"
+    const mediaSource = isWindowCapture ? "desktop" : "tab";
+    console.log("[Offscreen] Using media source:", mediaSource);
+    console.log(
+      "[Offscreen] Capture type:",
+      isWindowCapture ? "window/screen" : "tab"
+    );
+
     // 从 streamId 获取 MediaStream
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        // @ts-expect-error - Chrome specific API
-        mandatory: {
-          chromeMediaSource: "tab",
-          chromeMediaSourceId: streamId,
-        },
-      },
+    // 注意：桌面窗口捕获（"window" 选择器）不支持音频
+    // 只有 "screen" 和 "tab" 支持音频
+    const constraints: MediaStreamConstraints = {
+      audio: isWindowCapture
+        ? false
+        : {
+            // @ts-expect-error - Chrome specific API
+            mandatory: {
+              chromeMediaSource: mediaSource,
+              chromeMediaSourceId: streamId,
+            },
+          },
       video: {
         // @ts-expect-error - Chrome specific API
         mandatory: {
-          chromeMediaSource: "tab",
+          chromeMediaSource: mediaSource,
           chromeMediaSourceId: streamId,
           // 如果有目标尺寸，设置录制分辨率
           ...(targetSize &&
@@ -90,7 +267,24 @@ async function handleStartRecording(
             }),
         },
       },
-    });
+    };
+
+    console.log(
+      "[Offscreen] getUserMedia constraints:",
+      JSON.stringify(constraints, null, 2)
+    );
+
+    let stream: MediaStream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia(constraints);
+    } catch (error) {
+      console.error("[Offscreen] getUserMedia failed:", error);
+      console.error("[Offscreen] Error details:", {
+        name: error instanceof Error ? error.name : "unknown",
+        message: error instanceof Error ? error.message : String(error),
+      });
+      throw error;
+    }
 
     console.log("[Offscreen] Got MediaStream with tracks:", {
       video: stream.getVideoTracks().length,
@@ -165,35 +359,63 @@ async function handleStartRecording(
     mediaRecorder.start(1000);
     console.log("[Offscreen] MediaRecorder started successfully");
 
-    sendResponse({ success: true });
+    return { success: true };
   } catch (error) {
     console.error("[Offscreen] Failed to start recording:", error);
-    sendResponse({ error: String(error) });
+    return { success: false, error: String(error) };
   }
 }
 
 /**
  * 停止录制
  */
-async function handleStopRecording(sendResponse: (response?: unknown) => void) {
+async function handleStopRecording(): Promise<{
+  success: boolean;
+  data?: Uint8Array | number[];
+  size?: number;
+  mimeType?: string;
+  error?: string;
+}> {
   try {
     console.log("[Offscreen] handleStopRecording called");
     console.log("[Offscreen] isStopping:", isStopping);
     console.log("[Offscreen] mediaRecorder exists:", !!mediaRecorder);
     console.log("[Offscreen] mediaRecorder state:", mediaRecorder?.state);
     console.log("[Offscreen] recordedChunks length:", recordedChunks.length);
+    console.log("[Offscreen] autoStoppedData exists:", !!autoStoppedData);
+
+    // 如果有自动停止的数据，直接返回
+    if (autoStoppedData) {
+      console.log(
+        "[Offscreen] Returning auto-stopped data:",
+        autoStoppedData.size,
+        "bytes"
+      );
+      const result = {
+        success: true,
+        data: autoStoppedData.data,
+        size: autoStoppedData.size,
+        mimeType: autoStoppedData.mimeType,
+      };
+
+      // 清理状态
+      autoStoppedData = null;
+      recordedChunks = [];
+      isStopping = false;
+      mediaRecorder = null;
+
+      return result;
+    }
 
     // 防止重复停止
     if (isStopping) {
       console.warn("[Offscreen] Already stopping, ignoring duplicate request");
-      sendResponse({ error: "Already stopping" });
-      return;
+      return { success: false, error: "Already stopping" };
     }
 
     if (!mediaRecorder || mediaRecorder.state === "inactive") {
       console.error("[Offscreen] No active recording or already inactive");
-      sendResponse({ error: "No active recording" });
-      return;
+      return { success: false, error: "No active recording" };
     }
 
     // 标记正在停止
@@ -237,28 +459,23 @@ async function handleStopRecording(sendResponse: (response?: unknown) => void) {
     const arrayBuffer = await blob.arrayBuffer();
     const uint8Array = new Uint8Array(arrayBuffer);
 
-    console.log("[Offscreen] Sending recording data back to background");
-    sendResponse({
+    console.log("[Offscreen] Returning recording data");
+
+    const result = {
       success: true,
-      data: Array.from(uint8Array),
+      data: Array.from(uint8Array), // 转换为普通数组以便通过消息传递
       size: blob.size,
       mimeType: blob.type,
-    });
+    };
 
     // 清理
     recordedChunks = [];
     isStopping = false;
+
+    return result;
   } catch (error) {
     console.error("[Offscreen] Failed to stop recording:", error);
     isStopping = false;
-    sendResponse({ error: String(error) });
+    return { success: false, error: String(error) };
   }
 }
-
-/**
- * 开始录制（webext-bridge 版本）
- */
-
-/**
- * 停止录制（webext-bridge 版本）
- */

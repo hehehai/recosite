@@ -1,11 +1,10 @@
-import { onMessage } from "webext-bridge/background";
+import { onMessage, sendMessage } from "webext-bridge/background";
 import { browser } from "wxt/browser";
 import {
   ImageFormat,
-  type Message,
-  MessageType,
   type RecordingOptions,
   RecordingState,
+  RecordingType,
   type SelectionArea,
   VideoFormat,
 } from "@/types/screenshot";
@@ -13,7 +12,6 @@ import { generateFileName } from "@/utils/file";
 import {
   closeOffscreenDocument,
   generateRecordingFileName,
-  startRecording,
   stopRecording,
 } from "@/utils/recording";
 import {
@@ -25,6 +23,7 @@ import {
 // 录制状态管理
 const recordingStateManager = {
   state: RecordingState.IDLE as RecordingState,
+  recordingType: RecordingType.TAB as RecordingType,
   tabId: null as number | null,
   currentRecordingOptions: null as RecordingOptions | null,
 };
@@ -33,33 +32,80 @@ export default defineBackground(() => {
   console.log("[Background] Initializing with webext-bridge");
   console.log("[Background] Registering message handlers...");
 
-  // 使用 webext-bridge 监听录制相关消息
+  // 截图相关消息处理
+  onMessage("capture:viewport", async ({ data }) => {
+    console.log("[Background] Received capture:viewport");
+    return await handleCaptureViewport(data);
+  });
+
+  onMessage("capture:fullPage", async ({ data }) => {
+    console.log("[Background] Received capture:fullPage");
+    return await handleCaptureFullPage(data);
+  });
+
+  onMessage("capture:selection", async ({ data }) => {
+    console.log("[Background] Received capture:selection");
+    return await handleStartSelection(data);
+  });
+
+  // DOM 截图相关消息处理
+  onMessage("dom:start-selection", async () => {
+    console.log("[Background] Received dom:start-selection");
+    await updateDomBadge(true);
+    return { success: true };
+  });
+
+  onMessage("dom:cancel-selection", async () => {
+    console.log("[Background] Received dom:cancel-selection");
+    await updateDomBadge(false);
+    return { success: true };
+  });
+
+  onMessage("dom:capture", async ({ data }) => {
+    console.log("[Background] Received dom:capture");
+    return await handleCaptureDom(data);
+  });
+
+  // 录制相关消息处理
   onMessage("recording:start-request", async ({ data }) => {
     console.log("[Background] Received recording:start-request");
-    return await handleStartRecordingBridge(data);
+    return await handleStartRecording(data);
   });
-  console.log("[Background] Registered recording:start-request handler");
 
   onMessage("recording:stop-request", async () => {
     console.log("[Background] Received recording:stop-request");
-    return await handleStopRecordingBridge();
+    return await handleStopRecording();
   });
 
   onMessage("recording:get-status", () => {
     console.log("[Background] Received recording:get-status");
     return {
       state: recordingStateManager.state,
+      recordingType: recordingStateManager.recordingType,
       tabId: recordingStateManager.tabId,
     };
   });
 
-  // 监听来自 popup 或 content script 的旧消息（保留向后兼容）
-  browser.runtime.onMessage.addListener(
-    (message: Message, sender, sendResponse) => {
-      handleMessage(message, sender, sendResponse);
-      return true; // 保持消息通道开启以支持异步响应
+  // 监听来自 offscreen document 的原生消息
+  browser.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+    // 只处理来自 offscreen 的 track-ended 消息
+    if (message.type === "recording:track-ended") {
+      console.log(
+        "[Background] Received recording:track-ended from offscreen - user stopped sharing"
+      );
+      // 自动触发停止录制流程
+      handleStopRecording()
+        .then((result) => {
+          sendResponse(result);
+        })
+        .catch((error) => {
+          console.error("[Background] Error handling track-ended:", error);
+          sendResponse({ success: false, error: String(error) });
+        });
+      return true; // 保持异步通道开启
     }
-  );
+    return false;
+  });
 
   // 监听标签页关闭事件
   browser.tabs.onRemoved.addListener((tabId) => {
@@ -68,99 +114,10 @@ export default defineBackground(() => {
       recordingStateManager.state === RecordingState.RECORDING
     ) {
       // 如果正在录制的标签页被关闭，停止录制
-      handleStopRecordingBridge();
+      handleStopRecording();
     }
   });
 });
-
-/**
- * 处理消息
- */
-async function handleMessage(
-  message: Message,
-  _sender: Browser.runtime.MessageSender,
-  sendResponse: (response?: unknown) => void
-) {
-  try {
-    switch (message.type) {
-      case MessageType.CAPTURE_VIEWPORT:
-        await handleCaptureViewport(
-          message.data as { format: ImageFormat; quality?: number },
-          sendResponse
-        );
-        break;
-
-      case MessageType.CAPTURE_FULL_PAGE:
-        await handleCaptureFullPage(
-          message.data as { format: ImageFormat; quality?: number },
-          sendResponse
-        );
-        break;
-
-      case MessageType.START_SELECTION:
-        await handleStartSelection(
-          message.data as { format: ImageFormat; quality?: number },
-          sendResponse
-        );
-        break;
-
-      case MessageType.START_RECORDING:
-        console.log("[Background] Received START_RECORDING message");
-        await handleStartRecording(
-          message.data as RecordingOptions,
-          sendResponse
-        );
-        break;
-
-      case MessageType.STOP_RECORDING:
-        console.log("[Background] Received STOP_RECORDING message");
-        await handleStopRecording(message.data, sendResponse);
-        break;
-
-      case MessageType.GET_RECORDING_STATUS:
-        console.log("[Background] Received GET_RECORDING_STATUS message");
-        sendResponse({
-          state: recordingStateManager.state,
-          tabId: recordingStateManager.tabId,
-        });
-        break;
-
-      case MessageType.RECORDING_COMPLETE:
-        console.log("[Background] Recording complete notification received");
-        break;
-
-      case MessageType.START_DOM_SELECTION:
-        console.log("[Background] Received START_DOM_SELECTION message");
-        await updateDomBadge(true);
-        sendResponse({ success: true });
-        break;
-
-      case MessageType.CANCEL_DOM_SELECTION:
-        console.log("[Background] Received CANCEL_DOM_SELECTION message");
-        await updateDomBadge(false);
-        sendResponse({ success: true });
-        break;
-
-      case MessageType.CAPTURE_DOM:
-        console.log("[Background] Received CAPTURE_DOM message");
-        await handleCaptureDom(
-          message.data as {
-            dataUrl: string;
-            width: number;
-            height: number;
-          },
-          sendResponse
-        );
-        break;
-
-      default:
-        console.warn("Unknown message type:", message.type);
-        sendResponse({ error: "Unknown message type" });
-    }
-  } catch (error) {
-    sendResponse({ error: String(error) });
-  }
-}
 
 /**
  * 打开结果页面并显示截图或录屏
@@ -203,34 +160,44 @@ async function openResultPage(
 /**
  * 处理视窗截图
  */
-async function handleCaptureViewport(
-  data: { format: ImageFormat; quality?: number },
-  sendResponse: (response?: unknown) => void
-) {
-  const format = data.format || ImageFormat.PNG;
-  const quality = data.quality || 0.92;
+async function handleCaptureViewport(data: {
+  format: ImageFormat;
+  quality?: number;
+}) {
+  try {
+    const format = data.format || ImageFormat.PNG;
+    const quality = data.quality || 0.92;
 
-  const result = await captureViewport(format, quality);
-  const fileName = generateFileName(format);
+    const result = await captureViewport(format, quality);
+    const fileName = generateFileName(format);
 
-  // 打开结果页面显示截图
-  await openResultPage(result.dataUrl, fileName, result.width, result.height);
+    // 打开结果页面显示截图
+    await openResultPage(result.dataUrl, fileName, result.width, result.height);
 
-  sendResponse({
-    success: true,
-    fileName,
-    width: result.width,
-    height: result.height,
-  });
+    return {
+      success: true,
+      fileName,
+      width: result.width,
+      height: result.height,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      fileName: "",
+      width: 0,
+      height: 0,
+      error: String(error),
+    };
+  }
 }
 
 /**
  * 处理长截图
  */
-async function handleCaptureFullPage(
-  data: { format: ImageFormat; quality?: number },
-  sendResponse: (response?: unknown) => void
-) {
+async function handleCaptureFullPage(data: {
+  format: ImageFormat;
+  quality?: number;
+}) {
   try {
     const format = data.format || ImageFormat.PNG;
     const quality = data.quality || 0.92;
@@ -247,40 +214,51 @@ async function handleCaptureFullPage(
     await openResultPage(result.dataUrl, fileName, result.width, result.height);
     console.log("[Background] Result page opened");
 
-    sendResponse({
+    return {
       success: true,
       fileName,
       width: result.width,
       height: result.height,
-    });
+    };
   } catch (error) {
     console.error("[Background] Full page capture failed:", error);
-    sendResponse({
+    return {
+      success: false,
+      fileName: "",
+      width: 0,
+      height: 0,
       error: String(error),
-    });
+    };
   }
 }
 
 /**
  * 处理选区截图
  */
-async function handleStartSelection(
-  data: { format: ImageFormat; quality?: number },
-  sendResponse: (response?: unknown) => void
-) {
-  const format = data.format || ImageFormat.PNG;
-  const quality = data.quality || 0.92;
-
-  // 获取当前活动标签页
-  const [tab] = await browser.tabs.query({ active: true, currentWindow: true });
-
-  if (!tab.id) {
-    sendResponse({ error: "No active tab found" });
-    return;
-  }
-
-  // 先确保 content script 已注入
+async function handleStartSelection(data: {
+  format: ImageFormat;
+  quality?: number;
+}) {
   try {
+    const format = data.format || ImageFormat.PNG;
+    const quality = data.quality || 0.92;
+
+    // 获取当前活动标签页
+    const [tab] = await browser.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+
+    if (!tab.id) {
+      return {
+        success: false,
+        fileName: "",
+        width: 0,
+        height: 0,
+        error: "No active tab found",
+      };
+    }
+
     // 注入选区工具脚本
     await browser.scripting.executeScript({
       target: { tabId: tab.id },
@@ -290,13 +268,31 @@ async function handleStartSelection(
     // 等待一小段时间让脚本初始化
     await new Promise((resolve) => setTimeout(resolve, 100));
 
-    const response = await browser.tabs.sendMessage(tab.id, {
-      type: MessageType.START_SELECTION,
-    });
+    // 使用 webext-bridge 发送消息到 content script
+    const response = await sendMessage(
+      "selection:start",
+      {},
+      `content-script@${tab.id}`
+    );
 
     if (response.cancelled) {
-      sendResponse({ cancelled: true });
-      return;
+      return {
+        success: false,
+        fileName: "",
+        width: 0,
+        height: 0,
+        cancelled: true,
+      };
+    }
+
+    if (!response.area) {
+      return {
+        success: false,
+        fileName: "",
+        width: 0,
+        height: 0,
+        error: "No selection area received",
+      };
     }
 
     const area = response.area as SelectionArea;
@@ -308,36 +304,62 @@ async function handleStartSelection(
     // 打开结果页面显示截图
     await openResultPage(result.dataUrl, fileName, result.width, result.height);
 
-    sendResponse({
+    return {
       success: true,
       fileName,
       width: result.width,
       height: result.height,
-    });
+    };
   } catch (error) {
-    sendResponse({ error: String(error) });
+    return {
+      success: false,
+      fileName: "",
+      width: 0,
+      height: 0,
+      error: String(error),
+    };
   }
 }
 
 /**
  * 处理开始录制
  */
-async function handleStartRecording(
-  data: RecordingOptions,
-  sendResponse: (response?: unknown) => void
-) {
+async function handleStartRecording(data: RecordingOptions) {
   try {
     console.log("[Background] handleStartRecording called with data:", data);
 
     // 检查是否已经在录制
     if (recordingStateManager.state === RecordingState.RECORDING) {
       console.warn("[Background] Already recording, rejecting request");
-      sendResponse({ error: "Already recording" });
-      return;
+      return { success: false, error: "Already recording" };
     }
 
+    const recordingType = data.type || RecordingType.TAB;
+    console.log("[Background] Recording type:", recordingType);
+
+    // 存储录制选项
+    const options: RecordingOptions = {
+      type: recordingType,
+      format: data.format || VideoFormat.WEBM,
+      videoBitsPerSecond: data.videoBitsPerSecond,
+      audioBitsPerSecond: data.audioBitsPerSecond,
+      sizeSettings: data.sizeSettings,
+      resolution: data.resolution,
+      microphone: data.microphone,
+      camera: data.camera,
+    };
+    recordingStateManager.currentRecordingOptions = options;
+
+    // 更新状态
+    console.log("[Background] Updating recording state to RECORDING");
+    recordingStateManager.state = RecordingState.RECORDING;
+    recordingStateManager.recordingType = recordingType;
+
+    // 更新图标为录制中
+    console.log("[Background] Updating icon to show recording status");
+    await updateRecordingIcon(true);
+
     // 获取当前活动标签页
-    console.log("[Background] Getting active tab...");
     const [tab] = await browser.tabs.query({
       active: true,
       currentWindow: true,
@@ -345,69 +367,113 @@ async function handleStartRecording(
 
     if (!tab.id) {
       console.error("[Background] No active tab found");
-      sendResponse({ error: "No active tab found" });
-      return;
+      recordingStateManager.state = RecordingState.IDLE;
+      recordingStateManager.currentRecordingOptions = null;
+      await updateRecordingIcon(false);
+      return { success: false, error: "No active tab found" };
     }
 
-    console.log("[Background] Active tab found:", tab.id);
+    const tabId = tab.id;
+    recordingStateManager.tabId = tabId;
 
-    // 更新状态
-    console.log("[Background] Updating recording state to RECORDING");
-    recordingStateManager.state = RecordingState.RECORDING;
-    recordingStateManager.tabId = tab.id;
+    let result: { success: boolean; streamId?: string; error?: string };
 
-    // 存储录制选项
-    const options: RecordingOptions = {
-      format: data.format || VideoFormat.WEBM,
-      videoBitsPerSecond: data.videoBitsPerSecond,
-      audioBitsPerSecond: data.audioBitsPerSecond,
-      sizeSettings: data.sizeSettings,
-      resolution: data.resolution,
-    };
-    recordingStateManager.currentRecordingOptions = options;
+    if (recordingType === RecordingType.WINDOW) {
+      // 窗口录制
+      console.log("[Background] Starting window recording...");
+      result = await startWindowRecording(options, tabId);
+    } else {
+      // 标签页录制（默认）
+      console.log("[Background] Starting tab recording...");
+      console.log("[Background] Active tab found:", tabId);
 
-    // 更新图标为录制中
-    console.log("[Background] Updating icon to show recording status");
-    await updateRecordingIcon(true);
-
-    // 开始录制
-    console.log("[Background] Calling startRecording...");
-    const result = await startRecording(tab.id, options);
+      const { startRecording } = await import("@/utils/recording");
+      result = await startRecording(tabId, options);
+    }
 
     if (!result.success) {
       // 录制失败，恢复状态
       console.error("[Background] Recording failed:", result.error);
       console.log("[Background] Restoring state to IDLE");
       recordingStateManager.state = RecordingState.IDLE;
+      recordingStateManager.recordingType = RecordingType.TAB;
       recordingStateManager.tabId = null;
       recordingStateManager.currentRecordingOptions = null;
       await updateRecordingIcon(false);
 
-      sendResponse({ error: result.error });
-      return;
+      return { success: false, error: result.error };
     }
 
     console.log("[Background] Recording started successfully");
-    sendResponse({ success: true, tabId: tab.id });
+    return {
+      success: true,
+      tabId,
+      recordingType,
+    };
   } catch (error) {
     // 发生错误，恢复状态
     console.error("[Background] Error in handleStartRecording:", error);
     console.log("[Background] Restoring state to IDLE");
     recordingStateManager.state = RecordingState.IDLE;
+    recordingStateManager.recordingType = RecordingType.TAB;
     recordingStateManager.tabId = null;
+    recordingStateManager.currentRecordingOptions = null;
     await updateRecordingIcon(false);
 
-    sendResponse({ error: String(error) });
+    return { success: false, error: String(error) };
+  }
+}
+
+/**
+ * 开始窗口录制
+ */
+async function startWindowRecording(
+  options: RecordingOptions,
+  _tabId: number
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    console.log("[Background] Starting window recording...");
+
+    // 注意：由于 desktopCapture streamId 在 offscreen document 中不可用（Chrome bug），
+    // 我们让 offscreen document 直接调用 getDisplayMedia() 来显示选择器
+    // 这是 Chrome 推荐的做法
+
+    // 确保 offscreen document 已创建
+    const { ensureOffscreenDocument } = await import("@/utils/recording");
+    await ensureOffscreenDocument();
+
+    // 向 offscreen document 发送开始窗口录制消息
+    // offscreen document 将直接调用 getDisplayMedia() 显示选择器
+    console.log(
+      "[Background] Sending window recording request to offscreen document"
+    );
+    const response = await browser.runtime.sendMessage({
+      type: "recording:start-window-capture",
+      data: {
+        options,
+      },
+    });
+
+    if (response.error) {
+      console.error(
+        "[Background] Offscreen document returned error:",
+        response.error
+      );
+      throw new Error(response.error);
+    }
+
+    console.log("[Background] Window recording started successfully");
+    return { success: true };
+  } catch (error) {
+    console.error("[Background] Failed to start window recording:", error);
+    return { success: false, error: String(error) };
   }
 }
 
 /**
  * 处理停止录制
  */
-async function handleStopRecording(
-  _data: unknown,
-  sendResponse: (response?: unknown) => void
-) {
+async function handleStopRecording() {
   try {
     console.log("[Background] handleStopRecording called");
 
@@ -417,8 +483,7 @@ async function handleStopRecording(
         "[Background] Not currently recording, state:",
         recordingStateManager.state
       );
-      sendResponse({ error: "Not recording" });
-      return;
+      return { success: false, error: "Not recording" };
     }
 
     // 更新状态为处理中
@@ -434,12 +499,15 @@ async function handleStopRecording(
       console.error("[Background] Failed to stop recording:", result.error);
       console.log("[Background] Restoring state to IDLE");
       recordingStateManager.state = RecordingState.IDLE;
+      recordingStateManager.recordingType = RecordingType.TAB;
       recordingStateManager.tabId = null;
       recordingStateManager.currentRecordingOptions = null;
       await updateRecordingIcon(false);
 
-      sendResponse({ error: result.error || "Failed to stop recording" });
-      return;
+      return {
+        success: false,
+        error: result.error || "Failed to stop recording",
+      };
     }
 
     console.log("[Background] Recording stopped, preparing result page...");
@@ -504,26 +572,29 @@ async function handleStopRecording(
     // 恢复状态
     console.log("[Background] Restoring state to IDLE");
     recordingStateManager.state = RecordingState.IDLE;
+    recordingStateManager.recordingType = RecordingType.TAB;
     recordingStateManager.tabId = null;
     recordingStateManager.currentRecordingOptions = null;
     await updateRecordingIcon(false);
 
     console.log("[Background] Recording completed successfully");
-    sendResponse({
+    return {
       success: true,
       fileName,
       size: result.size,
-    });
+    };
   } catch (error) {
     // 发生错误，恢复状态
     console.error("[Background] Error in handleStopRecording:", error);
     console.log("[Background] Restoring state to IDLE and cleaning up");
     recordingStateManager.state = RecordingState.IDLE;
+    recordingStateManager.recordingType = RecordingType.TAB;
     recordingStateManager.tabId = null;
+    recordingStateManager.currentRecordingOptions = null;
     await updateRecordingIcon(false);
     await closeOffscreenDocument();
 
-    sendResponse({ error: String(error) });
+    return { success: false, error: String(error) };
   }
 }
 
@@ -574,14 +645,12 @@ async function updateDomBadge(isSelecting: boolean) {
 /**
  * 处理 DOM 截图
  */
-async function handleCaptureDom(
-  data: {
-    dataUrl: string;
-    width: number;
-    height: number;
-  },
-  sendResponse: (response?: unknown) => void
-) {
+async function handleCaptureDom(data: {
+  dataUrl: string;
+  width: number;
+  height: number;
+  format: ImageFormat;
+}) {
   try {
     console.log("[Background] Processing DOM capture");
 
@@ -589,7 +658,7 @@ async function handleCaptureDom(
     await updateDomBadge(false);
 
     // 生成文件名
-    const fileName = generateFileName(ImageFormat.PNG);
+    const fileName = generateFileName(data.format || ImageFormat.PNG);
 
     // 存储数据供后续导出使用
     const resultId = `dom_screenshot_${Date.now()}`;
@@ -614,218 +683,13 @@ async function handleCaptureDom(
       url: `${resultUrl}?${params.toString()}`,
     });
 
-    sendResponse({
-      success: true,
-      fileName,
-      width: data.width,
-      height: data.height,
-    });
-  } catch (error) {
-    console.error("[Background] DOM capture failed:", error);
-    await updateDomBadge(false);
-    sendResponse({ error: String(error) });
-  }
-}
-
-/**
- * 处理开始录制（webext-bridge 版本）
- */
-async function handleStartRecordingBridge(data: RecordingOptions) {
-  try {
-    console.log(
-      "[Background] handleStartRecordingBridge called with data:",
-      data
-    );
-
-    // 检查是否已经在录制
-    if (recordingStateManager.state === RecordingState.RECORDING) {
-      console.warn("[Background] Already recording, rejecting request");
-      return { success: false, error: "Already recording" };
-    }
-
-    // 获取当前活动标签页
-    console.log("[Background] Getting active tab...");
-    const [tab] = await browser.tabs.query({
-      active: true,
-      currentWindow: true,
-    });
-
-    if (!tab.id) {
-      console.error("[Background] No active tab found");
-      return { success: false, error: "No active tab found" };
-    }
-
-    console.log("[Background] Active tab found:", tab.id);
-
-    // 更新状态
-    console.log("[Background] Updating recording state to RECORDING");
-    recordingStateManager.state = RecordingState.RECORDING;
-    recordingStateManager.tabId = tab.id;
-
-    // 更新图标为录制中
-    console.log("[Background] Updating icon to show recording status");
-    await updateRecordingIcon(true);
-
-    // 开始录制
-    console.log("[Background] Calling startRecording...");
-    const options: RecordingOptions = {
-      format: data.format || VideoFormat.WEBM,
-      videoBitsPerSecond: data.videoBitsPerSecond,
-      audioBitsPerSecond: data.audioBitsPerSecond,
-      resolution: data.resolution,
-    };
-
-    const result = await startRecording(tab.id, options);
-
-    if (!result.success) {
-      // 录制失败，恢复状态
-      console.error("[Background] Recording failed:", result.error);
-      console.log("[Background] Restoring state to IDLE");
-      recordingStateManager.state = RecordingState.IDLE;
-      recordingStateManager.tabId = null;
-      recordingStateManager.currentRecordingOptions = null;
-      await updateRecordingIcon(false);
-
-      return { success: false, error: result.error };
-    }
-
-    console.log("[Background] Recording started successfully");
-    return { success: true, tabId: tab.id };
-  } catch (error) {
-    // 发生错误，恢复状态
-    console.error("[Background] Error in handleStartRecordingBridge:", error);
-    console.log("[Background] Restoring state to IDLE");
-    recordingStateManager.state = RecordingState.IDLE;
-    recordingStateManager.tabId = null;
-    await updateRecordingIcon(false);
-
-    return { success: false, error: String(error) };
-  }
-}
-
-/**
- * 处理停止录制（webext-bridge 版本）
- */
-async function handleStopRecordingBridge() {
-  try {
-    console.log("[Background] handleStopRecordingBridge called");
-
-    // 检查是否正在录制
-    if (recordingStateManager.state !== RecordingState.RECORDING) {
-      console.warn(
-        "[Background] Not currently recording, state:",
-        recordingStateManager.state
-      );
-      return { success: false, error: "Not recording" };
-    }
-
-    // 更新状态为处理中
-    console.log("[Background] Updating recording state to PROCESSING");
-    recordingStateManager.state = RecordingState.PROCESSING;
-
-    // 停止录制
-    console.log("[Background] Calling stopRecording...");
-    const result = await stopRecording();
-
-    if (!(result.success && result.data)) {
-      // 停止失败，恢复状态
-      console.error("[Background] Failed to stop recording:", result.error);
-      console.log("[Background] Restoring state to IDLE");
-      recordingStateManager.state = RecordingState.IDLE;
-      recordingStateManager.tabId = null;
-      recordingStateManager.currentRecordingOptions = null;
-      await updateRecordingIcon(false);
-
-      return {
-        success: false,
-        error: result.error || "Failed to stop recording",
-      };
-    }
-
-    console.log("[Background] Recording stopped, preparing result page...");
-
-    // 生成文件名
-    const fileName = generateRecordingFileName(VideoFormat.WEBM);
-    console.log("[Background] Generated file name:", fileName);
-
-    // 将视频数据转换为 data URL
-    const blob = new Blob([result.data as BlobPart], {
-      type: result.mimeType || "video/webm",
-    });
-    const reader = new FileReader();
-    const dataUrl = await new Promise<string>((resolve, reject) => {
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
-    });
-
-    // 获取录制时的实际尺寸
-    const targetSize =
-      recordingStateManager.currentRecordingOptions?.sizeSettings;
-    let videoWidth = 0;
-    let videoHeight = 0;
-
-    if (recordingStateManager.tabId) {
-      try {
-        const tab = await browser.tabs.get(recordingStateManager.tabId);
-        videoWidth = tab.width || 0;
-        videoHeight = tab.height || 0;
-
-        // 如果有尺寸设置，应用调整后的尺寸
-        if (targetSize && targetSize.scale !== 1) {
-          videoWidth = Math.round(videoWidth * targetSize.scale);
-          videoHeight = Math.round(videoHeight * targetSize.scale);
-        }
-
-        console.log("[Background] Video dimensions (bridge):", {
-          videoWidth,
-          videoHeight,
-          originalScale: targetSize?.scale,
-        });
-      } catch (tabError) {
-        console.warn(
-          "[Background] Failed to get tab dimensions (bridge):",
-          tabError
-        );
-      }
-    }
-
-    // 打开结果页面显示录屏
-    await openResultPage(
-      dataUrl,
-      fileName,
-      videoWidth,
-      videoHeight,
-      result.size || 0,
-      "video"
-    );
-
-    // 关闭 offscreen document
-    console.log("[Background] Closing offscreen document...");
-    await closeOffscreenDocument();
-
-    // 恢复状态
-    console.log("[Background] Restoring state to IDLE");
-    recordingStateManager.state = RecordingState.IDLE;
-    recordingStateManager.tabId = null;
-    recordingStateManager.currentRecordingOptions = null;
-    await updateRecordingIcon(false);
-
-    console.log("[Background] Recording completed successfully");
     return {
       success: true,
       fileName,
-      size: result.size,
     };
   } catch (error) {
-    // 发生错误，恢复状态
-    console.error("[Background] Error in handleStopRecordingBridge:", error);
-    console.log("[Background] Restoring state to IDLE and cleaning up");
-    recordingStateManager.state = RecordingState.IDLE;
-    recordingStateManager.tabId = null;
-    await updateRecordingIcon(false);
-    await closeOffscreenDocument();
-
+    console.error("[Background] DOM capture failed:", error);
+    await updateDomBadge(false);
     return { success: false, error: String(error) };
   }
 }

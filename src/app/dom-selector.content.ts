@@ -1,6 +1,5 @@
 import { snapdom } from "@zumer/snapdom";
-import { browser } from "wxt/browser";
-import { MessageType } from "@/types/screenshot";
+import { ImageFormat } from "@/types/screenshot";
 
 let isSelecting = false;
 let selectedElement: HTMLElement | null = null;
@@ -8,20 +7,34 @@ let overlayElement: HTMLDivElement | null = null;
 let confirmDialogElement: HTMLDivElement | null = null;
 let highlightElement: HTMLDivElement | null = null;
 
+// 模块级别的 sendMessage 引用
+let sendMessageFn: any = null;
+
 export default defineContentScript({
   matches: ["<all_urls>"],
 
   async main() {
     console.log("[DOM Selector] Content script loaded");
 
-    // 监听来自 popup 的消息
-    browser.runtime.onMessage.addListener((message) => {
-      console.log("[DOM Selector] Received message:", message.type);
-      if (message.type === MessageType.START_DOM_SELECTION) {
-        startDomSelection();
-      } else if (message.type === MessageType.CANCEL_DOM_SELECTION) {
-        stopDomSelection();
-      }
+    // 动态导入 webext-bridge 以避免构建时初始化
+    const { onMessage, sendMessage: sendMessageBridge } = await import(
+      "webext-bridge/content-script"
+    );
+
+    // 存储 sendMessage 到模块变量
+    sendMessageFn = sendMessageBridge;
+
+    // 使用 webext-bridge 监听消息
+    onMessage("dom:start-selection", () => {
+      console.log("[DOM Selector] Received dom:start-selection");
+      startDomSelection();
+      return { success: true };
+    });
+
+    onMessage("dom:cancel-selection", () => {
+      console.log("[DOM Selector] Received dom:cancel-selection");
+      stopDomSelection();
+      return { success: true };
     });
   },
 });
@@ -299,15 +312,20 @@ async function captureSelectedElement() {
     const pngImage = await snapdom.toPng(element, pngOptions);
     const dataUrl = pngImage.src;
 
-    // 发送 PNG 结果到 background
-    await browser.runtime.sendMessage({
-      type: MessageType.CAPTURE_DOM,
-      data: {
+    // 使用 webext-bridge 发送结果到 background
+    if (!sendMessageFn) {
+      throw new Error("sendMessage not initialized");
+    }
+    await sendMessageFn(
+      "dom:capture",
+      {
         dataUrl,
         width: element.offsetWidth,
         height: element.offsetHeight,
+        format: ImageFormat.PNG,
       },
-    });
+      "background"
+    );
   } catch (error) {
     console.error("DOM capture failed:", error);
     // 确保即使出错也清理 UI
@@ -379,11 +397,6 @@ function startDomSelection() {
 
   // 修改鼠标样式
   document.body.style.cursor = "crosshair";
-
-  // 更新扩展图标 badge
-  browser.runtime.sendMessage({
-    type: MessageType.START_DOM_SELECTION,
-  });
 }
 
 /**
@@ -419,9 +432,4 @@ function stopDomSelection() {
     confirmDialogElement.parentNode.removeChild(confirmDialogElement);
     confirmDialogElement = null;
   }
-
-  // 清除扩展图标 badge
-  browser.runtime.sendMessage({
-    type: MessageType.CANCEL_DOM_SELECTION,
-  });
 }
