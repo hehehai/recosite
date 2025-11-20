@@ -4,7 +4,7 @@
   <p>A powerful browser extension for capturing web pages as images and recording screen interactions as videos</p>
 
   [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-  [![Chrome Web Store](https://img.shields.io/badge/Chrome-Coming%20Soon-orange.svg)](https://github.com/hehehai/recosite)
+  [![Chrome Web Store](https://img.shields.io/badge/Chrome-Coming%20Soon-orange.svg)](https://chromewebstore.google.com/detail/recosite/cajchbamocblcjllnllipgpioahkhlhk?hl=zh-CN&authuser=0)
   [![Firefox Add-ons](https://img.shields.io/badge/Firefox-Coming%20Soon-orange.svg)](https://github.com/hehehai/recosite)
 </div>
 
@@ -60,18 +60,20 @@ Recosite is a modern, feature-rich browser extension that enables you to capture
 ## 🌐 Supported Browsers
 
 - **Chrome** - Version 88 and above (Manifest V3)
-  - 🔄 Currently under review on Chrome Web Store
+  - ✅ Available on [Chrome Web Store](https://chromewebstore.google.com/detail/recosite/cajchbamocblcjllnllipgpioahkhlhk?hl=zh-CN&authuser=0)
   - Manual installation available for testing
 - **Firefox** - Support coming soon
 - **Edge** - Version 88 and above (Manifest V3) - Coming soon
 
-> **Note**: This extension is currently only available for Chrome and is under review on the Chrome Web Store. Firefox and Edge support will be added in future releases.
+> **Note**: This extension is currently available for Chrome via the Chrome Web Store. Firefox and Edge support will be added in future releases.
 
 ## 📥 Installation
 
 ### From Chrome Web Store
 
-> 🔄 **Status**: Currently under review on Chrome Web Store. Once approved, you'll be able to install directly from the store.
+> ✅ **Status**: Available now on Chrome Web Store.
+
+[Install Recosite from Chrome Web Store](https://chromewebstore.google.com/detail/recosite/cajchbamocblcjllnllipgpioahkhlhk?hl=zh-CN&authuser=0)
 
 ### Manual Installation (Development)
 
