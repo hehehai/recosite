@@ -229,13 +229,22 @@
     }
 
     if (resultType.value === "image") {
-      const success = await copyToClipboard(mediaData.value);
+      // 如果需要调整尺寸且不是显示原图，使用调整后的数据
+      let copyData = mediaData.value;
+      if (!exportSizeSettings.value.showOriginal && previewImageUrl.value) {
+        copyData = previewImageUrl.value;
+      }
+
+      const success = await copyToClipboard(copyData);
       if (success) {
         copySuccess.value = true;
         setTimeout(() => {
           copySuccess.value = false;
         }, 2000);
-        showNotification("已复制到剪贴板", "success");
+        const sizeText = exportSizeSettings.value.showOriginal
+          ? "原始尺寸"
+          : `${exportSizeSettings.value.width}×${exportSizeSettings.value.height}`;
+        showNotification(`已复制到剪贴板 (${sizeText})`, "success");
       } else {
         showNotification("复制失败，请手动下载", "error");
       }

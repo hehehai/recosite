@@ -30,7 +30,7 @@
 
 <template>
   <div
-    class="pointer-events-none fixed right-4 top-4 z-[9999] flex flex-col items-end"
+    class="pointer-events-none fixed right-4 top-4 z-9999 flex flex-col items-end"
   >
     <transition-group name="toast">
       <div

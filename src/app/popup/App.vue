@@ -451,8 +451,13 @@
               <ToggleSwitch
                 v-model="recordingOptions.microphone"
                 label="麦克风"
+                disabled
               />
-              <ToggleSwitch v-model="recordingOptions.camera" label="摄像头"/>
+              <ToggleSwitch
+                v-model="recordingOptions.camera"
+                label="摄像头"
+                disabled
+              />
 
               <!-- 分辨率选择 -->
               <div class="flex items-center justify-between gap-1">
