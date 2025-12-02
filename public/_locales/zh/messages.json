@@ -1,0 +1,502 @@
+{
+  "extName": {
+    "message": "Recosite",
+    "description": "扩展名称"
+  },
+  "extDescription": {
+    "message": "网页截图与录屏工具 - 支持长截图、局部截图和视频录制",
+    "description": "扩展描述"
+  },
+  "popup_screenshot_tab": {
+    "message": "截图",
+    "description": "截图标签页"
+  },
+  "popup_recording_tab": {
+    "message": "录制",
+    "description": "录制标签页"
+  },
+  "action_fullpage_screenshot": {
+    "message": "全页截图",
+    "description": "全页截图按钮"
+  },
+  "action_viewport_screenshot": {
+    "message": "视窗截图",
+    "description": "视窗截图按钮"
+  },
+  "action_dom_screenshot": {
+    "message": "DOM截图",
+    "description": "DOM截图按钮"
+  },
+  "action_selection_screenshot": {
+    "message": "选区截图",
+    "description": "选区截图按钮"
+  },
+  "action_tab_recording": {
+    "message": "页面录制",
+    "description": "页面录制按钮"
+  },
+  "action_window_recording": {
+    "message": "窗口录制",
+    "description": "窗口录制按钮"
+  },
+  "action_desktop_recording": {
+    "message": "桌面录制",
+    "description": "桌面录制按钮"
+  },
+  "recording_option_microphone": {
+    "message": "麦克风",
+    "description": "麦克风选项"
+  },
+  "recording_option_camera": {
+    "message": "摄像头",
+    "description": "摄像头选项"
+  },
+  "recording_option_resolution": {
+    "message": "分辨率",
+    "description": "分辨率选项"
+  },
+  "resolution_auto": {
+    "message": "自动",
+    "description": "自动分辨率"
+  },
+  "resolution_auto_desc": {
+    "message": "页面原始尺寸",
+    "description": "自动分辨率描述"
+  },
+  "resolution_720p": {
+    "message": "720p",
+    "description": "720p分辨率"
+  },
+  "resolution_720p_desc": {
+    "message": "1280×720",
+    "description": "720p分辨率描述"
+  },
+  "resolution_1080p": {
+    "message": "1080p",
+    "description": "1080p分辨率"
+  },
+  "resolution_1080p_desc": {
+    "message": "1920×1080",
+    "description": "1080p分辨率描述"
+  },
+  "resolution_4k": {
+    "message": "4K",
+    "description": "4K分辨率"
+  },
+  "resolution_4k_desc": {
+    "message": "3840×2160",
+    "description": "4K分辨率描述"
+  },
+  "status_capturing": {
+    "message": "截图中...",
+    "description": "截图进行中状态"
+  },
+  "status_screenshot_success": {
+    "message": "截图成功！",
+    "description": "截图成功消息"
+  },
+  "status_recording": {
+    "message": "录制中",
+    "description": "录制状态"
+  },
+  "status_click_to_stop": {
+    "message": "点击停止录制",
+    "description": "停止录制提示"
+  },
+  "status_recording_in_progress": {
+    "message": "🔴 正在录制中...",
+    "description": "正在录制状态"
+  },
+  "status_processing_recording": {
+    "message": "处理录制文件中...",
+    "description": "处理录制文件状态"
+  },
+  "status_recording_success": {
+    "message": "录制成功！",
+    "description": "录制成功消息"
+  },
+  "selection_instruction": {
+    "message": "拖动鼠标选择截图区域，按 ESC 取消",
+    "description": "选区工具提示"
+  },
+  "selection_countdown": {
+    "message": "($1s)",
+    "description": "倒计时显示",
+    "placeholders": {
+      "seconds": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "result_title_suffix": {
+    "message": "结果",
+    "description": "结果页面标题后缀"
+  },
+  "result_page_title": {
+    "message": "Recosite - 网页截图与录屏工具",
+    "description": "结果页面标题"
+  },
+  "result_video_details": {
+    "message": "视频详情",
+    "description": "视频详情按钮"
+  },
+  "result_close": {
+    "message": "关闭",
+    "description": "关闭按钮"
+  },
+  "result_filename": {
+    "message": "文件名:",
+    "description": "文件名标签"
+  },
+  "result_format": {
+    "message": "格式:",
+    "description": "格式标签"
+  },
+  "result_dimensions": {
+    "message": "尺寸:",
+    "description": "尺寸标签"
+  },
+  "result_filesize": {
+    "message": "大小:",
+    "description": "文件大小标签"
+  },
+  "result_duration": {
+    "message": "时长:",
+    "description": "时长标签"
+  },
+  "result_loading": {
+    "message": "加载中...",
+    "description": "加载状态"
+  },
+  "result_no_data": {
+    "message": "未找到数据",
+    "description": "未找到数据错误"
+  },
+  "result_svg_unavailable": {
+    "message": "SVG 数据不可用",
+    "description": "SVG数据不可用错误"
+  },
+  "result_exported_as": {
+    "message": "已导出为 $1",
+    "description": "导出成功消息",
+    "placeholders": {
+      "format": {
+        "content": "$1",
+        "example": "PNG"
+      }
+    }
+  },
+  "result_original_size": {
+    "message": "原始尺寸",
+    "description": "原始尺寸徽章"
+  },
+  "result_converting_to": {
+    "message": "正在转换为 $1...",
+    "description": "转换状态消息",
+    "placeholders": {
+      "format": {
+        "content": "$1",
+        "example": "JPEG"
+      }
+    }
+  },
+  "result_export_success": {
+    "message": "已成功导出为 $1",
+    "description": "导出成功消息",
+    "placeholders": {
+      "format": {
+        "content": "$1",
+        "example": "PNG"
+      }
+    }
+  },
+  "result_export_failed": {
+    "message": "导出失败",
+    "description": "导出失败消息"
+  },
+  "result_copied_to_clipboard": {
+    "message": "已复制到剪贴板",
+    "description": "复制成功消息"
+  },
+  "result_copy_failed": {
+    "message": "复制失败，请手动下载",
+    "description": "复制失败消息"
+  },
+  "result_download_started": {
+    "message": "已开始下载视频",
+    "description": "视频下载开始"
+  },
+  "result_preview": {
+    "message": "预览",
+    "description": "预览标题"
+  },
+  "result_quick_actions": {
+    "message": "快速操作",
+    "description": "快速操作标题"
+  },
+  "result_copy_to_clipboard": {
+    "message": "复制到剪贴板",
+    "description": "复制到剪贴板按钮"
+  },
+  "result_download_video": {
+    "message": "下载视频",
+    "description": "下载视频按钮"
+  },
+  "result_export_format": {
+    "message": "导出格式",
+    "description": "导出格式标题"
+  },
+  "result_original_badge": {
+    "message": "原始",
+    "description": "原始格式徽章"
+  },
+  "result_format_tip": {
+    "message": "点击格式按钮可导出为对应格式的文件",
+    "description": "格式按钮提示"
+  },
+  "result_tip": {
+    "message": "提示",
+    "description": "提示标签"
+  },
+  "result_jpeg_tip": {
+    "message": "转换为 JPEG 可以减小文件大小，但会失去透明度支持",
+    "description": "JPEG转换提示"
+  },
+  "result_mp4_tip": {
+    "message": "MP4 格式兼容性更好，适合大多数播放器",
+    "description": "MP4格式提示"
+  },
+  "export_dimensions": {
+    "message": "导出尺寸",
+    "description": "导出尺寸标题"
+  },
+  "export_width": {
+    "message": "宽",
+    "description": "宽度标签"
+  },
+  "export_height": {
+    "message": "高",
+    "description": "高度标签"
+  },
+  "export_show_adjusted": {
+    "message": "点击显示调整后的尺寸",
+    "description": "显示调整尺寸提示"
+  },
+  "export_show_original": {
+    "message": "点击显示原始尺寸",
+    "description": "显示原始尺寸提示"
+  },
+  "video_details_title": {
+    "message": "视频详情",
+    "description": "视频详情对话框标题"
+  },
+  "video_details_overview": {
+    "message": "概览",
+    "description": "概览标签页"
+  },
+  "video_details_tracks": {
+    "message": "轨道信息",
+    "description": "轨道信息标签页"
+  },
+  "video_loading_metadata": {
+    "message": "加载元数据...",
+    "description": "加载元数据状态"
+  },
+  "video_format": {
+    "message": "格式",
+    "description": "格式标签"
+  },
+  "video_mime_type": {
+    "message": "MIME 类型",
+    "description": "MIME类型标签"
+  },
+  "video_duration": {
+    "message": "时长",
+    "description": "时长标签"
+  },
+  "video_track_count": {
+    "message": "轨道数",
+    "description": "轨道数标签"
+  },
+  "video_track_number": {
+    "message": "轨道 $1",
+    "description": "轨道编号标签",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "video_codec": {
+    "message": "编解码器",
+    "description": "编解码器标签"
+  },
+  "video_unknown": {
+    "message": "未知",
+    "description": "未知值"
+  },
+  "video_full_codec": {
+    "message": "完整编解码器字符串",
+    "description": "完整编解码器字符串标签"
+  },
+  "video_resolution": {
+    "message": "分辨率",
+    "description": "分辨率标签"
+  },
+  "video_rotation": {
+    "message": "旋转",
+    "description": "旋转标签"
+  },
+  "video_rotation_clockwise": {
+    "message": "° 顺时针",
+    "description": "顺时针旋转单位"
+  },
+  "video_channels": {
+    "message": "声道数",
+    "description": "声道数标签"
+  },
+  "video_sample_rate": {
+    "message": "采样率",
+    "description": "采样率标签"
+  },
+  "video_sample_rate_unit": {
+    "message": "Hz",
+    "description": "Hz单位"
+  },
+  "video_packet_count": {
+    "message": "数据包数量",
+    "description": "数据包数量标签"
+  },
+  "video_avg_bitrate": {
+    "message": "平均码率",
+    "description": "平均码率标签"
+  },
+  "video_avg_framerate": {
+    "message": "平均帧率",
+    "description": "平均帧率标签"
+  },
+  "video_framerate_unit": {
+    "message": "FPS / Hz",
+    "description": "帧率单位"
+  },
+  "video_color_space": {
+    "message": "色彩空间",
+    "description": "色彩空间标签"
+  },
+  "video_color_primaries": {
+    "message": "色域:",
+    "description": "色域标签"
+  },
+  "video_transfer_characteristics": {
+    "message": "传输特性:",
+    "description": "传输特性标签"
+  },
+  "video_matrix_coefficients": {
+    "message": "矩阵系数:",
+    "description": "矩阵系数标签"
+  },
+  "video_full_range": {
+    "message": "全范围:",
+    "description": "全范围标签"
+  },
+  "video_yes": {
+    "message": "是",
+    "description": "是"
+  },
+  "video_no": {
+    "message": "否",
+    "description": "否"
+  },
+  "video_hdr": {
+    "message": "HDR",
+    "description": "HDR标签"
+  },
+  "video_hdr_supported": {
+    "message": "支持 HDR",
+    "description": "支持HDR消息"
+  },
+  "video_loading": {
+    "message": "加载视频...",
+    "description": "视频加载状态"
+  },
+  "video_audio_only": {
+    "message": "仅音频",
+    "description": "仅音频标签"
+  },
+  "notification_close": {
+    "message": "关闭",
+    "description": "关闭通知按钮"
+  },
+  "status_card_tip": {
+    "message": "提示",
+    "description": "状态卡片提示标题"
+  },
+  "error_no_active_tab": {
+    "message": "未找到活动标签页",
+    "description": "未找到活动标签页错误"
+  },
+  "error_loading_failed": {
+    "message": "加载失败，请手动刷新页面后重试",
+    "description": "加载失败错误"
+  },
+  "error_screenshot_failed": {
+    "message": "截图失败: $1",
+    "description": "截图失败错误",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "权限被拒绝"
+      }
+    }
+  },
+  "error_recording_failed": {
+    "message": "录制失败: $1",
+    "description": "录制失败错误",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "权限被拒绝"
+      }
+    }
+  },
+  "error_canvas_context": {
+    "message": "无法获取 canvas context",
+    "description": "无法获取canvas上下文错误"
+  },
+  "error_preview_generation": {
+    "message": "生成预览图片失败",
+    "description": "生成预览失败错误"
+  },
+  "error_copy_failed": {
+    "message": "复制失败: $1",
+    "description": "复制失败错误",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "权限被拒绝"
+      }
+    }
+  },
+  "error_data_expired": {
+    "message": "数据已过期或不存在",
+    "description": "数据过期错误"
+  },
+  "size_unit_bytes": {
+    "message": "B",
+    "description": "字节单位"
+  },
+  "size_unit_kilobytes": {
+    "message": "KB",
+    "description": "千字节单位"
+  },
+  "size_unit_megabytes": {
+    "message": "MB",
+    "description": "兆字节单位"
+  },
+  "size_unit_gigabytes": {
+    "message": "GB",
+    "description": "吉字节单位"
+  }
+}

@@ -1,0 +1,502 @@
+{
+  "extName": {
+    "message": "Recosite",
+    "description": "Erweiterungsname"
+  },
+  "extDescription": {
+    "message": "Web-Screenshot- und Bildschirmaufnahme-Tool - unterstützt Vollseiten-Screenshots, Teilaufnahmen und Videoaufzeichnung",
+    "description": "Erweiterungsbeschreibung"
+  },
+  "popup_screenshot_tab": {
+    "message": "Screenshot",
+    "description": "Screenshot-Tab-Bezeichnung"
+  },
+  "popup_recording_tab": {
+    "message": "Aufnahme",
+    "description": "Aufnahme-Tab-Bezeichnung"
+  },
+  "action_fullpage_screenshot": {
+    "message": "Vollseiten-Screenshot",
+    "description": "Vollseiten-Aufnahme-Button"
+  },
+  "action_viewport_screenshot": {
+    "message": "Viewport-Screenshot",
+    "description": "Sichtbarer Bereich-Aufnahme-Button"
+  },
+  "action_dom_screenshot": {
+    "message": "DOM-Screenshot",
+    "description": "Spezifisches DOM-Element-Aufnahme-Button"
+  },
+  "action_selection_screenshot": {
+    "message": "Auswahlbereich-Screenshot",
+    "description": "Ausgewählter Bereich-Aufnahme-Button"
+  },
+  "action_tab_recording": {
+    "message": "Tab-Aufnahme",
+    "description": "Aktueller Tab-Aufnahme-Button"
+  },
+  "action_window_recording": {
+    "message": "Fenster-Aufnahme",
+    "description": "Fenster-Aufnahme-Button"
+  },
+  "action_desktop_recording": {
+    "message": "Desktop-Aufnahme",
+    "description": "Desktop-Aufnahme-Button"
+  },
+  "recording_option_microphone": {
+    "message": "Mikrofon",
+    "description": "Mikrofon-Option"
+  },
+  "recording_option_camera": {
+    "message": "Kamera",
+    "description": "Kamera-Option"
+  },
+  "recording_option_resolution": {
+    "message": "Auflösung",
+    "description": "Auflösungs-Option"
+  },
+  "resolution_auto": {
+    "message": "Automatisch",
+    "description": "Automatische Auflösung"
+  },
+  "resolution_auto_desc": {
+    "message": "Ursprüngliche Seitengröße",
+    "description": "Automatische Auflösungsbeschreibung"
+  },
+  "resolution_720p": {
+    "message": "720p",
+    "description": "720p-Auflösung"
+  },
+  "resolution_720p_desc": {
+    "message": "1280×720",
+    "description": "720p-Auflösungsbeschreibung"
+  },
+  "resolution_1080p": {
+    "message": "1080p",
+    "description": "1080p-Auflösung"
+  },
+  "resolution_1080p_desc": {
+    "message": "1920×1080",
+    "description": "1080p-Auflösungsbeschreibung"
+  },
+  "resolution_4k": {
+    "message": "4K",
+    "description": "4K-Auflösung"
+  },
+  "resolution_4k_desc": {
+    "message": "3840×2160",
+    "description": "4K-Auflösungsbeschreibung"
+  },
+  "status_capturing": {
+    "message": "Wird aufgenommen...",
+    "description": "Screenshot wird aufgenommen"
+  },
+  "status_screenshot_success": {
+    "message": "Screenshot erfolgreich aufgenommen!",
+    "description": "Screenshot-Erfolgsmeldung"
+  },
+  "status_recording": {
+    "message": "Aufnahme läuft",
+    "description": "Aufnahmestatus"
+  },
+  "status_click_to_stop": {
+    "message": "Klicken zum Stoppen der Aufnahme",
+    "description": "Aufnahme stoppen-Anweisung"
+  },
+  "status_recording_in_progress": {
+    "message": "🔴 Aufnahme läuft...",
+    "description": "Aufnahme aktiv-Status"
+  },
+  "status_processing_recording": {
+    "message": "Aufnahmedatei wird verarbeitet...",
+    "description": "Aufnahme wird verarbeitet"
+  },
+  "status_recording_success": {
+    "message": "Aufnahme erfolgreich!",
+    "description": "Aufnahme-Erfolgsmeldung"
+  },
+  "selection_instruction": {
+    "message": "Ziehen Sie, um den Screenshot-Bereich auszuwählen, drücken Sie ESC zum Abbrechen",
+    "description": "Auswahl-Tool-Anweisung"
+  },
+  "selection_countdown": {
+    "message": "($1s)",
+    "description": "Countdown-Anzeige",
+    "placeholders": {
+      "seconds": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "result_title_suffix": {
+    "message": "Ergebnis",
+    "description": "Ergebnisseiten-Titel-Suffix"
+  },
+  "result_page_title": {
+    "message": "Recosite - Web-Screenshot- und Aufnahme-Tool",
+    "description": "Ergebnisseiten-Titel"
+  },
+  "result_video_details": {
+    "message": "Videodetails",
+    "description": "Videodetails-Button"
+  },
+  "result_close": {
+    "message": "Schließen",
+    "description": "Schließen-Button"
+  },
+  "result_filename": {
+    "message": "Dateiname:",
+    "description": "Dateiname-Bezeichnung"
+  },
+  "result_format": {
+    "message": "Format:",
+    "description": "Format-Bezeichnung"
+  },
+  "result_dimensions": {
+    "message": "Abmessungen:",
+    "description": "Abmessungen-Bezeichnung"
+  },
+  "result_filesize": {
+    "message": "Dateigröße:",
+    "description": "Dateigröße-Bezeichnung"
+  },
+  "result_duration": {
+    "message": "Dauer:",
+    "description": "Dauer-Bezeichnung"
+  },
+  "result_loading": {
+    "message": "Wird geladen...",
+    "description": "Ladezustand"
+  },
+  "result_no_data": {
+    "message": "Keine Daten gefunden",
+    "description": "Keine Daten-Fehler"
+  },
+  "result_svg_unavailable": {
+    "message": "SVG-Daten nicht verfügbar",
+    "description": "SVG-Daten nicht verfügbar-Fehler"
+  },
+  "result_exported_as": {
+    "message": "Als $1 exportiert",
+    "description": "Export-Erfolgsmeldung",
+    "placeholders": {
+      "format": {
+        "content": "$1",
+        "example": "PNG"
+      }
+    }
+  },
+  "result_original_size": {
+    "message": "Originalgröße",
+    "description": "Originalgröße-Badge"
+  },
+  "result_converting_to": {
+    "message": "Wird in $1 konvertiert...",
+    "description": "Konvertierungs-Statusmeldung",
+    "placeholders": {
+      "format": {
+        "content": "$1",
+        "example": "JPEG"
+      }
+    }
+  },
+  "result_export_success": {
+    "message": "Erfolgreich als $1 exportiert",
+    "description": "Export-Erfolgsmeldung",
+    "placeholders": {
+      "format": {
+        "content": "$1",
+        "example": "PNG"
+      }
+    }
+  },
+  "result_export_failed": {
+    "message": "Export fehlgeschlagen",
+    "description": "Export fehlgeschlagen-Meldung"
+  },
+  "result_copied_to_clipboard": {
+    "message": "In Zwischenablage kopiert",
+    "description": "Zwischenablage kopieren erfolgreich"
+  },
+  "result_copy_failed": {
+    "message": "Kopieren fehlgeschlagen, bitte manuell herunterladen",
+    "description": "Zwischenablage kopieren fehlgeschlagen"
+  },
+  "result_download_started": {
+    "message": "Video-Download gestartet",
+    "description": "Video-Download gestartet"
+  },
+  "result_preview": {
+    "message": "Vorschau",
+    "description": "Vorschau-Abschnittstitel"
+  },
+  "result_quick_actions": {
+    "message": "Schnellaktionen",
+    "description": "Schnellaktionen-Abschnittstitel"
+  },
+  "result_copy_to_clipboard": {
+    "message": "In Zwischenablage kopieren",
+    "description": "In Zwischenablage kopieren-Button"
+  },
+  "result_download_video": {
+    "message": "Video herunterladen",
+    "description": "Video herunterladen-Button"
+  },
+  "result_export_format": {
+    "message": "Exportformat",
+    "description": "Exportformat-Abschnittstitel"
+  },
+  "result_original_badge": {
+    "message": "Original",
+    "description": "Originalformat-Badge"
+  },
+  "result_format_tip": {
+    "message": "Klicken Sie auf Format-Button zum Exportieren",
+    "description": "Format-Button-Tipp"
+  },
+  "result_tip": {
+    "message": "Tipp",
+    "description": "Tipp-Bezeichnung"
+  },
+  "result_jpeg_tip": {
+    "message": "Die Konvertierung in JPEG reduziert die Dateigröße, verliert aber Transparenz",
+    "description": "JPEG-Konvertierungs-Tipp"
+  },
+  "result_mp4_tip": {
+    "message": "MP4-Format bietet bessere Kompatibilität mit den meisten Playern",
+    "description": "MP4-Format-Tipp"
+  },
+  "export_dimensions": {
+    "message": "Exportabmessungen",
+    "description": "Exportabmessungen-Abschnittstitel"
+  },
+  "export_width": {
+    "message": "Breite",
+    "description": "Breite-Bezeichnung"
+  },
+  "export_height": {
+    "message": "Höhe",
+    "description": "Höhe-Bezeichnung"
+  },
+  "export_show_adjusted": {
+    "message": "Klicken, um angepasste Abmessungen anzuzeigen",
+    "description": "Angepasste Abmessungen anzeigen-Tooltip"
+  },
+  "export_show_original": {
+    "message": "Klicken, um Originalabmessungen anzuzeigen",
+    "description": "Originalabmessungen anzeigen-Tooltip"
+  },
+  "video_details_title": {
+    "message": "Videodetails",
+    "description": "Videodetails-Dialogtitel"
+  },
+  "video_details_overview": {
+    "message": "Übersicht",
+    "description": "Übersicht-Tab"
+  },
+  "video_details_tracks": {
+    "message": "Spurinformationen",
+    "description": "Spurinformationen-Tab"
+  },
+  "video_loading_metadata": {
+    "message": "Metadaten werden geladen...",
+    "description": "Metadaten-Ladezustand"
+  },
+  "video_format": {
+    "message": "Format",
+    "description": "Format-Bezeichnung"
+  },
+  "video_mime_type": {
+    "message": "MIME-Typ",
+    "description": "MIME-Typ-Bezeichnung"
+  },
+  "video_duration": {
+    "message": "Dauer",
+    "description": "Dauer-Bezeichnung"
+  },
+  "video_track_count": {
+    "message": "Anzahl der Spuren",
+    "description": "Spuranzahl-Bezeichnung"
+  },
+  "video_track_number": {
+    "message": "Spur $1",
+    "description": "Spurnummer-Bezeichnung",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "video_codec": {
+    "message": "Codec",
+    "description": "Codec-Bezeichnung"
+  },
+  "video_unknown": {
+    "message": "Unbekannt",
+    "description": "Unbekannter Wert"
+  },
+  "video_full_codec": {
+    "message": "Vollständige Codec-Zeichenfolge",
+    "description": "Vollständige Codec-Zeichenfolge-Bezeichnung"
+  },
+  "video_resolution": {
+    "message": "Auflösung",
+    "description": "Auflösungs-Bezeichnung"
+  },
+  "video_rotation": {
+    "message": "Drehung",
+    "description": "Drehungs-Bezeichnung"
+  },
+  "video_rotation_clockwise": {
+    "message": "° im Uhrzeigersinn",
+    "description": "Im Uhrzeigersinn-Drehungseinheit"
+  },
+  "video_channels": {
+    "message": "Anzahl der Kanäle",
+    "description": "Audio-Kanäle-Bezeichnung"
+  },
+  "video_sample_rate": {
+    "message": "Abtastrate",
+    "description": "Abtastrate-Bezeichnung"
+  },
+  "video_sample_rate_unit": {
+    "message": "Hz",
+    "description": "Hz-Einheit"
+  },
+  "video_packet_count": {
+    "message": "Paketanzahl",
+    "description": "Paketanzahl-Bezeichnung"
+  },
+  "video_avg_bitrate": {
+    "message": "Durchschnittliche Bitrate",
+    "description": "Durchschnittliche Bitrate-Bezeichnung"
+  },
+  "video_avg_framerate": {
+    "message": "Durchschnittliche Bildrate",
+    "description": "Durchschnittliche Bildrate-Bezeichnung"
+  },
+  "video_framerate_unit": {
+    "message": "FPS / Hz",
+    "description": "Bildrate-Einheit"
+  },
+  "video_color_space": {
+    "message": "Farbraum",
+    "description": "Farbraum-Bezeichnung"
+  },
+  "video_color_primaries": {
+    "message": "Primärfarben:",
+    "description": "Primärfarben-Bezeichnung"
+  },
+  "video_transfer_characteristics": {
+    "message": "Übertragungscharakteristik:",
+    "description": "Übertragungscharakteristik-Bezeichnung"
+  },
+  "video_matrix_coefficients": {
+    "message": "Matrixkoeffizienten:",
+    "description": "Matrixkoeffizienten-Bezeichnung"
+  },
+  "video_full_range": {
+    "message": "Vollbereich:",
+    "description": "Vollbereich-Bezeichnung"
+  },
+  "video_yes": {
+    "message": "Ja",
+    "description": "Ja"
+  },
+  "video_no": {
+    "message": "Nein",
+    "description": "Nein"
+  },
+  "video_hdr": {
+    "message": "HDR",
+    "description": "HDR-Bezeichnung"
+  },
+  "video_hdr_supported": {
+    "message": "HDR unterstützt",
+    "description": "HDR unterstützt-Meldung"
+  },
+  "video_loading": {
+    "message": "Video wird geladen...",
+    "description": "Video-Ladezustand"
+  },
+  "video_audio_only": {
+    "message": "Nur Audio",
+    "description": "Nur Audio-Bezeichnung"
+  },
+  "notification_close": {
+    "message": "Schließen",
+    "description": "Benachrichtigung schließen-Button"
+  },
+  "status_card_tip": {
+    "message": "Tipp",
+    "description": "Statuskarten-Tipp-Überschrift"
+  },
+  "error_no_active_tab": {
+    "message": "Kein aktiver Tab gefunden",
+    "description": "Kein aktiver Tab-Fehler"
+  },
+  "error_loading_failed": {
+    "message": "Laden fehlgeschlagen, bitte aktualisieren und erneut versuchen",
+    "description": "Laden fehlgeschlagen-Fehler"
+  },
+  "error_screenshot_failed": {
+    "message": "Screenshot fehlgeschlagen: $1",
+    "description": "Screenshot fehlgeschlagen-Fehler",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "Berechtigung verweigert"
+      }
+    }
+  },
+  "error_recording_failed": {
+    "message": "Aufnahme fehlgeschlagen: $1",
+    "description": "Aufnahme fehlgeschlagen-Fehler",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "Berechtigung verweigert"
+      }
+    }
+  },
+  "error_canvas_context": {
+    "message": "Canvas-Kontext kann nicht abgerufen werden",
+    "description": "Canvas-Kontext nicht verfügbar-Fehler"
+  },
+  "error_preview_generation": {
+    "message": "Vorschaubild-Generierung fehlgeschlagen",
+    "description": "Vorschau-Generierung fehlgeschlagen-Fehler"
+  },
+  "error_copy_failed": {
+    "message": "Kopieren fehlgeschlagen: $1",
+    "description": "Kopieren fehlgeschlagen-Fehler",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "Berechtigung verweigert"
+      }
+    }
+  },
+  "error_data_expired": {
+    "message": "Daten abgelaufen oder nicht vorhanden",
+    "description": "Daten abgelaufen-Fehler"
+  },
+  "size_unit_bytes": {
+    "message": "B",
+    "description": "Bytes-Einheit"
+  },
+  "size_unit_kilobytes": {
+    "message": "KB",
+    "description": "Kilobytes-Einheit"
+  },
+  "size_unit_megabytes": {
+    "message": "MB",
+    "description": "Megabytes-Einheit"
+  },
+  "size_unit_gigabytes": {
+    "message": "GB",
+    "description": "Gigabytes-Einheit"
+  }
+}

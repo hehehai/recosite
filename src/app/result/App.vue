@@ -8,6 +8,7 @@
     useVideoMetadata,
   } from "@/composables";
   import type { ImageFormat, VideoFormat } from "@/types/screenshot";
+  import { t } from "@/utils/i18n";
   import ExportSizeSettings from "./components/ExportSizeSettings.vue";
   import NotificationToast from "./components/NotificationToast.vue";
   import ResultHeader from "./components/ResultHeader.vue";
@@ -124,7 +125,7 @@
     const resultId = params.get("id");
 
     if (!resultId) {
-      error.value = "未找到数据";
+      error.value = t("result_no_data");
       loading.value = false;
       return;
     }
@@ -146,7 +147,7 @@
       // 处理 SVG 导出
       if (format === "svg") {
         if (!svgData.value) {
-          showNotification("SVG 数据不可用", "error");
+          showNotification(t("result_svg_unavailable"), "error");
           return;
         }
         // 直接下载 SVG
@@ -161,7 +162,7 @@
         a.download = svgFileName;
         a.click();
         URL.revokeObjectURL(url);
-        showNotification("已导出为 SVG", "success");
+        showNotification(t("result_exported_as", "SVG"), "success");
         return;
       }
 
@@ -181,17 +182,17 @@
       );
       if (result.success) {
         const sizeText = exportSizeSettings.value.showOriginal
-          ? "原始尺寸"
+          ? t("result_original_badge")
           : `${exportSizeSettings.value.width}×${exportSizeSettings.value.height}`;
         showNotification(
-          `已导出为 ${format.toUpperCase()} (${sizeText})`,
+          `${t("result_exported_as", format.toUpperCase())} (${sizeText})`,
           "success"
         );
       } else {
-        showNotification(result.error || "导出失败", "error");
+        showNotification(result.error || t("result_export_failed"), "error");
       }
     } else {
-      showNotification(`正在转换为 ${format.toUpperCase()}...`, "info");
+      showNotification(t("result_converting_to", format.toUpperCase()), "info");
       const sizeSettings =
         exportSizeSettings.value && exportSizeSettings.value.scale !== 1
           ? exportSizeSettings.value
@@ -205,20 +206,20 @@
         sizeSettings
       );
       if (result.success) {
-        let sizeText = "未知尺寸";
+        let sizeText = t("video_unknown");
         if (exportSizeSettings.value) {
           if (exportSizeSettings.value.scale === 1) {
-            sizeText = "原始尺寸";
+            sizeText = t("result_original_badge");
           } else {
             sizeText = `${exportSizeSettings.value.width}×${exportSizeSettings.value.height}`;
           }
         }
         showNotification(
-          `已成功导出为 ${format.toUpperCase()} (${sizeText})`,
+          `${t("result_export_success", format.toUpperCase())} (${sizeText})`,
           "success"
         );
       } else {
-        showNotification(result.error || "导出失败", "error");
+        showNotification(result.error || t("result_export_failed"), "error");
       }
     }
   }
@@ -242,16 +243,19 @@
           copySuccess.value = false;
         }, 2000);
         const sizeText = exportSizeSettings.value.showOriginal
-          ? "原始尺寸"
+          ? t("result_original_badge")
           : `${exportSizeSettings.value.width}×${exportSizeSettings.value.height}`;
-        showNotification(`已复制到剪贴板 (${sizeText})`, "success");
+        showNotification(
+          `${t("result_copied_to_clipboard")} (${sizeText})`,
+          "success"
+        );
       } else {
-        showNotification("复制失败，请手动下载", "error");
+        showNotification(t("result_copy_failed"), "error");
       }
     } else {
       // 视频不支持复制到剪贴板，直接下载
       videoDownloadFile(mediaData.value, fileName.value);
-      showNotification("已开始下载视频", "success");
+      showNotification(t("result_copied_to_clipboard"), "success");
     }
   }
 
@@ -326,7 +330,7 @@
       const ctx = canvas.getContext("2d");
 
       if (!ctx) {
-        throw new Error("无法获取 canvas context");
+        throw new Error("Cannot get canvas context");
       }
 
       canvas.width = exportSizeSettings.value.width;
@@ -338,7 +342,7 @@
       // 转换为data URL
       previewImageUrl.value = canvas.toDataURL("image/png");
     } catch (previewError) {
-      console.error("生成预览图片失败:", previewError);
+      console.error("Failed to generate preview:", previewError);
       previewImageUrl.value = mediaData.value || "";
     }
   }
@@ -369,7 +373,9 @@
           <div
             class="mx-auto size-16 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"
           />
-          <p class="mt-4 text-gray-600 dark:text-gray-400">加载中...</p>
+          <p class="mt-4 text-gray-600 dark:text-gray-400">
+            {{ t("result_loading") }}
+          </p>
         </div>
       </div>
 
@@ -408,7 +414,7 @@
         >
           <div class="border-b border-gray-200 px-4 py-3 dark:border-gray-800">
             <h2 class="text-sm font-semibold text-gray-700 dark:text-gray-300">
-              预览
+              {{ t("result_preview") }}
             </h2>
           </div>
           <div
@@ -450,7 +456,7 @@
             <h3
               class="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300"
             >
-              快速操作
+              {{ t("result_quick_actions") }}
             </h3>
             <div class="space-y-2">
               <button
@@ -489,10 +495,10 @@
                 <span>
                   {{
                       copySuccess
-                          ? "已复制"
+                          ? t("result_copied_to_clipboard")
                           : resultType === "image"
-                              ? "复制到剪贴板"
-                              : "下载视频"
+                              ? t("result_copy_to_clipboard")
+                              : t("result_download_video")
                   }}
                 </span>
               </button>
@@ -506,7 +512,7 @@
             <h3
               class="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-300"
             >
-              导出格式
+              {{ t("result_export_format") }}
             </h3>
             <div class="space-y-2">
               <button
@@ -549,12 +555,12 @@
                   v-if="format === originalFormat"
                   class="rounded bg-green-200 px-2 py-0.5 text-xs font-medium text-green-800 dark:bg-green-800 dark:text-green-200"
                 >
-                  原始
+                  {{ t("result_original_badge") }}
                 </span>
               </button>
             </div>
             <p class="mt-3 text-xs text-gray-500 dark:text-gray-400">
-              点击格式按钮可导出为对应格式的文件
+              {{ t("result_format_tip") }}
             </p>
           </div>
 
@@ -577,9 +583,9 @@
                 />
               </svg>
               <div class="text-xs text-blue-700 dark:text-blue-300">
-                <p class="font-medium">提示</p>
+                <p class="font-medium">{{ t("result_tip") }}</p>
                 <p class="mt-1">
-                  {{ resultType === "image" ? "转换为 JPEG 可以减小文件大小，但会失去透明度支持" : "MP4 格式兼容性更好，适合大多数播放器"
+                  {{ resultType === "image" ? t("result_jpeg_tip") : t("result_mp4_tip")
                                     }}
                 </p>
               </div>

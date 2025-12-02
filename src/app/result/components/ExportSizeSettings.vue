@@ -4,6 +4,7 @@
     type ExportSizeSettings,
     useExportSize,
   } from "@/composables/useExportSize";
+  import { t } from "@/utils/i18n";
 
   interface Props {
     originalWidth: number;
@@ -86,7 +87,7 @@
     <div class="mb-4 flex items-center justify-between">
       <div class="flex items-center gap-2">
         <h3 class="text-sm font-semibold text-gray-700 dark:text-gray-300">
-          导出尺寸
+          {{ t("export_dimensions") }}
         </h3>
         <span
           class="inline-flex items-center rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
@@ -102,7 +103,7 @@
             ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400'
             : 'text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-300'
         ]"
-        :title="showOriginal ? '点击显示调整后的尺寸' : '点击显示原始尺寸'"
+        :title="showOriginal ? t('export_show_adjusted') : t('export_show_original')"
         @click="handleToggleShowOriginal"
       >
         <!-- 眼睛图标 -->
@@ -177,7 +178,7 @@
           <!-- 宽度输入 -->
           <div class="flex items-center gap-1">
             <label class="text-xs font-medium text-gray-600 dark:text-gray-400">
-              宽
+              {{ t("export_width") }}
             </label>
             <input
               :value="currentWidth"
@@ -192,7 +193,7 @@
           <!-- 高度输入 -->
           <div class="flex items-center gap-1">
             <label class="text-xs font-medium text-gray-600 dark:text-gray-400">
-              高
+              {{ t("export_height") }}
             </label>
             <input
               :value="currentHeight"

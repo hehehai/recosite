@@ -1,0 +1,502 @@
+{
+  "extName": {
+    "message": "Recosite",
+    "description": "Extension name"
+  },
+  "extDescription": {
+    "message": "Web screenshot and screen recording tool - supports long screenshots, partial captures, and video recording",
+    "description": "Extension description"
+  },
+  "popup_screenshot_tab": {
+    "message": "Screenshot",
+    "description": "Screenshot tab label"
+  },
+  "popup_recording_tab": {
+    "message": "Recording",
+    "description": "Recording tab label"
+  },
+  "action_fullpage_screenshot": {
+    "message": "Full Page Screenshot",
+    "description": "Button to capture entire page"
+  },
+  "action_viewport_screenshot": {
+    "message": "Viewport Screenshot",
+    "description": "Button to capture visible viewport"
+  },
+  "action_dom_screenshot": {
+    "message": "DOM Screenshot",
+    "description": "Button to capture specific DOM element"
+  },
+  "action_selection_screenshot": {
+    "message": "Selection Screenshot",
+    "description": "Button to capture selected area"
+  },
+  "action_tab_recording": {
+    "message": "Tab Recording",
+    "description": "Button to record current tab"
+  },
+  "action_window_recording": {
+    "message": "Window Recording",
+    "description": "Button to record window"
+  },
+  "action_desktop_recording": {
+    "message": "Desktop Recording",
+    "description": "Button to record desktop"
+  },
+  "recording_option_microphone": {
+    "message": "Microphone",
+    "description": "Recording option for microphone"
+  },
+  "recording_option_camera": {
+    "message": "Camera",
+    "description": "Recording option for camera"
+  },
+  "recording_option_resolution": {
+    "message": "Resolution",
+    "description": "Recording option for resolution"
+  },
+  "resolution_auto": {
+    "message": "Auto",
+    "description": "Auto resolution option"
+  },
+  "resolution_auto_desc": {
+    "message": "Original page size",
+    "description": "Description for auto resolution"
+  },
+  "resolution_720p": {
+    "message": "720p",
+    "description": "720p resolution option"
+  },
+  "resolution_720p_desc": {
+    "message": "1280×720",
+    "description": "Description for 720p resolution"
+  },
+  "resolution_1080p": {
+    "message": "1080p",
+    "description": "1080p resolution option"
+  },
+  "resolution_1080p_desc": {
+    "message": "1920×1080",
+    "description": "Description for 1080p resolution"
+  },
+  "resolution_4k": {
+    "message": "4K",
+    "description": "4K resolution option"
+  },
+  "resolution_4k_desc": {
+    "message": "3840×2160",
+    "description": "Description for 4K resolution"
+  },
+  "status_capturing": {
+    "message": "Capturing...",
+    "description": "Status when capturing screenshot"
+  },
+  "status_screenshot_success": {
+    "message": "Screenshot Captured Successfully!",
+    "description": "Success message for screenshot"
+  },
+  "status_recording": {
+    "message": "Recording",
+    "description": "Status when recording"
+  },
+  "status_click_to_stop": {
+    "message": "Click to stop recording",
+    "description": "Instruction to stop recording"
+  },
+  "status_recording_in_progress": {
+    "message": "🔴 Recording in progress...",
+    "description": "Status showing recording is active"
+  },
+  "status_processing_recording": {
+    "message": "Processing recording file...",
+    "description": "Status when processing recording"
+  },
+  "status_recording_success": {
+    "message": "Recording Successful!",
+    "description": "Success message for recording"
+  },
+  "selection_instruction": {
+    "message": "Drag to select screenshot area, press ESC to cancel",
+    "description": "Instruction for selection tool"
+  },
+  "selection_countdown": {
+    "message": "($1s)",
+    "description": "Countdown timer display",
+    "placeholders": {
+      "seconds": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "result_title_suffix": {
+    "message": "Result",
+    "description": "Suffix for result page title"
+  },
+  "result_page_title": {
+    "message": "Recosite - Web Screenshot and Recording Tool",
+    "description": "Result page title"
+  },
+  "result_video_details": {
+    "message": "Video Details",
+    "description": "Video details button text"
+  },
+  "result_close": {
+    "message": "Close",
+    "description": "Close button text"
+  },
+  "result_filename": {
+    "message": "Filename:",
+    "description": "Label for filename"
+  },
+  "result_format": {
+    "message": "Format:",
+    "description": "Label for format"
+  },
+  "result_dimensions": {
+    "message": "Dimensions:",
+    "description": "Label for dimensions"
+  },
+  "result_filesize": {
+    "message": "File Size:",
+    "description": "Label for file size"
+  },
+  "result_duration": {
+    "message": "Duration:",
+    "description": "Label for duration"
+  },
+  "result_loading": {
+    "message": "Loading...",
+    "description": "Loading state text"
+  },
+  "result_no_data": {
+    "message": "No data found",
+    "description": "Error when no data found"
+  },
+  "result_svg_unavailable": {
+    "message": "SVG data not available",
+    "description": "Error when SVG data unavailable"
+  },
+  "result_exported_as": {
+    "message": "Exported as $1",
+    "description": "Export success message",
+    "placeholders": {
+      "format": {
+        "content": "$1",
+        "example": "PNG"
+      }
+    }
+  },
+  "result_original_size": {
+    "message": "Original size",
+    "description": "Badge for original size"
+  },
+  "result_converting_to": {
+    "message": "Converting to $1...",
+    "description": "Converting status message",
+    "placeholders": {
+      "format": {
+        "content": "$1",
+        "example": "JPEG"
+      }
+    }
+  },
+  "result_export_success": {
+    "message": "Successfully exported as $1",
+    "description": "Export success message",
+    "placeholders": {
+      "format": {
+        "content": "$1",
+        "example": "PNG"
+      }
+    }
+  },
+  "result_export_failed": {
+    "message": "Export failed",
+    "description": "Export failed message"
+  },
+  "result_copied_to_clipboard": {
+    "message": "Copied to clipboard",
+    "description": "Clipboard copy success"
+  },
+  "result_copy_failed": {
+    "message": "Copy failed, please download manually",
+    "description": "Clipboard copy failed"
+  },
+  "result_download_started": {
+    "message": "Started downloading video",
+    "description": "Video download started"
+  },
+  "result_preview": {
+    "message": "Preview",
+    "description": "Preview section title"
+  },
+  "result_quick_actions": {
+    "message": "Quick Actions",
+    "description": "Quick actions section title"
+  },
+  "result_copy_to_clipboard": {
+    "message": "Copy to Clipboard",
+    "description": "Copy to clipboard button"
+  },
+  "result_download_video": {
+    "message": "Download Video",
+    "description": "Download video button"
+  },
+  "result_export_format": {
+    "message": "Export Format",
+    "description": "Export format section title"
+  },
+  "result_original_badge": {
+    "message": "Original",
+    "description": "Badge showing original format"
+  },
+  "result_format_tip": {
+    "message": "Click format button to export",
+    "description": "Tip for format buttons"
+  },
+  "result_tip": {
+    "message": "Tip",
+    "description": "Tip label"
+  },
+  "result_jpeg_tip": {
+    "message": "Converting to JPEG reduces file size but loses transparency",
+    "description": "Tip about JPEG conversion"
+  },
+  "result_mp4_tip": {
+    "message": "MP4 has better compatibility with most players",
+    "description": "Tip about MP4 format"
+  },
+  "export_dimensions": {
+    "message": "Export Dimensions",
+    "description": "Export dimensions section title"
+  },
+  "export_width": {
+    "message": "Width",
+    "description": "Width label"
+  },
+  "export_height": {
+    "message": "Height",
+    "description": "Height label"
+  },
+  "export_show_adjusted": {
+    "message": "Click to show adjusted dimensions",
+    "description": "Tooltip for showing adjusted dimensions"
+  },
+  "export_show_original": {
+    "message": "Click to show original dimensions",
+    "description": "Tooltip for showing original dimensions"
+  },
+  "video_details_title": {
+    "message": "Video Details",
+    "description": "Video details dialog title"
+  },
+  "video_details_overview": {
+    "message": "Overview",
+    "description": "Overview tab"
+  },
+  "video_details_tracks": {
+    "message": "Track Information",
+    "description": "Track information tab"
+  },
+  "video_loading_metadata": {
+    "message": "Loading metadata...",
+    "description": "Loading metadata status"
+  },
+  "video_format": {
+    "message": "Format",
+    "description": "Format label"
+  },
+  "video_mime_type": {
+    "message": "MIME Type",
+    "description": "MIME type label"
+  },
+  "video_duration": {
+    "message": "Duration",
+    "description": "Duration label"
+  },
+  "video_track_count": {
+    "message": "Number of Tracks",
+    "description": "Track count label"
+  },
+  "video_track_number": {
+    "message": "Track $1",
+    "description": "Track number label",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "video_codec": {
+    "message": "Codec",
+    "description": "Codec label"
+  },
+  "video_unknown": {
+    "message": "Unknown",
+    "description": "Unknown value"
+  },
+  "video_full_codec": {
+    "message": "Full Codec String",
+    "description": "Full codec string label"
+  },
+  "video_resolution": {
+    "message": "Resolution",
+    "description": "Resolution label"
+  },
+  "video_rotation": {
+    "message": "Rotation",
+    "description": "Rotation label"
+  },
+  "video_rotation_clockwise": {
+    "message": "° Clockwise",
+    "description": "Clockwise rotation unit"
+  },
+  "video_channels": {
+    "message": "Number of Channels",
+    "description": "Audio channels label"
+  },
+  "video_sample_rate": {
+    "message": "Sample Rate",
+    "description": "Sample rate label"
+  },
+  "video_sample_rate_unit": {
+    "message": "Hz",
+    "description": "Hz unit"
+  },
+  "video_packet_count": {
+    "message": "Packet Count",
+    "description": "Packet count label"
+  },
+  "video_avg_bitrate": {
+    "message": "Average Bitrate",
+    "description": "Average bitrate label"
+  },
+  "video_avg_framerate": {
+    "message": "Average Frame Rate",
+    "description": "Average frame rate label"
+  },
+  "video_framerate_unit": {
+    "message": "FPS / Hz",
+    "description": "Frame rate unit"
+  },
+  "video_color_space": {
+    "message": "Color Space",
+    "description": "Color space label"
+  },
+  "video_color_primaries": {
+    "message": "Primaries:",
+    "description": "Color primaries label"
+  },
+  "video_transfer_characteristics": {
+    "message": "Transfer Characteristics:",
+    "description": "Transfer characteristics label"
+  },
+  "video_matrix_coefficients": {
+    "message": "Matrix Coefficients:",
+    "description": "Matrix coefficients label"
+  },
+  "video_full_range": {
+    "message": "Full Range:",
+    "description": "Full range label"
+  },
+  "video_yes": {
+    "message": "Yes",
+    "description": "Yes value"
+  },
+  "video_no": {
+    "message": "No",
+    "description": "No value"
+  },
+  "video_hdr": {
+    "message": "HDR",
+    "description": "HDR label"
+  },
+  "video_hdr_supported": {
+    "message": "HDR Supported",
+    "description": "HDR supported message"
+  },
+  "video_loading": {
+    "message": "Loading video...",
+    "description": "Video loading status"
+  },
+  "video_audio_only": {
+    "message": "Audio Only",
+    "description": "Audio only label"
+  },
+  "notification_close": {
+    "message": "Close",
+    "description": "Close notification button (sr-only)"
+  },
+  "status_card_tip": {
+    "message": "Tip",
+    "description": "Tip heading in status card"
+  },
+  "error_no_active_tab": {
+    "message": "No active tab found",
+    "description": "Error when no active tab"
+  },
+  "error_loading_failed": {
+    "message": "Loading failed, please refresh and try again",
+    "description": "Error when loading fails"
+  },
+  "error_screenshot_failed": {
+    "message": "Screenshot failed: $1",
+    "description": "Error when screenshot fails",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "Permission denied"
+      }
+    }
+  },
+  "error_recording_failed": {
+    "message": "Recording failed: $1",
+    "description": "Error when recording fails",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "Permission denied"
+      }
+    }
+  },
+  "error_canvas_context": {
+    "message": "Cannot get canvas context",
+    "description": "Error when canvas context unavailable"
+  },
+  "error_preview_generation": {
+    "message": "Failed to generate preview image",
+    "description": "Error when preview generation fails"
+  },
+  "error_copy_failed": {
+    "message": "Copy failed: $1",
+    "description": "Error when copy fails",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "Permission denied"
+      }
+    }
+  },
+  "error_data_expired": {
+    "message": "Data expired or does not exist",
+    "description": "Error when data expired"
+  },
+  "size_unit_bytes": {
+    "message": "B",
+    "description": "Bytes unit"
+  },
+  "size_unit_kilobytes": {
+    "message": "KB",
+    "description": "Kilobytes unit"
+  },
+  "size_unit_megabytes": {
+    "message": "MB",
+    "description": "Megabytes unit"
+  },
+  "size_unit_gigabytes": {
+    "message": "GB",
+    "description": "Gigabytes unit"
+  }
+}

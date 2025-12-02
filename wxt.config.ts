@@ -8,8 +8,9 @@ export default defineConfig({
   outDir: "dist",
   modules: ["@wxt-dev/module-vue"],
   manifest: {
-    name: "Recosite",
-    description: "网页截图与录屏工具 - 支持长截图、局部截图和视频录制",
+    default_locale: "en",
+    name: "__MSG_extName__",
+    description: "__MSG_extDescription__",
     permissions: [
       "activeTab",
       "tabs",
@@ -42,4 +43,15 @@ export default defineConfig({
       minify: false, // 禁用压缩以避免 UTF-8 编码问题
     },
   }),
+  hooks: {
+    "build:manifestGenerated": (_wxt, manifest) => {
+      // 确保 default_locale 和 i18n 字段正确设置
+      manifest.default_locale = "en";
+      manifest.name = "__MSG_extName__";
+      manifest.description = "__MSG_extDescription__";
+      if (manifest.action) {
+        manifest.action.default_title = "__MSG_extName__";
+      }
+    },
+  },
 });
