@@ -9,6 +9,7 @@
     type WrappedCanvas,
   } from "mediabunny";
   import { onMounted, onUnmounted, ref, watch } from "vue";
+  import { t } from "@/utils/i18n";
 
   const props = defineProps<{
     dataUrl: string;
@@ -588,7 +589,9 @@
         v-if="loading"
         class="absolute inset-0 flex items-center justify-center bg-black"
       >
-        <p class="text-sm text-gray-400 animate-pulse">加载视频...</p>
+        <p class="text-sm text-gray-400 animate-pulse">
+          {{ t("video_loading") }}
+        </p>
       </div>
 
       <!-- Error Overlay -->
@@ -614,7 +617,9 @@
               d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"
             />
           </svg>
-          <p class="mt-4 text-sm text-gray-400 dark:text-gray-600">仅音频</p>
+          <p class="mt-4 text-sm text-gray-400 dark:text-gray-600">
+            {{ t("video_audio_only") }}
+          </p>
         </div>
       </div>
 

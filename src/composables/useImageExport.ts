@@ -1,5 +1,6 @@
 import { ref } from "vue";
 import type { ImageFormat } from "@/types/screenshot";
+import { t } from "@/utils/i18n";
 
 const FILE_EXTENSION_REGEX = /\.[^.]+$/;
 
@@ -45,7 +46,7 @@ export function useImageExport() {
 
       const ctx = canvas.getContext("2d");
       if (!ctx) {
-        throw new Error("无法获取 canvas context");
+        throw new Error(t("error_screenshot_failed"));
       }
 
       ctx.drawImage(img, 0, 0);
@@ -57,7 +58,7 @@ export function useImageExport() {
         canvas.toBlob(
           (blob) => {
             if (!blob) {
-              resolve({ success: false, error: "导出失败" });
+              resolve({ success: false, error: t("result_export_failed") });
               return;
             }
 
@@ -88,7 +89,7 @@ export function useImageExport() {
       await navigator.clipboard.write([item]);
       return true;
     } catch (err) {
-      console.error("复制失败:", err);
+      console.error(t("error_copy_failed"), err);
       return false;
     }
   }

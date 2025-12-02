@@ -1,4 +1,6 @@
 <script setup lang="ts">
+  import { t } from "@/utils/i18n";
+
   defineProps<{
     resultTypeLabel: string;
     fileName: string;
@@ -58,10 +60,11 @@
           </div>
           <div>
             <h1 class="text-lg font-semibold text-gray-900 dark:text-white">
-              {{ resultTypeLabel }}结果
+              {{ resultTypeLabel }}
+              {{ t('result_title_suffix') }}
             </h1>
             <p class="text-sm text-gray-500 dark:text-gray-400">
-              Recosite - 网页截图与录屏工具
+              {{ t('result_page_title') }}
             </p>
           </div>
         </div>
@@ -74,14 +77,14 @@
             class="rounded-lg border border-blue-500 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-700 shadow-sm transition hover:bg-blue-100 dark:border-blue-600 dark:bg-blue-900/30 dark:text-blue-400 dark:hover:bg-blue-900/50"
             @click="emit('showDetails')"
           >
-            视频详情
+            {{ t('result_video_details') }}
           </button>
           <button
             type="button"
             class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
             @click="emit('close')"
           >
-            关闭
+            {{ t('result_close') }}
           </button>
         </div>
       </div>
@@ -90,7 +93,7 @@
       <div class="mt-4 flex flex-wrap gap-6 text-sm">
         <div class="flex items-center gap-2">
           <span class="font-medium text-gray-700 dark:text-gray-300"
-            >文件名:</span
+            >{{ t('result_filename') }}</span
           >
           <span
             class="rounded bg-gray-100 px-2 py-1 font-mono text-gray-900 dark:bg-gray-800 dark:text-gray-100"
@@ -100,7 +103,7 @@
         </div>
         <div class="flex items-center gap-2">
           <span class="font-medium text-gray-700 dark:text-gray-300"
-            >格式:</span
+            >{{ t('result_format') }}</span
           >
           <span
             class="rounded bg-blue-100 px-2 py-1 font-mono uppercase text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
@@ -110,7 +113,7 @@
         </div>
         <div v-if="!isVideo" class="flex items-center gap-2">
           <span class="font-medium text-gray-700 dark:text-gray-300"
-            >尺寸:</span
+            >{{ t('result_dimensions') }}</span
           >
           <span
             class="rounded bg-green-100 px-2 py-1 font-mono text-green-700 dark:bg-green-900/30 dark:text-green-400"
@@ -120,7 +123,7 @@
         </div>
         <div class="flex items-center gap-2">
           <span class="font-medium text-gray-700 dark:text-gray-300"
-            >大小:</span
+            >{{ t('result_filesize') }}</span
           >
           <span
             class="rounded bg-purple-100 px-2 py-1 font-mono text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
@@ -130,7 +133,7 @@
         </div>
         <div v-if="isVideo && duration" class="flex items-center gap-2">
           <span class="font-medium text-gray-700 dark:text-gray-300"
-            >时长:</span
+            >{{ t('result_duration') }}</span
           >
           <span
             class="rounded bg-orange-100 px-2 py-1 font-mono text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"

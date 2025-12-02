@@ -1,6 +1,7 @@
 <script setup lang="ts">
   import { computed, inject, onMounted, onUnmounted, ref } from "vue";
   import type { SelectionArea } from "@/types/screenshot";
+  import { t } from "@/utils/i18n";
 
   const onComplete = inject<(area: SelectionArea) => void>("onComplete");
   const onCancel = inject<() => void>("onCancel");
@@ -128,9 +129,9 @@
       class="absolute left-1/2 top-8 -translate-x-1/2 rounded-lg bg-white dark:bg-gray-800 px-6 py-3 shadow-lg"
     >
       <p class="text-sm text-gray-700 dark:text-gray-200">
-        拖动鼠标选择截图区域，按 ESC 取消
+        {{ t('selection_instruction') }}
         <span class="ml-2 font-mono text-blue-600 dark:text-blue-400"
-          >({{ countdown }}s)</span
+          >{{ t('selection_countdown', String(countdown)) }}</span
         >
       </p>
     </div>

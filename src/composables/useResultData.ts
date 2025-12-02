@@ -1,4 +1,5 @@
 import { computed, ref } from "vue";
+import { t } from "@/utils/i18n";
 
 export type ResultType = "image" | "video";
 
@@ -34,7 +35,9 @@ export function useResultData() {
   });
 
   const resultTypeLabel = computed(() =>
-    resultType.value === "image" ? "截图" : "录屏"
+    resultType.value === "image"
+      ? t("popup_screenshot_tab")
+      : t("popup_recording_tab")
   );
 
   function formatBytes(bytes: number): string {
@@ -57,7 +60,7 @@ export function useResultData() {
       const data = storageData[resultId] as ResultData;
 
       if (!data) {
-        error.value = "数据已过期或不存在";
+        error.value = t("error_data_expired");
         loading.value = false;
         return;
       }
@@ -88,7 +91,7 @@ export function useResultData() {
 
       loading.value = false;
     } catch (err) {
-      error.value = `加载失败: ${err}`;
+      error.value = `${t("error_loading_failed")}: ${err}`;
       loading.value = false;
     }
   }

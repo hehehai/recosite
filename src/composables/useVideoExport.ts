@@ -1,5 +1,6 @@
 import { ref } from "vue";
 import type { VideoFormat } from "@/types/screenshot";
+import { t } from "@/utils/i18n";
 import type { ExportSizeSettings } from "./useExportSize";
 
 const FILE_EXTENSION_REGEX = /\.[^.]+$/;
@@ -125,9 +126,9 @@ export function useVideoExport() {
       } else if (targetFormat === "mov") {
         outputFormat = new MovOutputFormat();
       } else if (targetFormat === "gif") {
-        return { success: false, error: "GIF 导出功能即将推出" };
+        return { success: false, error: t("error_recording_failed") };
       } else {
-        return { success: false, error: "不支持的格式" };
+        return { success: false, error: t("error_recording_failed") };
       }
 
       // Define the output file
@@ -149,11 +150,13 @@ export function useVideoExport() {
           conversion.discardedTracks
         );
         const discardedInfo = conversion.discardedTracks
-          .map((t: any) => `${t.track?.type || "unknown"}: ${t.reason}`)
+          .map(
+            (track: any) => `${track.track?.type || "unknown"}: ${track.reason}`
+          )
           .join(", ");
         return {
           success: false,
-          error: `转换失败：${discardedInfo || "不支持的轨道"}`,
+          error: `${t("result_export_failed")}：${discardedInfo || t("error_recording_failed")}`,
         };
       }
 
@@ -172,7 +175,7 @@ export function useVideoExport() {
       // Display the final media file
       const outputBuffer = output.target.buffer;
       if (!outputBuffer) {
-        throw new Error("转换失败：输出为空");
+        throw new Error(t("result_export_failed"));
       }
 
       const mimeType = output.format.mimeType;
@@ -189,7 +192,7 @@ export function useVideoExport() {
 
       return { success: true };
     } catch (err) {
-      console.error("视频导出失败:", err);
+      console.error(t("error_recording_failed"), err);
       return { success: false, error: String(err) };
     } finally {
       exportingFormat.value = null;

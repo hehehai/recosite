@@ -1,0 +1,502 @@
+{
+  "extName": {
+    "message": "Recosite",
+    "description": "확장 프로그램 이름"
+  },
+  "extDescription": {
+    "message": "웹 스크린샷 및 화면 녹화 도구 - 전체 페이지 캡처, 부분 캡처 및 비디오 녹화 지원",
+    "description": "확장 프로그램 설명"
+  },
+  "popup_screenshot_tab": {
+    "message": "스크린샷",
+    "description": "스크린샷 탭 레이블"
+  },
+  "popup_recording_tab": {
+    "message": "녹화",
+    "description": "녹화 탭 레이블"
+  },
+  "action_fullpage_screenshot": {
+    "message": "전체 페이지 스크린샷",
+    "description": "전체 페이지 캡처 버튼"
+  },
+  "action_viewport_screenshot": {
+    "message": "뷰포트 스크린샷",
+    "description": "표시 영역 캡처 버튼"
+  },
+  "action_dom_screenshot": {
+    "message": "DOM 스크린샷",
+    "description": "특정 DOM 요소 캡처 버튼"
+  },
+  "action_selection_screenshot": {
+    "message": "선택 영역 스크린샷",
+    "description": "선택한 영역 캡처 버튼"
+  },
+  "action_tab_recording": {
+    "message": "탭 녹화",
+    "description": "현재 탭 녹화 버튼"
+  },
+  "action_window_recording": {
+    "message": "창 녹화",
+    "description": "창 녹화 버튼"
+  },
+  "action_desktop_recording": {
+    "message": "데스크톱 녹화",
+    "description": "데스크톱 녹화 버튼"
+  },
+  "recording_option_microphone": {
+    "message": "마이크",
+    "description": "마이크 옵션"
+  },
+  "recording_option_camera": {
+    "message": "카메라",
+    "description": "카메라 옵션"
+  },
+  "recording_option_resolution": {
+    "message": "해상도",
+    "description": "해상도 옵션"
+  },
+  "resolution_auto": {
+    "message": "자동",
+    "description": "자동 해상도"
+  },
+  "resolution_auto_desc": {
+    "message": "원본 페이지 크기",
+    "description": "자동 해상도 설명"
+  },
+  "resolution_720p": {
+    "message": "720p",
+    "description": "720p 해상도"
+  },
+  "resolution_720p_desc": {
+    "message": "1280×720",
+    "description": "720p 해상도 설명"
+  },
+  "resolution_1080p": {
+    "message": "1080p",
+    "description": "1080p 해상도"
+  },
+  "resolution_1080p_desc": {
+    "message": "1920×1080",
+    "description": "1080p 해상도 설명"
+  },
+  "resolution_4k": {
+    "message": "4K",
+    "description": "4K 해상도"
+  },
+  "resolution_4k_desc": {
+    "message": "3840×2160",
+    "description": "4K 해상도 설명"
+  },
+  "status_capturing": {
+    "message": "캡처 중...",
+    "description": "스크린샷 캡처 중 상태"
+  },
+  "status_screenshot_success": {
+    "message": "스크린샷 캡처 성공!",
+    "description": "스크린샷 성공 메시지"
+  },
+  "status_recording": {
+    "message": "녹화 중",
+    "description": "녹화 상태"
+  },
+  "status_click_to_stop": {
+    "message": "녹화를 중지하려면 클릭",
+    "description": "녹화 중지 안내"
+  },
+  "status_recording_in_progress": {
+    "message": "🔴 녹화 진행 중...",
+    "description": "녹화 활성 상태"
+  },
+  "status_processing_recording": {
+    "message": "녹화 파일 처리 중...",
+    "description": "녹화 처리 상태"
+  },
+  "status_recording_success": {
+    "message": "녹화 성공!",
+    "description": "녹화 성공 메시지"
+  },
+  "selection_instruction": {
+    "message": "드래그하여 스크린샷 영역 선택, ESC를 눌러 취소",
+    "description": "선택 도구 안내"
+  },
+  "selection_countdown": {
+    "message": "($1초)",
+    "description": "카운트다운 표시",
+    "placeholders": {
+      "seconds": {
+        "content": "$1",
+        "example": "3"
+      }
+    }
+  },
+  "result_title_suffix": {
+    "message": "결과",
+    "description": "결과 페이지 제목 접미사"
+  },
+  "result_page_title": {
+    "message": "Recosite - 웹 스크린샷 및 녹화 도구",
+    "description": "결과 페이지 제목"
+  },
+  "result_video_details": {
+    "message": "비디오 세부정보",
+    "description": "비디오 세부정보 버튼"
+  },
+  "result_close": {
+    "message": "닫기",
+    "description": "닫기 버튼"
+  },
+  "result_filename": {
+    "message": "파일명:",
+    "description": "파일명 레이블"
+  },
+  "result_format": {
+    "message": "형식:",
+    "description": "형식 레이블"
+  },
+  "result_dimensions": {
+    "message": "크기:",
+    "description": "크기 레이블"
+  },
+  "result_filesize": {
+    "message": "파일 크기:",
+    "description": "파일 크기 레이블"
+  },
+  "result_duration": {
+    "message": "재생 시간:",
+    "description": "재생 시간 레이블"
+  },
+  "result_loading": {
+    "message": "로딩 중...",
+    "description": "로딩 상태"
+  },
+  "result_no_data": {
+    "message": "데이터를 찾을 수 없음",
+    "description": "데이터 없음 오류"
+  },
+  "result_svg_unavailable": {
+    "message": "SVG 데이터를 사용할 수 없음",
+    "description": "SVG 데이터 없음 오류"
+  },
+  "result_exported_as": {
+    "message": "$1(으)로 내보냄",
+    "description": "내보내기 성공 메시지",
+    "placeholders": {
+      "format": {
+        "content": "$1",
+        "example": "PNG"
+      }
+    }
+  },
+  "result_original_size": {
+    "message": "원본 크기",
+    "description": "원본 크기 배지"
+  },
+  "result_converting_to": {
+    "message": "$1(으)로 변환 중...",
+    "description": "변환 상태 메시지",
+    "placeholders": {
+      "format": {
+        "content": "$1",
+        "example": "JPEG"
+      }
+    }
+  },
+  "result_export_success": {
+    "message": "$1(으)로 성공적으로 내보냄",
+    "description": "내보내기 성공 메시지",
+    "placeholders": {
+      "format": {
+        "content": "$1",
+        "example": "PNG"
+      }
+    }
+  },
+  "result_export_failed": {
+    "message": "내보내기 실패",
+    "description": "내보내기 실패 메시지"
+  },
+  "result_copied_to_clipboard": {
+    "message": "클립보드에 복사됨",
+    "description": "클립보드 복사 성공"
+  },
+  "result_copy_failed": {
+    "message": "복사 실패, 수동으로 다운로드하세요",
+    "description": "클립보드 복사 실패"
+  },
+  "result_download_started": {
+    "message": "비디오 다운로드 시작됨",
+    "description": "비디오 다운로드 시작"
+  },
+  "result_preview": {
+    "message": "미리보기",
+    "description": "미리보기 섹션 제목"
+  },
+  "result_quick_actions": {
+    "message": "빠른 작업",
+    "description": "빠른 작업 섹션 제목"
+  },
+  "result_copy_to_clipboard": {
+    "message": "클립보드에 복사",
+    "description": "클립보드에 복사 버튼"
+  },
+  "result_download_video": {
+    "message": "비디오 다운로드",
+    "description": "비디오 다운로드 버튼"
+  },
+  "result_export_format": {
+    "message": "내보내기 형식",
+    "description": "내보내기 형식 섹션 제목"
+  },
+  "result_original_badge": {
+    "message": "원본",
+    "description": "원본 형식 배지"
+  },
+  "result_format_tip": {
+    "message": "형식 버튼을 클릭하여 내보내기",
+    "description": "형식 버튼 안내"
+  },
+  "result_tip": {
+    "message": "팁",
+    "description": "팁 레이블"
+  },
+  "result_jpeg_tip": {
+    "message": "JPEG로 변환하면 파일 크기가 줄어들지만 투명도가 손실됩니다",
+    "description": "JPEG 변환 팁"
+  },
+  "result_mp4_tip": {
+    "message": "MP4 형식은 대부분의 플레이어와 더 나은 호환성을 제공합니다",
+    "description": "MP4 형식 팁"
+  },
+  "export_dimensions": {
+    "message": "내보내기 크기",
+    "description": "내보내기 크기 섹션 제목"
+  },
+  "export_width": {
+    "message": "너비",
+    "description": "너비 레이블"
+  },
+  "export_height": {
+    "message": "높이",
+    "description": "높이 레이블"
+  },
+  "export_show_adjusted": {
+    "message": "조정된 크기 표시하려면 클릭",
+    "description": "조정된 크기 표시 툴팁"
+  },
+  "export_show_original": {
+    "message": "원본 크기 표시하려면 클릭",
+    "description": "원본 크기 표시 툴팁"
+  },
+  "video_details_title": {
+    "message": "비디오 세부정보",
+    "description": "비디오 세부정보 대화상자 제목"
+  },
+  "video_details_overview": {
+    "message": "개요",
+    "description": "개요 탭"
+  },
+  "video_details_tracks": {
+    "message": "트랙 정보",
+    "description": "트랙 정보 탭"
+  },
+  "video_loading_metadata": {
+    "message": "메타데이터 로딩 중...",
+    "description": "메타데이터 로딩 상태"
+  },
+  "video_format": {
+    "message": "형식",
+    "description": "형식 레이블"
+  },
+  "video_mime_type": {
+    "message": "MIME 유형",
+    "description": "MIME 유형 레이블"
+  },
+  "video_duration": {
+    "message": "재생 시간",
+    "description": "재생 시간 레이블"
+  },
+  "video_track_count": {
+    "message": "트랙 수",
+    "description": "트랙 수 레이블"
+  },
+  "video_track_number": {
+    "message": "트랙 $1",
+    "description": "트랙 번호 레이블",
+    "placeholders": {
+      "number": {
+        "content": "$1",
+        "example": "1"
+      }
+    }
+  },
+  "video_codec": {
+    "message": "코덱",
+    "description": "코덱 레이블"
+  },
+  "video_unknown": {
+    "message": "알 수 없음",
+    "description": "알 수 없는 값"
+  },
+  "video_full_codec": {
+    "message": "전체 코덱 문자열",
+    "description": "전체 코덱 문자열 레이블"
+  },
+  "video_resolution": {
+    "message": "해상도",
+    "description": "해상도 레이블"
+  },
+  "video_rotation": {
+    "message": "회전",
+    "description": "회전 레이블"
+  },
+  "video_rotation_clockwise": {
+    "message": "° 시계방향",
+    "description": "시계방향 회전 단위"
+  },
+  "video_channels": {
+    "message": "채널 수",
+    "description": "오디오 채널 레이블"
+  },
+  "video_sample_rate": {
+    "message": "샘플 레이트",
+    "description": "샘플 레이트 레이블"
+  },
+  "video_sample_rate_unit": {
+    "message": "Hz",
+    "description": "Hz 단위"
+  },
+  "video_packet_count": {
+    "message": "패킷 수",
+    "description": "패킷 수 레이블"
+  },
+  "video_avg_bitrate": {
+    "message": "평균 비트레이트",
+    "description": "평균 비트레이트 레이블"
+  },
+  "video_avg_framerate": {
+    "message": "평균 프레임 레이트",
+    "description": "평균 프레임 레이트 레이블"
+  },
+  "video_framerate_unit": {
+    "message": "FPS / Hz",
+    "description": "프레임 레이트 단위"
+  },
+  "video_color_space": {
+    "message": "색 공간",
+    "description": "색 공간 레이블"
+  },
+  "video_color_primaries": {
+    "message": "원색:",
+    "description": "원색 레이블"
+  },
+  "video_transfer_characteristics": {
+    "message": "전달 특성:",
+    "description": "전달 특성 레이블"
+  },
+  "video_matrix_coefficients": {
+    "message": "행렬 계수:",
+    "description": "행렬 계수 레이블"
+  },
+  "video_full_range": {
+    "message": "전체 범위:",
+    "description": "전체 범위 레이블"
+  },
+  "video_yes": {
+    "message": "예",
+    "description": "예"
+  },
+  "video_no": {
+    "message": "아니요",
+    "description": "아니요"
+  },
+  "video_hdr": {
+    "message": "HDR",
+    "description": "HDR 레이블"
+  },
+  "video_hdr_supported": {
+    "message": "HDR 지원됨",
+    "description": "HDR 지원 메시지"
+  },
+  "video_loading": {
+    "message": "비디오 로딩 중...",
+    "description": "비디오 로딩 상태"
+  },
+  "video_audio_only": {
+    "message": "오디오만",
+    "description": "오디오만 레이블"
+  },
+  "notification_close": {
+    "message": "닫기",
+    "description": "알림 닫기 버튼"
+  },
+  "status_card_tip": {
+    "message": "팁",
+    "description": "상태 카드 팁 제목"
+  },
+  "error_no_active_tab": {
+    "message": "활성 탭을 찾을 수 없음",
+    "description": "활성 탭 없음 오류"
+  },
+  "error_loading_failed": {
+    "message": "로딩 실패, 새로고침 후 다시 시도하세요",
+    "description": "로딩 실패 오류"
+  },
+  "error_screenshot_failed": {
+    "message": "스크린샷 실패: $1",
+    "description": "스크린샷 실패 오류",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "권한이 거부됨"
+      }
+    }
+  },
+  "error_recording_failed": {
+    "message": "녹화 실패: $1",
+    "description": "녹화 실패 오류",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "권한이 거부됨"
+      }
+    }
+  },
+  "error_canvas_context": {
+    "message": "캔버스 컨텍스트를 가져올 수 없음",
+    "description": "캔버스 컨텍스트 없음 오류"
+  },
+  "error_preview_generation": {
+    "message": "미리보기 이미지 생성 실패",
+    "description": "미리보기 생성 실패 오류"
+  },
+  "error_copy_failed": {
+    "message": "복사 실패: $1",
+    "description": "복사 실패 오류",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "권한이 거부됨"
+      }
+    }
+  },
+  "error_data_expired": {
+    "message": "데이터가 만료되었거나 존재하지 않음",
+    "description": "데이터 만료 오류"
+  },
+  "size_unit_bytes": {
+    "message": "B",
+    "description": "바이트 단위"
+  },
+  "size_unit_kilobytes": {
+    "message": "KB",
+    "description": "킬로바이트 단위"
+  },
+  "size_unit_megabytes": {
+    "message": "MB",
+    "description": "메가바이트 단위"
+  },
+  "size_unit_gigabytes": {
+    "message": "GB",
+    "description": "기가바이트 단위"
+  }
+}

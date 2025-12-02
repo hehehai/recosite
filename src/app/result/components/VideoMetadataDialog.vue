@@ -4,6 +4,7 @@
     useVideoMetadata,
     type VideoMetadata,
   } from "@/composables/useVideoMetadata";
+  import { t } from "@/utils/i18n";
 
   const props = defineProps<{
     show: boolean;
@@ -82,7 +83,7 @@
             class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700"
           >
             <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-              视频详情
+              {{ t("video_details_title") }}
             </h2>
             <button
               type="button"
@@ -116,7 +117,7 @@
                                     : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
                 @click="activeTab = 'overview'"
               >
-                概览
+                {{ t("video_details_overview") }}
               </button>
               <button
                 type="button"
@@ -126,7 +127,7 @@
                                     : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
                 @click="activeTab = 'tracks'"
               >
-                轨道信息
+                {{ t("video_details_tracks") }}
               </button>
             </nav>
           </div>
@@ -143,7 +144,7 @@
                   class="mx-auto size-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"
                 />
                 <p class="mt-4 text-sm text-gray-500 dark:text-gray-400">
-                  加载元数据...
+                  {{ t("video_loading_metadata") }}
                 </p>
               </div>
             </div>
@@ -185,7 +186,7 @@
                   <p
                     class="text-sm font-medium text-gray-500 dark:text-gray-400"
                   >
-                    格式
+                    {{ t("video_format") }}
                   </p>
                   <p
                     class="mt-1 text-lg font-semibold text-gray-900 dark:text-white"
@@ -200,7 +201,7 @@
                   <p
                     class="text-sm font-medium text-gray-500 dark:text-gray-400"
                   >
-                    MIME 类型
+                    {{ t("video_mime_type") }}
                   </p>
                   <p
                     class="mt-1 text-lg font-mono text-gray-900 dark:text-white"
@@ -215,7 +216,7 @@
                   <p
                     class="text-sm font-medium text-gray-500 dark:text-gray-400"
                   >
-                    时长
+                    {{ t("video_duration") }}
                   </p>
                   <p
                     class="mt-1 text-lg font-mono font-semibold text-gray-900 dark:text-white"
@@ -230,7 +231,7 @@
                   <p
                     class="text-sm font-medium text-gray-500 dark:text-gray-400"
                   >
-                    轨道数
+                    {{ t("video_track_count") }}
                   </p>
                   <p
                     class="mt-1 text-lg font-semibold text-gray-900 dark:text-white"
@@ -256,7 +257,7 @@
                   <span
                     class="rounded bg-blue-500 px-2 py-1 text-xs font-medium text-white"
                   >
-                    轨道 {{ index + 1 }}
+                    {{ t("video_track_number", String(index + 1)) }}
                   </span>
                   <span
                     class="rounded bg-gray-200 px-2 py-1 text-xs font-medium uppercase text-gray-700 dark:bg-gray-700 dark:text-gray-300"
@@ -268,15 +269,15 @@
                 <dl class="grid grid-cols-2 gap-3 text-sm">
                   <div>
                     <dt class="font-medium text-gray-500 dark:text-gray-400">
-                      编解码器
+                      {{ t("video_codec") }}
                     </dt>
                     <dd class="mt-1 font-mono text-gray-900 dark:text-white">
-                      {{ track.codec || '未知' }}
+                      {{ track.codec || t("video_unknown") }}
                     </dd>
                   </div>
                   <div>
                     <dt class="font-medium text-gray-500 dark:text-gray-400">
-                      完整编解码器字符串
+                      {{ t("video_full_codec") }}
                     </dt>
                     <dd
                       class="mt-1 font-mono text-xs text-gray-900 dark:text-white"
@@ -287,7 +288,7 @@
                   </div>
                   <div>
                     <dt class="font-medium text-gray-500 dark:text-gray-400">
-                      时长
+                      {{ t("video_duration") }}
                     </dt>
                     <dd class="mt-1 font-mono text-gray-900 dark:text-white">
                       {{
@@ -299,7 +300,7 @@
                   <template v-if="track.codedWidth && track.codedHeight">
                     <div>
                       <dt class="font-medium text-gray-500 dark:text-gray-400">
-                        分辨率
+                        {{ t("video_resolution") }}
                       </dt>
                       <dd class="mt-1 font-mono text-gray-900 dark:text-white">
                         {{ track.codedWidth
@@ -309,10 +310,10 @@
                     </div>
                     <div v-if="track.rotation">
                       <dt class="font-medium text-gray-500 dark:text-gray-400">
-                        旋转
+                        {{ t("video_rotation") }}
                       </dt>
                       <dd class="mt-1 text-gray-900 dark:text-white">
-                        {{ track.rotation }}° 顺时针
+                        {{ t("video_rotation_clockwise", String(track.rotation)) }}
                       </dd>
                     </div>
                   </template>
@@ -321,7 +322,7 @@
                   <template v-if="track.numberOfChannels">
                     <div>
                       <dt class="font-medium text-gray-500 dark:text-gray-400">
-                        声道数
+                        {{ t("video_channels") }}
                       </dt>
                       <dd class="mt-1 text-gray-900 dark:text-white">
                         {{ track.numberOfChannels }}
@@ -329,12 +330,11 @@
                     </div>
                     <div v-if="track.sampleRate">
                       <dt class="font-medium text-gray-500 dark:text-gray-400">
-                        采样率
+                        {{ t("video_sample_rate") }}
                       </dt>
                       <dd class="mt-1 font-mono text-gray-900 dark:text-white">
-                        {{ track.sampleRate
-                                                }}
-                        Hz
+                        {{ track.sampleRate }}
+                        {{ t("video_sample_rate_unit") }}
                       </dd>
                     </div>
                   </template>
@@ -343,7 +343,7 @@
                   <template v-if="track.packetStats">
                     <div>
                       <dt class="font-medium text-gray-500 dark:text-gray-400">
-                        数据包数量
+                        {{ t("video_packet_count") }}
                       </dt>
                       <dd class="mt-1 text-gray-900 dark:text-white">
                         {{
@@ -352,7 +352,7 @@
                     </div>
                     <div>
                       <dt class="font-medium text-gray-500 dark:text-gray-400">
-                        平均码率
+                        {{ t("video_avg_bitrate") }}
                       </dt>
                       <dd class="mt-1 font-mono text-gray-900 dark:text-white">
                         {{
@@ -361,13 +361,12 @@
                     </div>
                     <div>
                       <dt class="font-medium text-gray-500 dark:text-gray-400">
-                        平均帧率
+                        {{ t("video_avg_framerate") }}
                       </dt>
                       <dd class="mt-1 font-mono text-gray-900 dark:text-white">
                         {{
                                                     track.packetStats.averagePacketRate.toFixed(2) }}
-                        {{ track.type ===
-                                                    'video' ? 'FPS' : 'Hz' }}
+                        {{ track.type === 'video' ? t("video_framerate_unit") : t("video_sample_rate_unit") }}
                       </dd>
                     </div>
                   </template>
@@ -376,48 +375,44 @@
                   <template v-if="track.colorSpace">
                     <div class="col-span-2">
                       <dt class="font-medium text-gray-500 dark:text-gray-400">
-                        色彩空间
+                        {{ t("video_color_space") }}
                       </dt>
                       <dd class="mt-1 space-y-1 text-gray-900 dark:text-white">
                         <p>
                           <span class="text-gray-500 dark:text-gray-400"
-                            >色域:</span
+                            >{{ t("video_color_primaries") }}:</span
                           >
-                          {{
-                                                        track.colorSpace.primaries || '未知' }}
+                          {{ track.colorSpace.primaries || t("video_unknown") }}
                         </p>
                         <p>
                           <span class="text-gray-500 dark:text-gray-400"
-                            >传输特性:</span
+                            >{{ t("video_transfer_characteristics") }}:</span
                           >
-                          {{
-                                                        track.colorSpace.transfer || '未知' }}
+                          {{ track.colorSpace.transfer || t("video_unknown") }}
                         </p>
                         <p>
                           <span class="text-gray-500 dark:text-gray-400"
-                            >矩阵系数:</span
+                            >{{ t("video_matrix_coefficients") }}:</span
                           >
-                          {{
-                                                        track.colorSpace.matrix || '未知' }}
+                          {{ track.colorSpace.matrix || t("video_unknown") }}
                         </p>
                         <p>
                           <span class="text-gray-500 dark:text-gray-400"
-                            >全范围:</span
+                            >{{ t("video_full_range") }}:</span
                           >
-                          {{
-                                                        track.colorSpace.fullRange ? '是' : '否' }}
+                          {{ track.colorSpace.fullRange ? t("video_yes") : t("video_no") }}
                         </p>
                       </dd>
                     </div>
                     <div v-if="track.hasHDR">
                       <dt class="font-medium text-gray-500 dark:text-gray-400">
-                        HDR
+                        {{ t("video_hdr") }}
                       </dt>
                       <dd class="mt-1">
                         <span
                           class="rounded bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
                         >
-                          支持 HDR
+                          {{ t("video_hdr_supported") }}
                         </span>
                       </dd>
                     </div>
@@ -434,7 +429,7 @@
               class="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-600"
               @click="handleClose"
             >
-              关闭
+              {{ t("video_details_title") }}
             </button>
           </div>
         </div>
