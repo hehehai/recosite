@@ -143,6 +143,22 @@ jobs:
             release-artifacts/extension-firefox/recosite-${{ steps.version.outputs.VERSION }}-firefox.zip
             release-artifacts/extension-edge/recosite-${{ steps.version.outputs.VERSION }}-edge.zip
           fail_on_unmatched_files: true
+          append_body: true
+          body: |
+
+            ## 📦 Installation
+
+            ### Chrome
+            - **Recommended**: Install from [Chrome Web Store](https://chromewebstore.google.com/detail/recosite/cajchbamocblcjllnllipgpioahkhlhk) (auto-updated)
+            - **Manual**: Download [`recosite-${{ steps.version.outputs.VERSION }}-chrome.zip`](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/recosite-${{ steps.version.outputs.VERSION }}-chrome.zip)
+
+            ### Firefox
+            - Download [`recosite-${{ steps.version.outputs.VERSION }}-firefox.zip`](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/recosite-${{ steps.version.outputs.VERSION }}-firefox.zip)
+            - Extract and load as temporary add-on
+
+            ### Edge
+            - Download [`recosite-${{ steps.version.outputs.VERSION }}-edge.zip`](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/recosite-${{ steps.version.outputs.VERSION }}-edge.zip)
+            - Extract and load in developer mode
 
   publish-chrome-web-store:
     name: Publish to Chrome Web Store
