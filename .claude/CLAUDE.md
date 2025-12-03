@@ -12,12 +12,15 @@ Recosite is a Chrome browser extension (Manifest V3) for capturing web pages as 
 # Development
 npm run dev              # Start development server for Chrome
 npm run dev:firefox      # Start development server for Firefox
+npm run dev:edge         # Start development server for Edge
 
 # Building
 npm run build            # Production build for Chrome
 npm run build:firefox    # Production build for Firefox
+npm run build:edge       # Production build for Edge
 npm run zip              # Package as ZIP for Chrome Web Store
 npm run zip:firefox      # Package as ZIP for Firefox
+npm run zip:edge         # Package as ZIP for Edge Add-ons
 
 # Code Quality
 npm run check            # Format and lint with Biome
@@ -180,3 +183,184 @@ When testing recording:
 - Auto-stop detection tracks stream `onended` events
 - Recording badge shows "REC" during active recording
 - Icon state managed in `src/utils/icon.ts`
+
+## CI/CD
+
+### GitHub Actions Workflows
+
+The project uses automated CI/CD pipelines with **Semantic Release** for fully automated version management:
+
+**CI Workflow** (`.github/workflows/ci.yml`)
+- Triggers on push/PR to `main` and `develop` branches
+- Runs quality checks: TypeScript compilation and Biome linting
+- Builds extension for all browsers (Chrome, Firefox, Edge) in parallel
+- Uploads build artifacts for 7 days
+
+**Semantic Release Workflow** (`.github/workflows/semantic-release.yml`)
+- Triggers on push to `main` branch
+- Analyzes commit messages using Conventional Commits
+- Automatically determines version bump (major/minor/patch)
+- Updates package.json and CHANGELOG.md
+- Creates git tag and GitHub Release
+- Triggers the Build and Publish workflow
+
+**Build and Publish Workflow** (`.github/workflows/release.yml`)
+- Triggers on git tag push (created by semantic-release)
+- Runs pre-release quality checks
+- Builds and packages all browsers (Chrome, Firefox, Edge)
+- Uploads build artifacts to GitHub Release
+- Auto-publishes Chrome version to Chrome Web Store
+- Firefox and Edge ZIPs available for manual download
+
+### Automated Release Process
+
+**No manual version bumping needed!** Just push commits with proper format:
+
+1. **Write conventional commit messages**:
+   ```bash
+   # Bug fix → patch version (0.0.x)
+   git commit -m "fix: resolve recording audio sync issue"
+   
+   # New feature → minor version (0.x.0)
+   git commit -m "feat: add video quality presets"
+   
+   # Breaking change → major version (x.0.0)
+   git commit -m "feat: redesign settings system
+   
+   BREAKING CHANGE: settings API completely changed"
+   ```
+
+2. **Push to main branch**:
+   ```bash
+   git push origin main
+   ```
+
+3. **Automatic workflow**:
+   - Analyzes commits since last release
+   - Calculates new version number
+   - Updates package.json automatically
+   - Generates CHANGELOG.md entry
+   - Creates git tag (e.g., v1.2.3)
+   - Creates GitHub Release with release notes
+   - Builds all browser versions
+   - Publishes Chrome to Chrome Web Store
+   - Notifies on completion
+
+### Conventional Commits Format
+
+Follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
+
+**Format**: `<type>(<scope>): <description>`
+
+**Types** (determines version bump):
+- `feat`: New feature (minor bump)
+- `fix`: Bug fix (patch bump)
+- `perf`: Performance improvement (patch bump)
+- `refactor`: Code refactoring (patch bump)
+- `docs`: Documentation changes (no release)
+- `style`: Code style changes (no release)
+- `test`: Test changes (no release)
+- `chore`: Maintenance tasks (no release)
+- `ci`: CI/CD changes (no release)
+- `build`: Build system changes (no release)
+
+**Examples**:
+```bash
+feat(screenshot): add custom dimension support
+fix(recording): resolve memory leak in offscreen document
+perf(export): optimize video compression algorithm
+refactor(ui): reorganize popup component structure
+docs(readme): update installation instructions
+test(utils): add unit tests for file naming
+chore(deps): update dependencies
+```
+
+**Breaking Changes** (major bump):
+```bash
+feat(api): redesign message protocol
+
+BREAKING CHANGE: all message types have been renamed
+```
+
+### Commit Message Best Practices
+
+1. **Use imperative mood**: "add" not "added" or "adds"
+2. **Be concise**: Keep subject line under 72 characters
+3. **Provide context**: Add body for complex changes
+4. **Reference issues**: Use "fixes #123" or "closes #456"
+
+**Good examples**:
+```bash
+feat(recording): add 4K resolution support
+
+Implements high-resolution recording for users with 4K displays.
+Includes automatic downscaling for lower-end devices.
+
+Closes #45
+```
+
+```bash
+fix(export): prevent crash on large file conversion
+
+The MediaBunny library was timing out for files over 500MB.
+Added chunked processing and progress tracking.
+
+Fixes #78
+```
+
+### GitHub Secrets Configuration
+
+Required secrets for Chrome Web Store publishing:
+- `CHROME_EXTENSION_ID`: Extension ID (cajchbamocblcjllnllipgpioahkhlhk)
+- `CHROME_CLIENT_ID`: Google OAuth2 Client ID
+- `CHROME_CLIENT_SECRET`: Google OAuth2 Client Secret
+- `CHROME_REFRESH_TOKEN`: OAuth2 Refresh Token
+
+### Build Artifacts
+
+- **CI builds**: Retained for 7 days (testing/debugging)
+- **Release builds**: Retained for 90 days (production tracking)
+- **Output naming**: `recosite-{version}-{browser}.zip`
+
+### Workflow Details
+
+**CI Jobs**:
+1. `quality-checks`: TypeScript + Biome validation
+2. `build-test`: Matrix build for all browsers (fail-fast: false)
+3. `ci-success`: Aggregates results for branch protection
+
+**Semantic Release Jobs**:
+1. `release`: Analyzes commits, bumps version, creates tag and GitHub Release
+
+**Build and Publish Jobs**:
+1. `quality-checks`: Pre-release validation
+2. `build-all-browsers`: Matrix build + ZIP creation (fail-fast: true)
+3. `upload-release-assets`: Upload ZIPs to GitHub Release
+4. `publish-chrome-web-store`: Auto-publish using `mnao305/chrome-extension-upload@v5.0.0`
+5. `build-success`: Verification and next steps
+
+### Notes
+
+- Node.js 20 LTS used in all workflows
+- `npm ci` ensures deterministic dependency installs
+- Semantic-release automatically creates GitHub Releases (not drafts)
+- Chrome Web Store updates typically approved within 1 hour
+- First upload may require manual review (can take days)
+- CHANGELOG.md is auto-generated and committed by semantic-release
+- Version commits include `[skip ci]` to prevent infinite loops
+
+### Skipping Releases
+
+If you need to push to main without triggering a release:
+
+```bash
+# Use conventional commit types that don't trigger releases
+git commit -m "docs: update README"
+git commit -m "chore: update dependencies"
+git commit -m "ci: fix workflow syntax"
+
+# Or use [skip release] in commit body
+git commit -m "fix: minor typo
+
+[skip release]"
+```

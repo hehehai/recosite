@@ -27,3 +27,6 @@ web-ext.config.ts
 
 dist
 demo
+
+# Build artifacts
+dist/*.zip

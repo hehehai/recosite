@@ -1,0 +1,103 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  quality-checks:
+    name: Quality Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run TypeScript type checking
+        run: npm run compile
+
+      - name: Run Biome lint and format check
+        run: npm run check
+
+  build-test:
+    name: Test Build - ${{ matrix.browser }}
+    runs-on: ubuntu-latest
+    needs: quality-checks
+
+    strategy:
+      fail-fast: false
+      matrix:
+        browser:
+          - chrome
+          - firefox
+          - edge
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build extension for ${{ matrix.browser }}
+        run: |
+          if [ "${{ matrix.browser }}" = "chrome" ]; then
+            npm run build
+          elif [ "${{ matrix.browser }}" = "firefox" ]; then
+            npm run build:firefox
+          elif [ "${{ matrix.browser }}" = "edge" ]; then
+            npm run build:edge
+          fi
+
+      - name: Verify build output
+        run: |
+          if [ "${{ matrix.browser }}" = "chrome" ]; then
+            ls -la dist/chrome-mv3/
+          elif [ "${{ matrix.browser }}" = "firefox" ]; then
+            ls -la dist/firefox-mv2/
+          elif [ "${{ matrix.browser }}" = "edge" ]; then
+            ls -la dist/edge-mv3/
+          fi
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.browser }}
+          path: dist/${{ matrix.browser == 'chrome' && 'chrome-mv3' || matrix.browser == 'firefox' && 'firefox-mv2' || 'edge-mv3' }}
+          retention-days: 7
+
+  ci-success:
+    name: CI Success
+    runs-on: ubuntu-latest
+    needs: [quality-checks, build-test]
+    if: always()
+
+    steps:
+      - name: Check all jobs status
+        run: |
+          if [ "${{ needs.quality-checks.result }}" != "success" ] || [ "${{ needs.build-test.result }}" != "success" ]; then
+            echo "CI failed: One or more jobs failed"
+            exit 1
+          fi
+          echo "All CI checks passed successfully!"

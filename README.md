@@ -5,6 +5,8 @@
 
   [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
   [![Chrome Web Store](https://img.shields.io/badge/Chrome-Available-brightgreen.svg)](https://chromewebstore.google.com/detail/recosite/cajchbamocblcjllnllipgpioahkhlhk)
+  [![CI](https://github.com/hehehai/recosite/workflows/CI/badge.svg)](https://github.com/hehehai/recosite/actions/workflows/ci.yml)
+  [![Release](https://github.com/hehehai/recosite/workflows/Release/badge.svg)](https://github.com/hehehai/recosite/actions/workflows/release.yml)
 </div>
 
 ## Overview
@@ -52,6 +54,41 @@ Capture web pages as images (viewport, full-page, selection, DOM element) and re
 4. Click "Load unpacked" and select the extracted folder
 
 > **Browsers**: Chrome 88+. Firefox and Edge support coming soon.
+
+## Releases
+
+New releases are **fully automated** using [Semantic Release](https://github.com/semantic-release/semantic-release):
+
+### How it works
+1. **Push to main branch** with conventional commit messages
+2. **Automatic version bump** based on commit type:
+   - `fix:` → Patch release (0.0.x)
+   - `feat:` → Minor release (0.x.0)
+   - `BREAKING CHANGE:` → Major release (x.0.0)
+3. **Automatic changelog** generation
+4. **Automatic GitHub Release** creation
+5. **Automatic Chrome Web Store** publishing
+
+### Commit Message Format
+
+```bash
+# Bug fix (patch release)
+git commit -m "fix: resolve screenshot capture issue"
+
+# New feature (minor release)
+git commit -m "feat: add GIF export support"
+
+# Breaking change (major release)
+git commit -m "feat: redesign recording architecture
+
+BREAKING CHANGE: minimum Chrome version is now 90"
+```
+
+### Download Options
+- **Chrome**: Auto-updated via Chrome Web Store
+- **Firefox & Edge**: Download from [GitHub Releases](https://github.com/hehehai/recosite/releases)
+
+See [CHANGELOG.md](CHANGELOG.md) for version history.
 
 ## Development
 
