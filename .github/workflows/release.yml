@@ -1,15 +1,9 @@
-name: Build and Publish
+name: Build and Release
 
 on:
   push:
     tags:
       - "v*.*.*"
-  workflow_dispatch:
-    inputs:
-      tag:
-        description: "Tag to build and publish (e.g., v1.0.1)"
-        required: true
-        type: string
 
 env:
   # Setting an environment variable with the value of a configuration variable
@@ -24,19 +18,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Determine tag
-        id: tag
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "TAG=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
-          else
-            echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-          fi
-
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          ref: ${{ steps.tag.outputs.TAG }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -68,19 +51,8 @@ jobs:
           - edge
 
     steps:
-      - name: Determine tag
-        id: tag
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "TAG=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
-          else
-            echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-          fi
-
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          ref: ${{ steps.tag.outputs.TAG }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -114,7 +86,7 @@ jobs:
       - name: Get version from tag
         id: version
         run: |
-          TAG="${{ steps.tag.outputs.TAG }}"
+          TAG="${GITHUB_REF#refs/tags/}"
           echo "VERSION=${TAG#v}" >> $GITHUB_OUTPUT
 
       - name: Find and rename ZIP file
@@ -160,24 +132,13 @@ jobs:
     environment: chrome
 
     steps:
-      - name: Determine tag
-        id: tag
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "TAG=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
-          else
-            echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-          fi
-
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          ref: ${{ steps.tag.outputs.TAG }}
 
       - name: Get version from tag
         id: version
         run: |
-          TAG="${{ steps.tag.outputs.TAG }}"
+          TAG="${GITHUB_REF#refs/tags/}"
           echo "VERSION=${TAG#v}" >> $GITHUB_OUTPUT
 
       - name: Download all artifacts
@@ -193,7 +154,6 @@ jobs:
       - name: Upload assets to existing GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.tag.outputs.TAG }}
           files: |
             release-artifacts/extension-chrome/recosite-${{ steps.version.outputs.VERSION }}-chrome.zip
             release-artifacts/extension-firefox/recosite-${{ steps.version.outputs.VERSION }}-firefox.zip
@@ -206,14 +166,14 @@ jobs:
 
             ### Chrome
             - **Recommended**: Install from [Chrome Web Store](https://chromewebstore.google.com/detail/recosite/cajchbamocblcjllnllipgpioahkhlhk) (auto-updated)
-            - **Manual**: Download [`recosite-${{ steps.version.outputs.VERSION }}-chrome.zip`](https://github.com/${{ github.repository }}/releases/download/${{ steps.tag.outputs.TAG }}/recosite-${{ steps.version.outputs.VERSION }}-chrome.zip)
+            - **Manual**: Download [`recosite-${{ steps.version.outputs.VERSION }}-chrome.zip`](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/recosite-${{ steps.version.outputs.VERSION }}-chrome.zip)
 
             ### Firefox
-            - Download [`recosite-${{ steps.version.outputs.VERSION }}-firefox.zip`](https://github.com/${{ github.repository }}/releases/download/${{ steps.tag.outputs.TAG }}/recosite-${{ steps.version.outputs.VERSION }}-firefox.zip)
+            - Download [`recosite-${{ steps.version.outputs.VERSION }}-firefox.zip`](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/recosite-${{ steps.version.outputs.VERSION }}-firefox.zip)
             - Extract and load as temporary add-on
 
             ### Edge
-            - Download [`recosite-${{ steps.version.outputs.VERSION }}-edge.zip`](https://github.com/${{ github.repository }}/releases/download/${{ steps.tag.outputs.TAG }}/recosite-${{ steps.version.outputs.VERSION }}-edge.zip)
+            - Download [`recosite-${{ steps.version.outputs.VERSION }}-edge.zip`](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/recosite-${{ steps.version.outputs.VERSION }}-edge.zip)
             - Extract and load in developer mode
 
   build-success:
@@ -223,15 +183,6 @@ jobs:
     if: always()
 
     steps:
-      - name: Determine tag
-        id: tag
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "TAG=${{ github.event.inputs.tag }}" >> $GITHUB_OUTPUT
-          else
-            echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-          fi
-
       - name: Check all jobs status
         run: |
           if [ "${{ needs.quality-checks.result }}" != "success" ] || \
@@ -242,5 +193,5 @@ jobs:
           fi
           echo "✅ All build jobs completed successfully!"
           echo ""
-          echo "📦 Assets uploaded to GitHub Release: https://github.com/${{ github.repository }}/releases/tag/${{ steps.tag.outputs.TAG }}"
+          echo "📦 Assets uploaded to GitHub Release: https://github.com/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
           echo "📥 All browser extensions (Chrome, Firefox, Edge) are available for download"
