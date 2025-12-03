@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.6](https://github.com/hehehai/recosite/compare/v1.2.5...v1.2.6) (2025-12-03)
+
+### ♻️ Code Refactoring
+
+* rename to Build and Release and auto-trigger on tag ([d11b72d](https://github.com/hehehai/recosite/commit/d11b72d290b8abebe6da737e82586f8532bbf4a3))
+
 ## [1.2.5](https://github.com/hehehai/recosite/compare/v1.2.4...v1.2.5) (2025-12-03)
 
 ### ♻️ Code Refactoring
