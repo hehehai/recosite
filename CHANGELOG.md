@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.4](https://github.com/hehehai/recosite/compare/v1.2.3...v1.2.4) (2025-12-03)
+
+### 🐛 Bug Fixes
+
+* handle Chrome Web Store auto-publish failure gracefully ([5386999](https://github.com/hehehai/recosite/commit/538699975aa1658d1c248027219c289062287369))
+
 ## [1.2.3](https://github.com/hehehai/recosite/compare/v1.2.2...v1.2.3) (2025-12-03)
 
 ### 🐛 Bug Fixes
