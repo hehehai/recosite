@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.7](https://github.com/hehehai/recosite/compare/v1.2.6...v1.2.7) (2025-12-03)
+
+### ♻️ Code Refactoring
+
+* integrate build into Semantic Release workflow ([7b95f38](https://github.com/hehehai/recosite/commit/7b95f38a2fc43feb0f36249dd99ea0ed14269a10))
+
 ## [1.2.6](https://github.com/hehehai/recosite/compare/v1.2.5...v1.2.6) (2025-12-03)
 
 ### ♻️ Code Refactoring
