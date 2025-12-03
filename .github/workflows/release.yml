@@ -131,8 +131,14 @@ jobs:
             exit 1
           fi
 
-          mv "$ZIP_FILE" "dist/$NEW_NAME"
-          echo "ZIP_PATH=dist/$NEW_NAME" >> $GITHUB_OUTPUT
+          NEW_PATH="dist/$NEW_NAME"
+
+          # Only move if the file names are different
+          if [ "$ZIP_FILE" != "$NEW_PATH" ]; then
+            mv "$ZIP_FILE" "$NEW_PATH"
+          fi
+
+          echo "ZIP_PATH=$NEW_PATH" >> $GITHUB_OUTPUT
           echo "ZIP_NAME=$NEW_NAME" >> $GITHUB_OUTPUT
 
       - name: Upload ZIP artifact
