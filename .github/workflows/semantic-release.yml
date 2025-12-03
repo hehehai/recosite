@@ -32,8 +32,8 @@ jobs:
 
       - name: Run semantic-release
         env:
-          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
-          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GIT_AUTHOR_NAME: semantic-release-bot
           GIT_AUTHOR_EMAIL: semantic-release-bot@users.noreply.github.com
           GIT_COMMITTER_NAME: semantic-release-bot
