@@ -11,6 +11,10 @@ on:
         required: true
         type: string
 
+env:
+  # Setting an environment variable with the value of a configuration variable
+  env_var: ${{ vars.ENV_CONTEXT_VAR }}
+
 permissions:
   contents: write
 
@@ -53,6 +57,7 @@ jobs:
     name: Build - ${{ matrix.browser }}
     runs-on: ubuntu-latest
     needs: quality-checks
+    environment: chrome
 
     strategy:
       fail-fast: true
@@ -152,6 +157,7 @@ jobs:
     name: Upload Release Assets
     runs-on: ubuntu-latest
     needs: build-all-browsers
+    environment: chrome
 
     steps:
       - name: Determine tag
@@ -214,6 +220,7 @@ jobs:
     name: Publish to Chrome Web Store
     runs-on: ubuntu-latest
     needs: [build-all-browsers, upload-release-assets]
+    environment: chrome
 
     steps:
       - name: Determine tag
@@ -245,14 +252,14 @@ jobs:
       - name: Verify Chrome Web Store secrets
         run: |
           echo "Checking Chrome Web Store secrets..."
-          if [ -z "${{ secrets.CHROME_EXTENSION_ID }}" ]; then
+          if [ -z "${{ vars.CHROME_EXTENSION_ID }}" ]; then
             echo "❌ CHROME_EXTENSION_ID is not set"
             exit 1
           else
             echo "✅ CHROME_EXTENSION_ID is set"
           fi
 
-          if [ -z "${{ secrets.CHROME_CLIENT_ID }}" ]; then
+          if [ -z "${{ vars.CHROME_CLIENT_ID }}" ]; then
             echo "❌ CHROME_CLIENT_ID is not set"
             exit 1
           else
@@ -277,8 +284,8 @@ jobs:
         uses: mnao305/chrome-extension-upload@v5.0.0
         with:
           file-path: chrome-release/recosite-${{ steps.version.outputs.VERSION }}-chrome.zip
-          extension-id: ${{ secrets.CHROME_EXTENSION_ID }}
-          client-id: ${{ secrets.CHROME_CLIENT_ID }}
+          extension-id: ${{ vars.CHROME_EXTENSION_ID }}
+          client-id: ${{ vars.CHROME_CLIENT_ID }}
           client-secret: ${{ secrets.CHROME_CLIENT_SECRET }}
           refresh-token: ${{ secrets.CHROME_REFRESH_TOKEN }}
           publish: true
@@ -286,7 +293,7 @@ jobs:
       - name: Publish success
         run: |
           echo "✅ Extension successfully published to Chrome Web Store!"
-          echo "Extension ID: ${{ secrets.CHROME_EXTENSION_ID }}"
+          echo "Extension ID: ${{ vars.CHROME_EXTENSION_ID }}"
           echo "Version: ${{ steps.version.outputs.VERSION }}"
 
   build-success:
