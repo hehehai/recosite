@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.3](https://github.com/hehehai/recosite/compare/v1.2.2...v1.2.3) (2025-12-03)
+
+### 🐛 Bug Fixes
+
+* skip file rename when source and destination are identical ([42bfa0d](https://github.com/hehehai/recosite/commit/42bfa0da52efade8e4e2800e46622b98c3845a84))
+
 ## [1.2.2](https://github.com/hehehai/recosite/compare/v1.2.1...v1.2.2) (2025-12-03)
 
 ### 🐛 Bug Fixes
