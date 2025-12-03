@@ -1,0 +1,56 @@
+name: Test PAT Token
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test-pat:
+    name: Test PAT Token Accessibility
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Test PAT_TOKEN availability
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "=== Testing Secret Accessibility ==="
+
+          if [ -z "$PAT_TOKEN" ]; then
+            echo "❌ PAT_TOKEN is empty or not set"
+          else
+            echo "✅ PAT_TOKEN is set (length: ${#PAT_TOKEN})"
+          fi
+
+          if [ -z "$GITHUB_TOKEN" ]; then
+            echo "❌ GITHUB_TOKEN is empty or not set"
+          else
+            echo "✅ GITHUB_TOKEN is set (length: ${#GITHUB_TOKEN})"
+          fi
+
+          echo ""
+          echo "=== Secret Names Available ==="
+          echo "This workflow is checking for: PAT_TOKEN"
+          echo ""
+          echo "Please verify in GitHub repository settings:"
+          echo "1. Go to Settings > Secrets and variables > Actions"
+          echo "2. Check if 'PAT_TOKEN' exists (case-sensitive)"
+          echo "3. Secret name must be exactly: PAT_TOKEN"
+
+      - name: Test token permissions
+        if: env.PAT_TOKEN != ''
+        env:
+          PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
+        run: |
+          echo "Testing PAT_TOKEN permissions..."
+
+          # Test if token can access repository
+          response=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: token $PAT_TOKEN" \
+            https://api.github.com/repos/${{ github.repository }})
+
+          if [ "$response" = "200" ]; then
+            echo "✅ PAT_TOKEN can access repository"
+          else
+            echo "❌ PAT_TOKEN cannot access repository (HTTP $response)"
+          fi
