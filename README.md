@@ -16,7 +16,7 @@ Capture web pages as images (viewport, full-page, selection, DOM element) and re
 ## Demo
 
 <div align="center">
-  <video src="https://github.com/user-attachments/assets/259f304c-c2e9-4a95-9a42-552a5de7e2c3" width="70%"> </video>
+  <video src="https://github.com/user-attachments/assets/11268c23-bda1-4c17-894e-f3c0bfd456ca" width="70%"> </video>
 </div>
 
 ## Features
