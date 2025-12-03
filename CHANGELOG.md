@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.0](https://github.com/hehehai/recosite/compare/v1.1.0...v1.2.0) (2025-12-03)
+
+### ✨ Features
+
+* use PAT for semantic-release to trigger workflows ([c17bb16](https://github.com/hehehai/recosite/commit/c17bb16128d877f2c6a31def1713f9f48cc46e38))
+
+### 🐛 Bug Fixes
+
+* add GH_TOKEN environment variable for semantic-release ([23698d5](https://github.com/hehehai/recosite/commit/23698d5fca6144bb131c1ad14e52dff6ba687b61))
+* revert to GITHUB_TOKEN temporarily ([6436671](https://github.com/hehehai/recosite/commit/643667179093ba1a24ad42850fb1e393363eaa7e))
+
+### 📝 Documentation
+
+* improve release documentation with detailed workflow and links ([6af2f8a](https://github.com/hehehai/recosite/commit/6af2f8a0b6743298374c67a4020eabeff68ee808))
+
 ## [1.1.0](https://github.com/hehehai/recosite/compare/v1.0.1...v1.1.0) (2025-12-03)
 
 ### ✨ Features
