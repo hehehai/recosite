@@ -281,7 +281,9 @@ jobs:
           fi
 
       - name: Upload to Chrome Web Store
+        id: chrome_upload
         uses: mnao305/chrome-extension-upload@v5.0.0
+        continue-on-error: true
         with:
           file-path: chrome-release/recosite-${{ steps.version.outputs.VERSION }}-chrome.zip
           extension-id: ${{ vars.CHROME_EXTENSION_ID }}
@@ -290,11 +292,25 @@ jobs:
           refresh-token: ${{ secrets.CHROME_REFRESH_TOKEN }}
           publish: true
 
-      - name: Publish success
+      - name: Check upload result
         run: |
-          echo "✅ Extension successfully published to Chrome Web Store!"
-          echo "Extension ID: ${{ vars.CHROME_EXTENSION_ID }}"
-          echo "Version: ${{ steps.version.outputs.VERSION }}"
+          if [ "${{ steps.chrome_upload.outcome }}" = "success" ]; then
+            echo "✅ Extension successfully uploaded and published to Chrome Web Store!"
+            echo "Extension ID: ${{ vars.CHROME_EXTENSION_ID }}"
+            echo "Version: ${{ steps.version.outputs.VERSION }}"
+          else
+            echo "⚠️ Extension uploaded to Chrome Web Store but auto-publish failed"
+            echo "Extension ID: ${{ vars.CHROME_EXTENSION_ID }}"
+            echo "Version: ${{ steps.version.outputs.VERSION }}"
+            echo ""
+            echo "📝 Next steps:"
+            echo "1. Go to Chrome Web Store Developer Dashboard:"
+            echo "   https://chrome.google.com/webstore/devconsole"
+            echo "2. Select your extension: recosite"
+            echo "3. Click 'Submit for review' to publish the new version"
+            echo ""
+            echo "The extension package has been successfully uploaded and is ready for manual publishing."
+          fi
 
   build-success:
     name: Build and Publish Success
