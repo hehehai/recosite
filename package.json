@@ -33,6 +33,7 @@
     "@semantic-release/git": "^10.0.1",
     "@tailwindcss/vite": "^4.1.16",
     "@wxt-dev/module-vue": "^1.0.2",
+    "conventional-changelog-conventionalcommits": "^8.0.0",
     "husky": "^9.1.7",
     "semantic-release": "^24.2.0",
     "tailwindcss": "^4.1.16",
