@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.1.0](https://github.com/hehehai/recosite/compare/v1.0.1...v1.1.0) (2025-12-03)
+
+### ✨ Features
+
+* add manual trigger support for release workflow ([7275f97](https://github.com/hehehai/recosite/commit/7275f9738aa6538a2d2c24ff75297fa76ae090df))
+
 ## [1.0.1](https://github.com/hehehai/recosite/compare/v1.0.0...v1.0.1) (2025-12-03)
 
 ### 🐛 Bug Fixes
