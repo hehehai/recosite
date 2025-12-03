@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.5](https://github.com/hehehai/recosite/compare/v1.2.4...v1.2.5) (2025-12-03)
+
+### ♻️ Code Refactoring
+
+* remove Chrome Web Store auto-publish ([0dfd3c6](https://github.com/hehehai/recosite/commit/0dfd3c6e3c9a337ad7417ff19946307b0735d72f))
+
 ## [1.2.4](https://github.com/hehehai/recosite/compare/v1.2.3...v1.2.4) (2025-12-03)
 
 ### 🐛 Bug Fixes
