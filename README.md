@@ -57,9 +57,9 @@ Capture web pages as images (viewport, full-page, selection, DOM element) and re
 
 ## Releases
 
-This project uses **fully automated releases** powered by [Semantic Release](https://github.com/semantic-release/semantic-release) and GitHub Actions.
+This project uses **automated version management** powered by [Semantic Release](https://github.com/semantic-release/semantic-release) and GitHub Actions.
 
-### 🤖 Automated Release Process
+### 🤖 Automated Version Management
 
 Every push to the `main` branch triggers an automated workflow:
 
@@ -69,11 +69,19 @@ Every push to the `main` branch triggers an automated workflow:
    - `feat:` commits → Minor release (1.**x**.0)
    - `BREAKING CHANGE:` → Major release (**x**.0.0)
 3. **Changelog Generation** - Updates [CHANGELOG.md](CHANGELOG.md) with release notes
-4. **GitHub Release** - Creates a new release with:
-   - 📦 Chrome extension package
-   - 🦊 Firefox extension package
-   - 🔵 Edge extension package
-5. **Chrome Web Store** - Automatically publishes to [Chrome Web Store](https://chromewebstore.google.com/detail/recosite/cajchbamocblcjllnllipgpioahkhlhk)
+4. **GitHub Release** - Creates a draft release with version tag
+
+### 🚀 Manual Build and Publish
+
+After Semantic Release creates a new version, manually trigger the **Build and Publish** workflow:
+
+1. Go to [GitHub Actions](https://github.com/hehehai/recosite/actions)
+2. Select **Build and Publish** workflow
+3. Click **Run workflow** → Select the version tag (e.g., `v1.0.1`) → **Run workflow**
+4. The workflow will:
+   - Build all browser packages (Chrome, Firefox, Edge)
+   - Upload packages to the GitHub Release
+   - Publish Chrome extension to [Chrome Web Store](https://chromewebstore.google.com/detail/recosite/cajchbamocblcjllnllipgpioahkhlhk)
 
 ### 📝 Commit Message Format
 

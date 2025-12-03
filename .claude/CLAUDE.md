@@ -188,7 +188,7 @@ When testing recording:
 
 ### GitHub Actions Workflows
 
-The project uses automated CI/CD pipelines with **Semantic Release** for fully automated version management:
+The project uses automated CI/CD pipelines with **Semantic Release** for version management:
 
 **CI Workflow** (`.github/workflows/ci.yml`)
 - Triggers on push/PR to `main` and `develop` branches
@@ -201,20 +201,22 @@ The project uses automated CI/CD pipelines with **Semantic Release** for fully a
 - Analyzes commit messages using Conventional Commits
 - Automatically determines version bump (major/minor/patch)
 - Updates package.json and CHANGELOG.md
-- Creates git tag and GitHub Release
-- Triggers the Build and Publish workflow
+- Creates git tag and draft GitHub Release
 
 **Build and Publish Workflow** (`.github/workflows/release.yml`)
-- Triggers on git tag push (created by semantic-release)
+- Triggers manually via GitHub Actions UI (workflow_dispatch)
+- Can also be triggered by git tag push
 - Runs pre-release quality checks
 - Builds and packages all browsers (Chrome, Firefox, Edge)
 - Uploads build artifacts to GitHub Release
 - Auto-publishes Chrome version to Chrome Web Store
 - Firefox and Edge ZIPs available for manual download
 
-### Automated Release Process
+### Release Process
 
-**No manual version bumping needed!** Just push commits with proper format:
+**Step 1: Automated Version Management**
+
+No manual version bumping needed! Just push commits with proper format:
 
 1. **Write conventional commit messages**:
    ```bash
@@ -235,16 +237,25 @@ The project uses automated CI/CD pipelines with **Semantic Release** for fully a
    git push origin main
    ```
 
-3. **Automatic workflow**:
+3. **Semantic Release automatically**:
    - Analyzes commits since last release
    - Calculates new version number
    - Updates package.json automatically
    - Generates CHANGELOG.md entry
    - Creates git tag (e.g., v1.2.3)
-   - Creates GitHub Release with release notes
-   - Builds all browser versions
-   - Publishes Chrome to Chrome Web Store
-   - Notifies on completion
+   - Creates draft GitHub Release with release notes
+
+**Step 2: Manual Build and Publish**
+
+After Semantic Release creates a new version tag:
+
+1. Go to [GitHub Actions](https://github.com/hehehai/recosite/actions)
+2. Select **Build and Publish** workflow
+3. Click **Run workflow** → Select the version tag (e.g., `v1.0.1`) → **Run workflow**
+4. The workflow will:
+   - Build all browser packages
+   - Upload to GitHub Release
+   - Publish Chrome to Chrome Web Store
 
 ### Conventional Commits Format
 
