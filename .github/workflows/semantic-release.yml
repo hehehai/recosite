@@ -15,6 +15,9 @@ jobs:
     name: Semantic Release
     runs-on: ubuntu-latest
     environment: chrome
+    outputs:
+      NEW_RELEASE: ${{ steps.check_release.outputs.NEW_RELEASE }}
+      VERSION: ${{ steps.check_release.outputs.VERSION }}
 
     steps:
       - name: Checkout repository
@@ -57,4 +60,148 @@ jobs:
         run: |
           echo "🎉 New version released: ${{ steps.check_release.outputs.VERSION }}"
           echo "📦 GitHub Release created with tag v${{ steps.check_release.outputs.VERSION }}"
-          echo "🚀 Release workflow will now build and publish to Chrome Web Store"
+          echo "🚀 Starting build process for all browsers"
+
+  build-all-browsers:
+    name: Build - ${{ matrix.browser }}
+    runs-on: ubuntu-latest
+    needs: release
+    if: needs.release.outputs.NEW_RELEASE == 'true'
+
+    strategy:
+      fail-fast: true
+      matrix:
+        browser:
+          - chrome
+          - firefox
+          - edge
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: v${{ needs.release.outputs.VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build extension for ${{ matrix.browser }}
+        run: |
+          if [ "${{ matrix.browser }}" = "chrome" ]; then
+            npm run build
+          elif [ "${{ matrix.browser }}" = "firefox" ]; then
+            npm run build:firefox
+          elif [ "${{ matrix.browser }}" = "edge" ]; then
+            npm run build:edge
+          fi
+
+      - name: Create ZIP for ${{ matrix.browser }}
+        run: |
+          if [ "${{ matrix.browser }}" = "chrome" ]; then
+            npm run zip
+          elif [ "${{ matrix.browser }}" = "firefox" ]; then
+            npm run zip:firefox
+          elif [ "${{ matrix.browser }}" = "edge" ]; then
+            npm run zip:edge
+          fi
+
+      - name: Find and rename ZIP file
+        id: zip
+        run: |
+          if [ "${{ matrix.browser }}" = "chrome" ]; then
+            ZIP_FILE=$(find dist -name "*-chrome.zip" -type f | head -n 1)
+            NEW_NAME="recosite-${{ needs.release.outputs.VERSION }}-chrome.zip"
+          elif [ "${{ matrix.browser }}" = "firefox" ]; then
+            ZIP_FILE=$(find dist -name "*-firefox.zip" -type f | head -n 1)
+            NEW_NAME="recosite-${{ needs.release.outputs.VERSION }}-firefox.zip"
+          elif [ "${{ matrix.browser }}" = "edge" ]; then
+            ZIP_FILE=$(find dist -name "*-edge.zip" -type f | head -n 1)
+            NEW_NAME="recosite-${{ needs.release.outputs.VERSION }}-edge.zip"
+          fi
+
+          if [ -z "$ZIP_FILE" ]; then
+            echo "Error: ZIP file not found for ${{ matrix.browser }}"
+            exit 1
+          fi
+
+          NEW_PATH="dist/$NEW_NAME"
+
+          # Only move if the file names are different
+          if [ "$ZIP_FILE" != "$NEW_PATH" ]; then
+            mv "$ZIP_FILE" "$NEW_PATH"
+          fi
+
+          echo "ZIP_PATH=$NEW_PATH" >> $GITHUB_OUTPUT
+          echo "ZIP_NAME=$NEW_NAME" >> $GITHUB_OUTPUT
+
+      - name: Upload ZIP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: extension-${{ matrix.browser }}
+          path: ${{ steps.zip.outputs.ZIP_PATH }}
+          retention-days: 90
+
+  upload-release-assets:
+    name: Upload Release Assets
+    runs-on: ubuntu-latest
+    needs: [release, build-all-browsers]
+    if: needs.release.outputs.NEW_RELEASE == 'true'
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release-artifacts
+
+      - name: List artifacts
+        run: |
+          echo "Downloaded artifacts:"
+          ls -R release-artifacts/
+
+      - name: Create all-browsers package
+        run: |
+          mkdir -p all-browsers
+          cp release-artifacts/extension-chrome/*.zip all-browsers/
+          cp release-artifacts/extension-firefox/*.zip all-browsers/
+          cp release-artifacts/extension-edge/*.zip all-browsers/
+          cd all-browsers
+          zip -r ../recosite-${{ needs.release.outputs.VERSION }}-all-browsers.zip .
+          cd ..
+          ls -lh recosite-${{ needs.release.outputs.VERSION }}-all-browsers.zip
+
+      - name: Upload assets to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.release.outputs.VERSION }}
+          files: |
+            release-artifacts/extension-chrome/recosite-${{ needs.release.outputs.VERSION }}-chrome.zip
+            release-artifacts/extension-firefox/recosite-${{ needs.release.outputs.VERSION }}-firefox.zip
+            release-artifacts/extension-edge/recosite-${{ needs.release.outputs.VERSION }}-edge.zip
+            recosite-${{ needs.release.outputs.VERSION }}-all-browsers.zip
+          fail_on_unmatched_files: true
+          append_body: true
+          body: |
+
+            ## 📦 Installation
+
+            ### Chrome Extension
+            - **Recommended**: Install from [Chrome Web Store](https://chromewebstore.google.com/detail/recosite/cajchbamocblcjllnllipgpioahkhlhk) (auto-updated)
+            - **Manual**: Download [`recosite-${{ needs.release.outputs.VERSION }}-chrome.zip`](https://github.com/${{ github.repository }}/releases/download/v${{ needs.release.outputs.VERSION }}/recosite-${{ needs.release.outputs.VERSION }}-chrome.zip)
+
+            ### Firefox Extension
+            - Download [`recosite-${{ needs.release.outputs.VERSION }}-firefox.zip`](https://github.com/${{ github.repository }}/releases/download/v${{ needs.release.outputs.VERSION }}/recosite-${{ needs.release.outputs.VERSION }}-firefox.zip)
+            - Extract and load as temporary add-on in `about:debugging`
+
+            ### Edge Extension
+            - Download [`recosite-${{ needs.release.outputs.VERSION }}-edge.zip`](https://github.com/${{ github.repository }}/releases/download/v${{ needs.release.outputs.VERSION }}/recosite-${{ needs.release.outputs.VERSION }}-edge.zip)
+            - Extract and load in developer mode
+
+            ### All Browsers (Bundle)
+            - Download [`recosite-${{ needs.release.outputs.VERSION }}-all-browsers.zip`](https://github.com/${{ github.repository }}/releases/download/v${{ needs.release.outputs.VERSION }}/recosite-${{ needs.release.outputs.VERSION }}-all-browsers.zip)
+            - Contains Chrome, Firefox, and Edge extensions in one package
