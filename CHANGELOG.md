@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.8](https://github.com/hehehai/recosite/compare/v1.2.7...v1.2.8) (2025-12-03)
+
+### ♻️ Code Refactoring
+
+* remove unused downloads permission ([38bb399](https://github.com/hehehai/recosite/commit/38bb39952f93cd222e8926b1ccfb1570b9b76a98))
+
 ## [1.2.7](https://github.com/hehehai/recosite/compare/v1.2.6...v1.2.7) (2025-12-03)
 
 ### ♻️ Code Refactoring
