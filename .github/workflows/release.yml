@@ -108,7 +108,9 @@ jobs:
 
       - name: Get version from tag
         id: version
-        run: echo "VERSION=${{ steps.tag.outputs.TAG#v }}" >> $GITHUB_OUTPUT
+        run: |
+          TAG="${{ steps.tag.outputs.TAG }}"
+          echo "VERSION=${TAG#v}" >> $GITHUB_OUTPUT
 
       - name: Find and rename ZIP file
         id: zip
@@ -162,7 +164,9 @@ jobs:
 
       - name: Get version from tag
         id: version
-        run: echo "VERSION=${{ steps.tag.outputs.TAG#v }}" >> $GITHUB_OUTPUT
+        run: |
+          TAG="${{ steps.tag.outputs.TAG }}"
+          echo "VERSION=${TAG#v}" >> $GITHUB_OUTPUT
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -217,7 +221,9 @@ jobs:
 
       - name: Get version from tag
         id: version
-        run: echo "VERSION=${{ steps.tag.outputs.TAG#v }}" >> $GITHUB_OUTPUT
+        run: |
+          TAG="${{ steps.tag.outputs.TAG }}"
+          echo "VERSION=${TAG#v}" >> $GITHUB_OUTPUT
 
       - name: Download Chrome artifact
         uses: actions/download-artifact@v4
