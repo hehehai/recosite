@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.2](https://github.com/hehehai/recosite/compare/v1.2.1...v1.2.2) (2025-12-03)
+
+### 🐛 Bug Fixes
+
+* correct bash string substitution syntax in workflow ([93ea6be](https://github.com/hehehai/recosite/commit/93ea6bec0e85493530ded96ef121bcf4bcef23a0))
+
 ## [1.2.1](https://github.com/hehehai/recosite/compare/v1.2.0...v1.2.1) (2025-12-03)
 
 ### 🐛 Bug Fixes
