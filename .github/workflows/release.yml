@@ -242,6 +242,37 @@ jobs:
           echo "Chrome artifact contents:"
           ls -la chrome-release/
 
+      - name: Verify Chrome Web Store secrets
+        run: |
+          echo "Checking Chrome Web Store secrets..."
+          if [ -z "${{ secrets.CHROME_EXTENSION_ID }}" ]; then
+            echo "❌ CHROME_EXTENSION_ID is not set"
+            exit 1
+          else
+            echo "✅ CHROME_EXTENSION_ID is set"
+          fi
+
+          if [ -z "${{ secrets.CHROME_CLIENT_ID }}" ]; then
+            echo "❌ CHROME_CLIENT_ID is not set"
+            exit 1
+          else
+            echo "✅ CHROME_CLIENT_ID is set"
+          fi
+
+          if [ -z "${{ secrets.CHROME_CLIENT_SECRET }}" ]; then
+            echo "❌ CHROME_CLIENT_SECRET is not set"
+            exit 1
+          else
+            echo "✅ CHROME_CLIENT_SECRET is set"
+          fi
+
+          if [ -z "${{ secrets.CHROME_REFRESH_TOKEN }}" ]; then
+            echo "❌ CHROME_REFRESH_TOKEN is not set"
+            exit 1
+          else
+            echo "✅ CHROME_REFRESH_TOKEN is set"
+          fi
+
       - name: Upload to Chrome Web Store
         uses: mnao305/chrome-extension-upload@v5.0.0
         with:
