@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.1](https://github.com/hehehai/recosite/compare/v1.0.0...v1.0.1) (2025-12-03)
+
+### 🐛 Bug Fixes
+
+* improve release workflow and asset descriptions ([d5b1692](https://github.com/hehehai/recosite/commit/d5b16928a841cddae3a6c0dafc5e6100eb84e208))
+
 ## 1.0.0 (2025-12-03)
 
 ### ✨ Features
