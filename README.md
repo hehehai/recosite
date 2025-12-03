@@ -57,38 +57,85 @@ Capture web pages as images (viewport, full-page, selection, DOM element) and re
 
 ## Releases
 
-New releases are **fully automated** using [Semantic Release](https://github.com/semantic-release/semantic-release):
+This project uses **fully automated releases** powered by [Semantic Release](https://github.com/semantic-release/semantic-release) and GitHub Actions.
 
-### How it works
-1. **Push to main branch** with conventional commit messages
-2. **Automatic version bump** based on commit type:
-   - `fix:` → Patch release (0.0.x)
-   - `feat:` → Minor release (0.x.0)
-   - `BREAKING CHANGE:` → Major release (x.0.0)
-3. **Automatic changelog** generation
-4. **Automatic GitHub Release** creation
-5. **Automatic Chrome Web Store** publishing
+### 🤖 Automated Release Process
 
-### Commit Message Format
+Every push to the `main` branch triggers an automated workflow:
+
+1. **Commit Analysis** - Analyzes commit messages using [Conventional Commits](https://www.conventionalcommits.org/)
+2. **Version Bump** - Automatically determines the next version number:
+   - `fix:` commits → Patch release (1.0.**x**)
+   - `feat:` commits → Minor release (1.**x**.0)
+   - `BREAKING CHANGE:` → Major release (**x**.0.0)
+3. **Changelog Generation** - Updates [CHANGELOG.md](CHANGELOG.md) with release notes
+4. **GitHub Release** - Creates a new release with:
+   - 📦 Chrome extension package
+   - 🦊 Firefox extension package
+   - 🔵 Edge extension package
+5. **Chrome Web Store** - Automatically publishes to [Chrome Web Store](https://chromewebstore.google.com/detail/recosite/cajchbamocblcjllnllipgpioahkhlhk)
+
+### 📝 Commit Message Format
+
+We follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
 
 ```bash
-# Bug fix (patch release)
-git commit -m "fix: resolve screenshot capture issue"
+<type>(<scope>): <description>
 
-# New feature (minor release)
-git commit -m "feat: add GIF export support"
+[optional body]
 
-# Breaking change (major release)
-git commit -m "feat: redesign recording architecture
-
-BREAKING CHANGE: minimum Chrome version is now 90"
+[optional footer(s)]
 ```
 
-### Download Options
-- **Chrome**: Auto-updated via Chrome Web Store
-- **Firefox & Edge**: Download from [GitHub Releases](https://github.com/hehehai/recosite/releases)
+**Types:**
+- `feat`: New feature (triggers minor release)
+- `fix`: Bug fix (triggers patch release)
+- `docs`: Documentation changes (no release)
+- `style`: Code style changes (no release)
+- `refactor`: Code refactoring (triggers patch release)
+- `perf`: Performance improvements (triggers patch release)
+- `test`: Test changes (no release)
+- `chore`: Maintenance tasks (no release)
+- `ci`: CI/CD changes (no release)
 
-See [CHANGELOG.md](CHANGELOG.md) for version history.
+**Examples:**
+
+```bash
+# Patch release (1.0.x)
+git commit -m "fix: resolve screenshot capture issue in dark mode"
+
+# Minor release (1.x.0)
+git commit -m "feat: add GIF export support with quality control"
+
+# Major release (x.0.0)
+git commit -m "feat: redesign recording architecture
+
+BREAKING CHANGE: minimum Chrome version is now 90+, old recordings format is not supported"
+
+# No release
+git commit -m "docs: update installation instructions"
+git commit -m "chore: update dependencies"
+```
+
+### 📥 Download
+
+#### Chrome
+- **Recommended**: Install from [Chrome Web Store](https://chromewebstore.google.com/detail/recosite/cajchbamocblcjllnllipgpioahkhlhk) (auto-updates)
+- **Manual**: Download from [GitHub Releases](https://github.com/hehehai/recosite/releases/latest)
+
+#### Firefox
+- Download latest version from [GitHub Releases](https://github.com/hehehai/recosite/releases/latest)
+- Extract ZIP and load as temporary add-on in `about:debugging`
+
+#### Edge
+- Download latest version from [GitHub Releases](https://github.com/hehehai/recosite/releases/latest)
+- Extract ZIP and load in developer mode
+
+### 📜 Version History
+
+- **Releases**: https://github.com/hehehai/recosite/releases
+- **Changelog**: [CHANGELOG.md](CHANGELOG.md)
+- **CI/CD Status**: [GitHub Actions](https://github.com/hehehai/recosite/actions)
 
 ## Development
 
