@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.1](https://github.com/hehehai/recosite/compare/v1.2.0...v1.2.1) (2025-12-03)
+
+### 🐛 Bug Fixes
+
+* support workflow_dispatch with tag input in release workflow ([ae6898d](https://github.com/hehehai/recosite/commit/ae6898dfde50a12a965c3f1efc15a35235bc1a5f))
+
+### 📝 Documentation
+
+* update to semi-automated release process ([939ae84](https://github.com/hehehai/recosite/commit/939ae84cfd84741f88edae34a94b7cd3f8b0aa0b))
+
 ## [1.2.0](https://github.com/hehehai/recosite/compare/v1.1.0...v1.2.0) (2025-12-03)
 
 ### ✨ Features
