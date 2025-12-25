@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.2.9](https://github.com/hehehai/recosite/compare/v1.2.8...v1.2.9) (2025-12-25)
+
+### ♻️ Code Refactoring
+
+* remove selection and DOM screenshot features ([0dd3fd1](https://github.com/hehehai/recosite/commit/0dd3fd1e8151b0e779f38ef5914d564f7ea14fb8))
+
+### 📝 Documentation
+
+* simplify README to reflect removed features ([fed307d](https://github.com/hehehai/recosite/commit/fed307d313a3d77fe44d3da70ff2bccda14c8555))
+* video ([ec92be0](https://github.com/hehehai/recosite/commit/ec92be0d0cb1709bd1a46e648258aaeaf873531b))
+
 ## [1.2.8](https://github.com/hehehai/recosite/compare/v1.2.7...v1.2.8) (2025-12-03)
 
 ### ♻️ Code Refactoring
