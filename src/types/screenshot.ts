@@ -6,7 +6,6 @@ import type { ExportSizeSettings } from "@/composables/useExportSize";
 export const ScreenshotType = {
   VIEWPORT: "viewport", // 视窗截图
   FULL_PAGE: "full_page", // 长截图
-  SELECTION: "selection", // 局部选择截图
 } as const;
 
 export type ScreenshotType =
@@ -45,16 +44,6 @@ export interface ScreenshotOptions {
 }
 
 /**
- * 选区数据
- */
-export interface SelectionArea {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
-/**
  * 截图结果
  */
 export interface ScreenshotResult {
@@ -65,34 +54,15 @@ export interface ScreenshotResult {
 }
 
 /**
- * DOM 截图状态
- */
-export const DomCaptureState = {
-  IDLE: "idle",
-  SELECTING: "selecting",
-  SELECTED: "selected",
-  CAPTURING: "capturing",
-} as const;
-
-export type DomCaptureState =
-  (typeof DomCaptureState)[keyof typeof DomCaptureState];
-
-/**
  * 消息类型
  */
 export const MessageType = {
-  START_SELECTION: "start_selection",
   CAPTURE_VIEWPORT: "capture_viewport",
   CAPTURE_FULL_PAGE: "capture_full_page",
-  SELECTION_COMPLETE: "selection_complete",
   START_RECORDING: "start_recording",
   STOP_RECORDING: "stop_recording",
   GET_RECORDING_STATUS: "get_recording_status",
   RECORDING_COMPLETE: "recording_complete",
-  START_DOM_SELECTION: "start_dom_selection",
-  CANCEL_DOM_SELECTION: "cancel_dom_selection",
-  CONFIRM_DOM_SELECTION: "confirm_dom_selection",
-  CAPTURE_DOM: "capture_dom",
 } as const;
 
 export type MessageType = (typeof MessageType)[keyof typeof MessageType];
@@ -103,7 +73,6 @@ export type MessageType = (typeof MessageType)[keyof typeof MessageType];
 export const RecordingType = {
   TAB: "tab", // 标签页录制
   WINDOW: "window", // 窗口录制
-  DESKTOP: "desktop", // 桌面录制（暂未实现）
 } as const;
 
 export type RecordingType = (typeof RecordingType)[keyof typeof RecordingType];
@@ -143,9 +112,6 @@ export interface RecordingOptions {
   audioBitsPerSecond?: number;
   sizeSettings?: ExportSizeSettings;
   resolution?: VideoResolution;
-  microphone?: boolean;
-  camera?: boolean;
-  displaySurface?: "window" | "monitor"; // 控制选择器默认聚焦的面板
 }
 
 /**

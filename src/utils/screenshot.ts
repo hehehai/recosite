@@ -4,7 +4,6 @@ import {
   type ScreenshotOptions,
   type ScreenshotResult,
   ScreenshotType,
-  type SelectionArea,
 } from "@/types/screenshot";
 import { dataURLToBlob } from "./file";
 
@@ -66,103 +65,6 @@ export async function captureViewport(
     blob,
     width,
     height,
-  };
-}
-
-/**
- * 捕获选区（需要先在 content script 中获取选区信息）
- */
-export async function captureSelection(
-  area: SelectionArea,
-  format: ImageFormat = ImageFormat.PNG,
-  quality = 0.92
-): Promise<ScreenshotResult> {
-  // 先捕获整个视窗
-  const dataUrl = await browser.tabs.captureVisibleTab({
-    format: format === ImageFormat.PNG ? "png" : "jpeg",
-    quality:
-      format === ImageFormat.JPEG ? Math.round(quality * 100) : undefined,
-  });
-
-  // 获取当前标签页
-  const [tab] = await browser.tabs.query({
-    active: true,
-    currentWindow: true,
-  });
-
-  if (!tab.id) {
-    throw new Error("No active tab found");
-  }
-
-  // 在页面中执行裁剪
-  const result = await browser.scripting.executeScript({
-    target: { tabId: tab.id },
-    func: (
-      imageDataUrl: string,
-      cropArea: SelectionArea,
-      imageFormat: ImageFormat,
-      imageQuality: number
-    ) => {
-      return new Promise<{ dataUrl: string; width: number; height: number }>(
-        (resolve, reject) => {
-          const img = new Image();
-          img.onload = () => {
-            // 创建 canvas
-            const canvas = document.createElement("canvas");
-            canvas.width = cropArea.width;
-            canvas.height = cropArea.height;
-            const ctx = canvas.getContext("2d");
-
-            if (!ctx) {
-              reject(new Error("Failed to get 2d context"));
-              return;
-            }
-
-            // 裁剪并绘制
-            ctx.drawImage(
-              img,
-              cropArea.x,
-              cropArea.y,
-              cropArea.width,
-              cropArea.height,
-              0,
-              0,
-              cropArea.width,
-              cropArea.height
-            );
-
-            // 转换为 dataURL
-            const croppedDataUrl = canvas.toDataURL(
-              `image/${imageFormat}`,
-              imageFormat === "jpeg" ? imageQuality : undefined
-            );
-
-            resolve({
-              dataUrl: croppedDataUrl,
-              width: cropArea.width,
-              height: cropArea.height,
-            });
-          };
-          img.onerror = reject;
-          img.src = imageDataUrl;
-        }
-      );
-    },
-    args: [dataUrl, area, format, quality],
-  });
-
-  if (!result[0]?.result) {
-    throw new Error("Failed to crop image");
-  }
-
-  const croppedDataUrl = result[0].result.dataUrl;
-  const blob = dataURLToBlob(croppedDataUrl);
-
-  return {
-    dataUrl: croppedDataUrl,
-    blob,
-    width: area.width,
-    height: area.height,
   };
 }
 
@@ -550,11 +452,6 @@ export async function captureScreenshot(
 
     case ScreenshotType.FULL_PAGE:
       return captureFullPage(format, quality);
-
-    case ScreenshotType.SELECTION:
-      throw new Error(
-        "Selection capture requires area parameter. Use captureSelection directly."
-      );
 
     default:
       throw new Error(`Unknown screenshot type: ${type}`);

@@ -1,5 +1,3 @@
-import type { SelectionArea } from "@/types/screenshot";
-
 /**
  * 创建 canvas 元素
  */
@@ -21,35 +19,6 @@ export function loadImage(url: string): Promise<HTMLImageElement> {
     img.addEventListener("error", reject);
     img.src = url;
   });
-}
-
-/**
- * 裁剪 canvas
- */
-export function cropCanvas(
-  sourceCanvas: HTMLCanvasElement,
-  area: SelectionArea
-): HTMLCanvasElement {
-  const canvas = createCanvas(area.width, area.height);
-  const ctx = canvas.getContext("2d");
-
-  if (!ctx) {
-    throw new Error("Failed to get 2d context");
-  }
-
-  ctx.drawImage(
-    sourceCanvas,
-    area.x,
-    area.y,
-    area.width,
-    area.height,
-    0,
-    0,
-    area.width,
-    area.height
-  );
-
-  return canvas;
 }
 
 /**

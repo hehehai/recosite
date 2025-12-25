@@ -81,22 +81,10 @@ async function handleStartWindowCapture(data: {
   try {
     const { options } = data;
 
-    // 使用 getDisplayMedia 直接显示窗口/屏幕选择器
-    // selfBrowserSurface: "exclude" 用于排除当前标签页
-    // displaySurface 用于控制选择器默认聚焦的面板（window/monitor）
-    // 注意：无法完全隐藏"Chrome 标签"面板，这是浏览器的安全限制
     console.log("[Offscreen] Calling getDisplayMedia...");
-    console.log("[Offscreen] displaySurface:", options.displaySurface);
 
     // 构建视频约束
-    const videoConstraints: MediaTrackConstraints & {
-      displaySurface?: "browser" | "window" | "monitor";
-    } = {};
-
-    // 设置 displaySurface 以聚焦特定面板
-    if (options.displaySurface) {
-      videoConstraints.displaySurface = options.displaySurface;
-    }
+    const videoConstraints: MediaTrackConstraints = {};
 
     // 根据分辨率设置添加约束
     if (options.resolution && options.resolution !== VideoResolution.AUTO) {
@@ -115,7 +103,6 @@ async function handleStartWindowCapture(data: {
     }
 
     // Chrome-specific extensions to DisplayMediaStreamOptions
-    // TypeScript types don't include these yet, so we use type assertion
     const displayMediaOptions = {
       video: Object.keys(videoConstraints).length > 0 ? videoConstraints : true,
       audio: false, // 窗口捕获不支持系统音频
@@ -147,7 +134,6 @@ async function handleStartWindowCapture(data: {
         console.log("[Offscreen] Video track ended - user stopped sharing");
 
         // 只通知 background，让 background 来统一处理停止流程
-        // 不要在这里直接调用 mediaRecorder.stop()，避免重复停止
         if (
           !isStopping &&
           mediaRecorder &&
@@ -156,7 +142,6 @@ async function handleStartWindowCapture(data: {
           console.log(
             "[Offscreen] Notifying background to stop recording due to stream end"
           );
-          // 通知 background script 用户已停止分享
           browser.runtime
             .sendMessage({
               type: "recording:track-ended",
@@ -261,7 +246,6 @@ async function handleStartWindowCapture(data: {
 async function handleStartRecording(data: {
   streamId: string;
   options: RecordingOptions;
-  isWindowCapture?: boolean;
   targetSize?: {
     width: number;
     height: number;
@@ -273,10 +257,9 @@ async function handleStartRecording(data: {
   console.log("[Offscreen] Received data:", JSON.stringify(data, null, 2));
 
   try {
-    const { streamId, options, isWindowCapture, targetSize } = data;
+    const { streamId, options, targetSize } = data;
     console.log("[Offscreen] Starting recording with streamId:", streamId);
     console.log("[Offscreen] Recording options:", options);
-    console.log("[Offscreen] Is window capture:", isWindowCapture);
     console.log("[Offscreen] Target size:", targetSize);
 
     // 调试目标尺寸和约束应用
@@ -289,33 +272,19 @@ async function handleStartRecording(data: {
       );
     }
 
-    // 根据捕获类型确定 chromeMediaSource：
-    // - desktopCapture (窗口/屏幕) 使用 "desktop"
-    // - tabCapture (标签页) 使用 "tab"
-    const mediaSource = isWindowCapture ? "desktop" : "tab";
-    console.log("[Offscreen] Using media source:", mediaSource);
-    console.log(
-      "[Offscreen] Capture type:",
-      isWindowCapture ? "window/screen" : "tab"
-    );
-
-    // 从 streamId 获取 MediaStream
-    // 注意：桌面窗口捕获（"window" 选择器）不支持音频
-    // 只有 "screen" 和 "tab" 支持音频
+    // 从 streamId 获取 MediaStream (tab capture)
     const constraints: MediaStreamConstraints = {
-      audio: isWindowCapture
-        ? false
-        : {
-            // @ts-expect-error - Chrome specific API
-            mandatory: {
-              chromeMediaSource: mediaSource,
-              chromeMediaSourceId: streamId,
-            },
-          },
+      audio: {
+        // @ts-expect-error - Chrome specific API
+        mandatory: {
+          chromeMediaSource: "tab",
+          chromeMediaSourceId: streamId,
+        },
+      },
       video: {
         // @ts-expect-error - Chrome specific API
         mandatory: {
-          chromeMediaSource: mediaSource,
+          chromeMediaSource: "tab",
           chromeMediaSourceId: streamId,
           // 如果有目标尺寸，设置录制分辨率
           ...(targetSize &&

@@ -42,8 +42,6 @@ export function useRecordingState() {
     format: VideoFormat = VideoFormat.WEBM,
     options?: {
       type?: RecordingType;
-      microphone?: boolean;
-      camera?: boolean;
       resolution?: import("@/types/screenshot").VideoResolution;
     }
   ) {
@@ -116,8 +114,6 @@ export function useRecordingState() {
     format?: VideoFormat,
     options?: {
       type?: RecordingType;
-      microphone?: boolean;
-      camera?: boolean;
       resolution?: import("@/types/screenshot").VideoResolution;
     }
   ) {

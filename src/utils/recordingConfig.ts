@@ -4,7 +4,6 @@
  */
 
 import {
-  DISPLAY_SURFACE_TYPES,
   RECORDING_BITRATES,
   RECORDING_MIME_TYPES,
 } from "@/constants/recording";
@@ -15,34 +14,15 @@ import {
 } from "@/types/screenshot";
 
 /**
- * Get display surface type based on recording type
- * Controls which panel is focused in the browser's share picker
- *
- * @param type - Recording type (TAB, WINDOW, DESKTOP)
- * @returns Display surface type or undefined for tab recording
- */
-export function getDisplaySurface(
-  type?: RecordingType
-): "window" | "monitor" | undefined {
-  if (type === RecordingType.WINDOW) {
-    return DISPLAY_SURFACE_TYPES.WINDOW;
-  }
-  if (type === RecordingType.DESKTOP) {
-    return DISPLAY_SURFACE_TYPES.MONITOR;
-  }
-  return; // Tab recording doesn't need displaySurface
-}
-
-/**
  * Get default video bitrate based on recording type
- * Business rule: Higher bitrate for window/desktop capture for better quality
+ * Business rule: Higher bitrate for window capture for better quality
  *
- * @param type - Recording type (TAB, WINDOW, DESKTOP)
+ * @param type - Recording type (TAB, WINDOW)
  * @returns Video bitrate in bits per second
  */
 export function getDefaultVideoBitrate(type?: RecordingType): number {
-  // Window and desktop recording use higher bitrate for better quality
-  if (type === RecordingType.WINDOW || type === RecordingType.DESKTOP) {
+  // Window recording uses higher bitrate for better quality
+  if (type === RecordingType.WINDOW) {
     return RECORDING_BITRATES.VIDEO_HIGH;
   }
   // Tab recording uses standard bitrate to balance quality and file size
@@ -75,7 +55,7 @@ export function getMimeType(format: VideoFormat): string {
 
 /**
  * Prepare complete recording options with defaults
- * Applies business rules for bitrates, display surface, etc.
+ * Applies business rules for bitrates, etc.
  *
  * @param data - Partial recording options from user input
  * @returns Complete recording options with all defaults applied
@@ -93,9 +73,6 @@ export function prepareRecordingOptions(
     audioBitsPerSecond: data.audioBitsPerSecond ?? RECORDING_BITRATES.AUDIO,
     sizeSettings: data.sizeSettings,
     resolution: data.resolution,
-    microphone: data.microphone,
-    camera: data.camera,
-    displaySurface: getDisplaySurface(type),
   };
 }
 

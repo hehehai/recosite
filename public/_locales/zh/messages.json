@@ -4,16 +4,16 @@
     "description": "扩展名称"
   },
   "extDescription": {
-    "message": "网页截图与录屏工具 - 支持长截图、局部截图和视频录制",
+    "message": "网页截图与录屏工具 - 支持全页截图和视频录制",
     "description": "扩展描述"
   },
-  "popup_screenshot_tab": {
+  "section_screenshot": {
     "message": "截图",
-    "description": "截图标签页"
+    "description": "截图区域标签"
   },
-  "popup_recording_tab": {
+  "section_recording": {
     "message": "录制",
-    "description": "录制标签页"
+    "description": "录制区域标签"
   },
   "action_fullpage_screenshot": {
     "message": "全页截图",
@@ -23,14 +23,6 @@
     "message": "视窗截图",
     "description": "视窗截图按钮"
   },
-  "action_dom_screenshot": {
-    "message": "DOM截图",
-    "description": "DOM截图按钮"
-  },
-  "action_selection_screenshot": {
-    "message": "选区截图",
-    "description": "选区截图按钮"
-  },
   "action_tab_recording": {
     "message": "页面录制",
     "description": "页面录制按钮"
@@ -38,18 +30,6 @@
   "action_window_recording": {
     "message": "窗口录制",
     "description": "窗口录制按钮"
-  },
-  "action_desktop_recording": {
-    "message": "桌面录制",
-    "description": "桌面录制按钮"
-  },
-  "recording_option_microphone": {
-    "message": "麦克风",
-    "description": "麦克风选项"
-  },
-  "recording_option_camera": {
-    "message": "摄像头",
-    "description": "摄像头选项"
   },
   "recording_option_resolution": {
     "message": "分辨率",
@@ -114,20 +94,6 @@
   "status_recording_success": {
     "message": "录制成功！",
     "description": "录制成功消息"
-  },
-  "selection_instruction": {
-    "message": "拖动鼠标选择截图区域，按 ESC 取消",
-    "description": "选区工具提示"
-  },
-  "selection_countdown": {
-    "message": "($1s)",
-    "description": "倒计时显示",
-    "placeholders": {
-      "seconds": {
-        "content": "$1",
-        "example": "3"
-      }
-    }
   },
   "result_title_suffix": {
     "message": "结果",

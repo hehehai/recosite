@@ -4,16 +4,16 @@
     "description": "Extension name"
   },
   "extDescription": {
-    "message": "Web screenshot and screen recording tool - supports long screenshots, partial captures, and video recording",
+    "message": "Web screenshot and screen recording tool - supports full page screenshots and video recording",
     "description": "Extension description"
   },
-  "popup_screenshot_tab": {
+  "section_screenshot": {
     "message": "Screenshot",
-    "description": "Screenshot tab label"
+    "description": "Screenshot section label"
   },
-  "popup_recording_tab": {
+  "section_recording": {
     "message": "Recording",
-    "description": "Recording tab label"
+    "description": "Recording section label"
   },
   "action_fullpage_screenshot": {
     "message": "Full Page Screenshot",
@@ -23,14 +23,6 @@
     "message": "Viewport Screenshot",
     "description": "Button to capture visible viewport"
   },
-  "action_dom_screenshot": {
-    "message": "DOM Screenshot",
-    "description": "Button to capture specific DOM element"
-  },
-  "action_selection_screenshot": {
-    "message": "Selection Screenshot",
-    "description": "Button to capture selected area"
-  },
   "action_tab_recording": {
     "message": "Tab Recording",
     "description": "Button to record current tab"
@@ -38,18 +30,6 @@
   "action_window_recording": {
     "message": "Window Recording",
     "description": "Button to record window"
-  },
-  "action_desktop_recording": {
-    "message": "Desktop Recording",
-    "description": "Button to record desktop"
-  },
-  "recording_option_microphone": {
-    "message": "Microphone",
-    "description": "Recording option for microphone"
-  },
-  "recording_option_camera": {
-    "message": "Camera",
-    "description": "Recording option for camera"
   },
   "recording_option_resolution": {
     "message": "Resolution",
@@ -114,20 +94,6 @@
   "status_recording_success": {
     "message": "Recording Successful!",
     "description": "Success message for recording"
-  },
-  "selection_instruction": {
-    "message": "Drag to select screenshot area, press ESC to cancel",
-    "description": "Instruction for selection tool"
-  },
-  "selection_countdown": {
-    "message": "($1s)",
-    "description": "Countdown timer display",
-    "placeholders": {
-      "seconds": {
-        "content": "$1",
-        "example": "3"
-      }
-    }
   },
   "result_title_suffix": {
     "message": "Result",

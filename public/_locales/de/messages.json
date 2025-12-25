@@ -4,16 +4,16 @@
     "description": "Erweiterungsname"
   },
   "extDescription": {
-    "message": "Web-Screenshot- und Bildschirmaufnahme-Tool - unterstützt Vollseiten-Screenshots, Teilaufnahmen und Videoaufzeichnung",
+    "message": "Web-Screenshot- und Bildschirmaufnahme-Tool - unterstützt Vollseiten-Screenshots und Videoaufzeichnung",
     "description": "Erweiterungsbeschreibung"
   },
-  "popup_screenshot_tab": {
+  "section_screenshot": {
     "message": "Screenshot",
-    "description": "Screenshot-Tab-Bezeichnung"
+    "description": "Screenshot-Bereich-Bezeichnung"
   },
-  "popup_recording_tab": {
+  "section_recording": {
     "message": "Aufnahme",
-    "description": "Aufnahme-Tab-Bezeichnung"
+    "description": "Aufnahme-Bereich-Bezeichnung"
   },
   "action_fullpage_screenshot": {
     "message": "Vollseiten-Screenshot",
@@ -23,14 +23,6 @@
     "message": "Viewport-Screenshot",
     "description": "Sichtbarer Bereich-Aufnahme-Button"
   },
-  "action_dom_screenshot": {
-    "message": "DOM-Screenshot",
-    "description": "Spezifisches DOM-Element-Aufnahme-Button"
-  },
-  "action_selection_screenshot": {
-    "message": "Auswahlbereich-Screenshot",
-    "description": "Ausgewählter Bereich-Aufnahme-Button"
-  },
   "action_tab_recording": {
     "message": "Tab-Aufnahme",
     "description": "Aktueller Tab-Aufnahme-Button"
@@ -38,18 +30,6 @@
   "action_window_recording": {
     "message": "Fenster-Aufnahme",
     "description": "Fenster-Aufnahme-Button"
-  },
-  "action_desktop_recording": {
-    "message": "Desktop-Aufnahme",
-    "description": "Desktop-Aufnahme-Button"
-  },
-  "recording_option_microphone": {
-    "message": "Mikrofon",
-    "description": "Mikrofon-Option"
-  },
-  "recording_option_camera": {
-    "message": "Kamera",
-    "description": "Kamera-Option"
   },
   "recording_option_resolution": {
     "message": "Auflösung",
@@ -114,20 +94,6 @@
   "status_recording_success": {
     "message": "Aufnahme erfolgreich!",
     "description": "Aufnahme-Erfolgsmeldung"
-  },
-  "selection_instruction": {
-    "message": "Ziehen Sie, um den Screenshot-Bereich auszuwählen, drücken Sie ESC zum Abbrechen",
-    "description": "Auswahl-Tool-Anweisung"
-  },
-  "selection_countdown": {
-    "message": "($1s)",
-    "description": "Countdown-Anzeige",
-    "placeholders": {
-      "seconds": {
-        "content": "$1",
-        "example": "3"
-      }
-    }
   },
   "result_title_suffix": {
     "message": "Ergebnis",

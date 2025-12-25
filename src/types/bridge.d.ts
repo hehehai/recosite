@@ -3,7 +3,7 @@ import type {
   ImageFormat,
   RecordingOptions,
   RecordingState,
-  SelectionArea,
+  RecordingType,
 } from "./screenshot";
 
 declare module "webext-bridge" {
@@ -26,46 +26,6 @@ declare module "webext-bridge" {
         fileName: string;
         width: number;
         height: number;
-        error?: string;
-      }
-    >;
-    "capture:selection": ProtocolWithReturn<
-      { format: ImageFormat; quality?: number },
-      {
-        success: boolean;
-        fileName: string;
-        width: number;
-        height: number;
-        error?: string;
-        cancelled?: boolean;
-      }
-    >;
-
-    // DOM 截图相关 - Popup to Content Script
-    "dom:start-selection": ProtocolWithReturn<
-      Record<string, never>,
-      { success: boolean }
-    >;
-    "dom:cancel-selection": ProtocolWithReturn<
-      Record<string, never>,
-      { success: boolean }
-    >;
-    "dom:confirm-selection": ProtocolWithReturn<
-      Record<string, never>,
-      { success: boolean }
-    >;
-
-    // DOM 截图捕获 - Content to Background
-    "dom:capture": ProtocolWithReturn<
-      {
-        dataUrl: string;
-        width: number;
-        height: number;
-        format: ImageFormat;
-      },
-      {
-        success: boolean;
-        fileName?: string;
         error?: string;
       }
     >;
@@ -109,12 +69,6 @@ declare module "webext-bridge" {
     "recording:status-internal": ProtocolWithReturn<
       Record<string, never>,
       { isRecording: boolean }
-    >;
-
-    // 选区截图相关 - Background to Content Script
-    "selection:start": ProtocolWithReturn<
-      Record<string, never>,
-      { area?: SelectionArea; cancelled?: boolean }
     >;
   }
 }

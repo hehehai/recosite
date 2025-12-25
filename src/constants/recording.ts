@@ -5,11 +5,11 @@
 
 /**
  * Default bitrates for recording
- * Higher bitrate for window/desktop capture for better quality
+ * Higher bitrate for window capture for better quality
  * Standard bitrate for tab capture to balance quality and file size
  */
 export const RECORDING_BITRATES = {
-  VIDEO_HIGH: 8_000_000, // 8 Mbps - for window/desktop capture
+  VIDEO_HIGH: 8_000_000, // 8 Mbps - for window capture
   VIDEO_STANDARD: 2_500_000, // 2.5 Mbps - for tab capture
   AUDIO: 128_000, // 128 kbps - for all audio
 } as const;
@@ -28,11 +28,9 @@ export const RECORDING_TIMING = {
 export const RECORDING_BADGE = {
   TEXT: {
     RECORDING: "REC",
-    DOM_SELECTION: "DOM",
   },
   COLORS: {
     RECORDING_BG: "#FF0000",
-    DOM_BG: "#3b82f6",
     TEXT: "#FFFFFF",
   },
 } as const;
@@ -63,13 +61,3 @@ export const RECORDING_MESSAGES = {
   START_WINDOW_CAPTURE: "recording:start-window-capture",
   STATUS_INTERNAL: "recording:status-internal",
 } as const;
-
-/**
- * Display surface types for getDisplayMedia
- * Controls which panel is focused in the browser's share picker
- */
-export const DISPLAY_SURFACE_TYPES = {
-  BROWSER: "browser" as const, // Browser tabs
-  WINDOW: "window" as const, // Application windows
-  MONITOR: "monitor" as const, // Entire screens/monitors
-};

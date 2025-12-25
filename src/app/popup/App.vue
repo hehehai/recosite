@@ -5,8 +5,7 @@
   import ActionButton from "@/components/ActionButton.vue";
   import StatusCard from "@/components/StatusCard.vue";
   import Toast from "@/components/Toast.vue";
-  import ToggleSwitch from "@/components/ToggleSwitch.vue";
-  import { useRecordingState, useTabPersistence } from "@/composables";
+  import { useRecordingState } from "@/composables";
   import { useToast } from "@/composables/useToast";
   import {
     ImageFormat,
@@ -24,9 +23,6 @@
     height: number;
   } | null>(null);
 
-  // Tab 持久化
-  const { activeTab } = useTabPersistence("screenshot");
-
   // 录制状态管理
   const {
     recordingState,
@@ -37,9 +33,6 @@
 
   // 录制选项
   const recordingOptions = ref({
-    systemAudio: true,
-    microphone: true,
-    camera: true,
     resolution: VideoResolution.AUTO as VideoResolution,
   });
 
@@ -51,7 +44,8 @@
       if (result.recordingOptions) {
         recordingOptions.value = {
           ...recordingOptions.value,
-          ...result.recordingOptions,
+          resolution:
+            result.recordingOptions.resolution || VideoResolution.AUTO,
         };
       }
     } catch (loadError) {
@@ -160,109 +154,17 @@
     }
   }
 
-  async function captureSelection() {
-    try {
-      isCapturing.value = true;
-      lastResult.value = null;
-
-      const response = await sendMessage(
-        "capture:selection",
-        { format: ImageFormat.PNG, quality: 0.92 },
-        "background"
-      );
-
-      if (response.cancelled) {
-        isCapturing.value = false;
-        return;
-      }
-
-      if (!response.success || response.error) {
-        error(t("error_screenshot_failed", response.error));
-        return;
-      }
-
-      lastResult.value = {
-        fileName: response.fileName,
-        width: response.width,
-        height: response.height,
-      };
-    } catch (err) {
-      error(t("error_screenshot_failed", String(err)));
-    } finally {
-      isCapturing.value = false;
-    }
-  }
-
-  async function captureDom() {
-    try {
-      isCapturing.value = true;
-      lastResult.value = null;
-
-      const [tab] = await browser.tabs.query({
-        active: true,
-        currentWindow: true,
-      });
-
-      if (!tab.id) {
-        error(t("error_no_active_tab"));
-        return;
-      }
-
-      try {
-        // 使用 webext-bridge 发送消息到 content script
-        await sendMessage(
-          "dom:start-selection",
-          {},
-          `content-script@${tab.id}`
-        );
-
-        window.close();
-      } catch (err) {
-        // 如果 content script 未加载（新标签页或扩展刚安装）
-        // 自动刷新页面并重试
-        console.log("[Popup] Content script not loaded, reloading tab...");
-
-        await browser.tabs.reload(tab.id);
-
-        // 等待页面加载完成
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-
-        try {
-          await sendMessage(
-            "dom:start-selection",
-            {},
-            `content-script@${tab.id}`
-          );
-          window.close();
-        } catch (retryErr) {
-          error(t("error_loading_failed"));
-          isCapturing.value = false;
-        }
-      }
-    } catch (err) {
-      error(t("error_screenshot_failed", String(err)));
-      isCapturing.value = false;
-    }
-  }
-
   async function handleToggleRecording(type = "tab") {
     const result = await toggleRecording(VideoFormat.WEBM, {
-      type: type as any,
-      microphone: recordingOptions.value.microphone,
-      camera: recordingOptions.value.camera,
+      type: type as "tab" | "window",
       resolution: recordingOptions.value.resolution,
     });
     if (!result.success && result.error) {
-      error(
-        recordingState.value === RecordingState.RECORDING
-          ? t("error_recording_failed", result.error)
-          : t("error_recording_failed", result.error)
-      );
+      error(t("error_recording_failed", result.error));
     }
   }
 
   function handleCloseStatusCard() {
-    // 关闭 StatusCard，清除状态
     lastResult.value = null;
   }
 
@@ -279,53 +181,49 @@
   // 计算当前状态卡片的配置
   const statusCardConfig = computed(() => {
     // 截图状态
-    if (activeTab.value === "screenshot") {
-      if (isCapturing.value) {
-        return {
-          show: true,
-          type: "info" as const,
-          message: t("status_capturing"),
-          closable: false,
-        };
-      }
-      if (lastResult.value) {
-        return {
-          show: true,
-          type: "success" as const,
-          title: t("status_screenshot_success"),
-          message: `${lastResult.value.fileName} (${lastResult.value.width}×${lastResult.value.height})`,
-          closable: true,
-        };
-      }
+    if (isCapturing.value) {
+      return {
+        show: true,
+        type: "info" as const,
+        message: t("status_capturing"),
+        closable: false,
+      };
+    }
+    if (lastResult.value) {
+      return {
+        show: true,
+        type: "success" as const,
+        title: t("status_screenshot_success"),
+        message: `${lastResult.value.fileName} (${lastResult.value.width}×${lastResult.value.height})`,
+        closable: true,
+      };
     }
 
     // 录制状态
-    if (activeTab.value === "recording") {
-      if (recordingState.value === RecordingState.RECORDING) {
-        return {
-          show: true,
-          type: "error" as const,
-          message: t("status_recording_in_progress"),
-          closable: false,
-        };
-      }
-      if (recordingState.value === RecordingState.PROCESSING) {
-        return {
-          show: true,
-          type: "info" as const,
-          message: t("status_processing_recording"),
-          closable: false,
-        };
-      }
-      if (lastRecordingResult.value) {
-        return {
-          show: true,
-          type: "success" as const,
-          title: t("status_recording_success"),
-          message: `${lastRecordingResult.value.fileName} (${formatFileSize(lastRecordingResult.value.size)})`,
-          closable: true,
-        };
-      }
+    if (recordingState.value === RecordingState.RECORDING) {
+      return {
+        show: true,
+        type: "error" as const,
+        message: t("status_recording_in_progress"),
+        closable: false,
+      };
+    }
+    if (recordingState.value === RecordingState.PROCESSING) {
+      return {
+        show: true,
+        type: "info" as const,
+        message: t("status_processing_recording"),
+        closable: false,
+      };
+    }
+    if (lastRecordingResult.value) {
+      return {
+        show: true,
+        type: "success" as const,
+        title: t("status_recording_success"),
+        message: `${lastRecordingResult.value.fileName} (${formatFileSize(lastRecordingResult.value.size)})`,
+        closable: true,
+      };
     }
 
     return { show: false };
@@ -339,70 +237,45 @@
 
 <template>
   <Toast/>
-  <div class="flex flex-col h-80 w-[340px] bg-gray-50 dark:bg-gray-900">
+  <div class="flex flex-col w-[340px] bg-gray-50 dark:bg-gray-900">
     <!-- 内容区域 -->
-    <div class="flex-1 overflow-y-auto p-3">
-      <!-- 截图标签页内容 -->
-      <div v-if="activeTab === 'screenshot'" class="h-full">
-        <div class="grid grid-cols-2 gap-2.5 h-full">
-          <!-- 左侧：全页截图和DOM截图垂直排列 -->
-          <div class="flex flex-col gap-2.5">
-            <!-- 全页截图 -->
-            <ActionButton
-              :label="t('action_fullpage_screenshot')"
-              :disabled="isCapturing"
-              @click="captureFullPage"
-            >
-              <template #icon>
-                <span class="i-hugeicons-border-full text-3xl"/>
-              </template>
-            </ActionButton>
+    <div class="p-3 space-y-3">
+      <!-- 截图区域 -->
+      <div>
+        <div class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
+          {{ t('section_screenshot') }}
+        </div>
+        <div class="grid grid-cols-2 gap-2.5">
+          <!-- 全页截图 -->
+          <ActionButton
+            :label="t('action_fullpage_screenshot')"
+            :disabled="isCapturing || recordingState === RecordingState.RECORDING"
+            @click="captureFullPage"
+          >
+            <template #icon>
+              <span class="i-hugeicons-border-full text-3xl"/>
+            </template>
+          </ActionButton>
 
-            <!-- DOM截图 -->
-            <ActionButton
-              :label="t('action_dom_screenshot')"
-              :disabled="isCapturing"
-              @click="captureDom"
-            >
-              <template #icon>
-                <span class="i-hugeicons-cursor-pointer-02 text-3xl"/>
-              </template>
-            </ActionButton>
-          </div>
-
-          <!-- 右侧：视窗截图和选区截图 -->
-          <div class="flex flex-col gap-2.5">
-            <!-- 视窗截图 -->
-            <ActionButton
-              :label="t('action_viewport_screenshot')"
-              :disabled="isCapturing"
-              @click="captureViewport"
-            >
-              <template #icon>
-                <span class="i-hugeicons-cursor-in-window text-3xl"/>
-              </template>
-            </ActionButton>
-
-            <!-- 选区截图 -->
-            <ActionButton
-              :label="t('action_selection_screenshot')"
-              :disabled="isCapturing"
-              @click="captureSelection"
-            >
-              <template #icon>
-                <span
-                  class="i-hugeicons-cursor-rectangle-selection-02 text-3xl"
-                />
-              </template>
-            </ActionButton>
-          </div>
+          <!-- 视窗截图 -->
+          <ActionButton
+            :label="t('action_viewport_screenshot')"
+            :disabled="isCapturing || recordingState === RecordingState.RECORDING"
+            @click="captureViewport"
+          >
+            <template #icon>
+              <span class="i-hugeicons-cursor-in-window text-3xl"/>
+            </template>
+          </ActionButton>
         </div>
       </div>
 
-      <!-- 录制标签页内容 -->
-      <div v-if="activeTab === 'recording'" class="h-full">
-        <!-- 录制类型选择 -->
-        <div class="grid grid-cols-2 gap-2.5 h-full">
+      <!-- 录制区域 -->
+      <div>
+        <div class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
+          {{ t('section_recording') }}
+        </div>
+        <div class="grid grid-cols-2 gap-2.5">
           <!-- 页面录制 -->
           <ActionButton
             :label="recordingState === RecordingState.RECORDING && recordingType === 'tab' ? t('status_recording') : t('action_tab_recording')"
@@ -440,112 +313,34 @@
               />
             </template>
           </ActionButton>
+        </div>
+      </div>
 
-          <!-- 桌面录制 -->
-          <ActionButton
-            :label="recordingState === RecordingState.RECORDING && recordingType === 'desktop' ? t('status_recording') : t('action_desktop_recording')"
-            :sublabel="recordingState === RecordingState.RECORDING && recordingType === 'desktop' ? t('status_click_to_stop') : undefined"
-            :active="recordingState === RecordingState.RECORDING && recordingType === 'desktop'"
-            :animate="recordingState === RecordingState.RECORDING && recordingType === 'desktop'"
-            :disabled="recordingState === RecordingState.PROCESSING || isCapturing || (recordingState === RecordingState.RECORDING && recordingType !== 'desktop')"
-            @click="handleToggleRecording('desktop')"
+      <!-- 录制选项 -->
+      <div
+        class="rounded-lg bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 px-4 py-3"
+      >
+        <div class="flex items-center justify-between">
+          <label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+            {{ t('recording_option_resolution') }}
+          </label>
+          <select
+            v-model="recordingOptions.resolution"
+            class="w-20 rounded-lg border border-gray-300 bg-white px-2 py-1 text-sm font-medium text-gray-700 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
           >
-            <template #icon>
-              <span
-                :class="['text-3xl', {
-                    'i-hugeicons-laptop-video': recordingState === RecordingState.IDLE || recordingType !== 'desktop',
-                    'i-hugeicons-stop-circle': recordingState === RecordingState.RECORDING && recordingType === 'desktop',
-                }]"
-              />
-            </template>
-          </ActionButton>
-
-          <!-- 录制选项 -->
-          <div
-            class="rounded-lg bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700"
-          >
-            <div class="flex flex-col justify-between px-4 py-3 h-full w-full">
-              <ToggleSwitch
-                v-model="recordingOptions.microphone"
-                :label="t('recording_option_microphone')"
-                disabled
-              />
-              <ToggleSwitch
-                v-model="recordingOptions.camera"
-                :label="t('recording_option_camera')"
-                disabled
-              />
-
-              <!-- 分辨率选择 -->
-              <div class="flex items-center justify-between gap-1">
-                <label
-                  class="block text-sm font-medium text-gray-700 dark:text-gray-300"
-                >
-                  {{ t('recording_option_resolution') }}
-                </label>
-                <select
-                  v-model="recordingOptions.resolution"
-                  class="w-16 rounded-lg border border-gray-300 bg-white px-1 py-0.5 h-7 text-xs font-medium text-gray-700 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-                >
-                  <option
-                    v-for="option in resolutionOptions"
-                    :key="option.value"
-                    :value="option.value"
-                  >
-                    {{ option.label }}
-                  </option>
-                </select>
-              </div>
-            </div>
-          </div>
+            <option
+              v-for="option in resolutionOptions"
+              :key="option.value"
+              :value="option.value"
+            >
+              {{ option.label }}
+            </option>
+          </select>
         </div>
       </div>
     </div>
 
-    <!-- 底部标签栏 -->
-    <div
-      class="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-    >
-      <div class="grid grid-cols-2 h-12">
-        <!-- 截图标签 -->
-        <button
-          type="button"
-          :class="[
-                    'flex items-center justify-center gap-1 transition-colors border-t-2',
-                    activeTab === 'screenshot'
-                        ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                        : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
-                ]"
-          @click="activeTab = 'screenshot'"
-        >
-          <span class="i-hugeicons-image-03 text-lg"/>
-          <span class="text-sm font-medium"
-            >{{ t('popup_screenshot_tab') }}</span
-          >
-        </button>
-
-        <!-- 录制标签 -->
-        <button
-          type="button"
-          :class="[
-                    'flex items-center justify-center gap-1 transition-colors border-t-2',
-                    activeTab === 'recording'
-                        ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                        : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300',
-                ]"
-          @click="activeTab = 'recording'"
-        >
-          <span
-            :class="['i-hugeicons-projector text-lg', {'text-ref-500': recordingState === RecordingState.RECORDING}]"
-          />
-          <span class="text-sm font-medium"
-            >{{ t('popup_recording_tab') }}</span
-          >
-        </button>
-      </div>
-    </div>
-
-    <!-- 状态卡片 - 固定在底部左侧，支持折叠 -->
+    <!-- 状态卡片 -->
     <StatusCard
       v-if="statusCardConfig.show"
       :type="statusCardConfig.type!"

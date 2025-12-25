@@ -16,17 +16,10 @@ export default defineConfig({
       "tabs",
       "scripting",
       "tabCapture", // 用于捕获标签页内容进行录制
-      "desktopCapture", // 用于窗口和桌面录制
       "offscreen", // 用于创建 offscreen document 进行录制
       "storage", // 用于存储录制数据
     ],
     host_permissions: ["<all_urls>"],
-    web_accessible_resources: [
-      {
-        resources: ["content-scripts/dom-selector.js"],
-        matches: ["<all_urls>"],
-      },
-    ],
     icons: {
       16: "icon/16.png",
       32: "icon/32.png",

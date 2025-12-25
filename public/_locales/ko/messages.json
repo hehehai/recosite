@@ -4,16 +4,16 @@
     "description": "확장 프로그램 이름"
   },
   "extDescription": {
-    "message": "웹 스크린샷 및 화면 녹화 도구 - 전체 페이지 캡처, 부분 캡처 및 비디오 녹화 지원",
+    "message": "웹 스크린샷 및 화면 녹화 도구 - 전체 페이지 캡처 및 비디오 녹화 지원",
     "description": "확장 프로그램 설명"
   },
-  "popup_screenshot_tab": {
+  "section_screenshot": {
     "message": "스크린샷",
-    "description": "스크린샷 탭 레이블"
+    "description": "스크린샷 섹션 레이블"
   },
-  "popup_recording_tab": {
+  "section_recording": {
     "message": "녹화",
-    "description": "녹화 탭 레이블"
+    "description": "녹화 섹션 레이블"
   },
   "action_fullpage_screenshot": {
     "message": "전체 페이지 스크린샷",
@@ -23,14 +23,6 @@
     "message": "뷰포트 스크린샷",
     "description": "표시 영역 캡처 버튼"
   },
-  "action_dom_screenshot": {
-    "message": "DOM 스크린샷",
-    "description": "특정 DOM 요소 캡처 버튼"
-  },
-  "action_selection_screenshot": {
-    "message": "선택 영역 스크린샷",
-    "description": "선택한 영역 캡처 버튼"
-  },
   "action_tab_recording": {
     "message": "탭 녹화",
     "description": "현재 탭 녹화 버튼"
@@ -38,18 +30,6 @@
   "action_window_recording": {
     "message": "창 녹화",
     "description": "창 녹화 버튼"
-  },
-  "action_desktop_recording": {
-    "message": "데스크톱 녹화",
-    "description": "데스크톱 녹화 버튼"
-  },
-  "recording_option_microphone": {
-    "message": "마이크",
-    "description": "마이크 옵션"
-  },
-  "recording_option_camera": {
-    "message": "카메라",
-    "description": "카메라 옵션"
   },
   "recording_option_resolution": {
     "message": "해상도",
@@ -114,20 +94,6 @@
   "status_recording_success": {
     "message": "녹화 성공!",
     "description": "녹화 성공 메시지"
-  },
-  "selection_instruction": {
-    "message": "드래그하여 스크린샷 영역 선택, ESC를 눌러 취소",
-    "description": "선택 도구 안내"
-  },
-  "selection_countdown": {
-    "message": "($1초)",
-    "description": "카운트다운 표시",
-    "placeholders": {
-      "seconds": {
-        "content": "$1",
-        "example": "3"
-      }
-    }
   },
   "result_title_suffix": {
     "message": "결과",

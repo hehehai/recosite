@@ -1,4 +1,4 @@
-import { onMessage, sendMessage } from "webext-bridge/background";
+import { onMessage } from "webext-bridge/background";
 import { browser } from "wxt/browser";
 import { RECORDING_BADGE } from "@/constants/recording";
 import {
@@ -6,7 +6,6 @@ import {
   type RecordingOptions,
   RecordingState,
   RecordingType,
-  type SelectionArea,
   VideoFormat,
 } from "@/types/screenshot";
 import { generateFileName } from "@/utils/file";
@@ -21,11 +20,7 @@ import {
   resetRecordingUI,
   setRecordingBadge,
 } from "@/utils/recordingState";
-import {
-  captureFullPage,
-  captureSelection,
-  captureViewport,
-} from "@/utils/screenshot";
+import { captureFullPage, captureViewport } from "@/utils/screenshot";
 
 // Recording state management
 const recordingStateManager: RecordingStateManager = {
@@ -48,29 +43,6 @@ export default defineBackground(() => {
   onMessage("capture:fullPage", async ({ data }) => {
     console.log("[Background] Received capture:fullPage");
     return await handleCaptureFullPage(data);
-  });
-
-  onMessage("capture:selection", async ({ data }) => {
-    console.log("[Background] Received capture:selection");
-    return await handleStartSelection(data);
-  });
-
-  // DOM 截图相关消息处理
-  onMessage("dom:start-selection", async () => {
-    console.log("[Background] Received dom:start-selection");
-    await updateDomBadge(true);
-    return { success: true };
-  });
-
-  onMessage("dom:cancel-selection", async () => {
-    console.log("[Background] Received dom:cancel-selection");
-    await updateDomBadge(false);
-    return { success: true };
-  });
-
-  onMessage("dom:capture", async ({ data }) => {
-    console.log("[Background] Received dom:capture");
-    return await handleCaptureDom(data);
   });
 
   // 录制相关消息处理
@@ -240,95 +212,6 @@ async function handleCaptureFullPage(data: {
 }
 
 /**
- * 处理选区截图
- */
-async function handleStartSelection(data: {
-  format: ImageFormat;
-  quality?: number;
-}) {
-  try {
-    const format = data.format || ImageFormat.PNG;
-    const quality = data.quality || 0.92;
-
-    // 获取当前活动标签页
-    const [tab] = await browser.tabs.query({
-      active: true,
-      currentWindow: true,
-    });
-
-    if (!tab.id) {
-      return {
-        success: false,
-        fileName: "",
-        width: 0,
-        height: 0,
-        error: "No active tab found",
-      };
-    }
-
-    // 注入选区工具脚本
-    await browser.scripting.executeScript({
-      target: { tabId: tab.id },
-      files: ["/content-scripts/selection.js"],
-    });
-
-    // 等待一小段时间让脚本初始化
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
-    // 使用 webext-bridge 发送消息到 content script
-    const response = await sendMessage(
-      "selection:start",
-      {},
-      `content-script@${tab.id}`
-    );
-
-    if (response.cancelled) {
-      return {
-        success: false,
-        fileName: "",
-        width: 0,
-        height: 0,
-        cancelled: true,
-      };
-    }
-
-    if (!response.area) {
-      return {
-        success: false,
-        fileName: "",
-        width: 0,
-        height: 0,
-        error: "No selection area received",
-      };
-    }
-
-    const area = response.area as SelectionArea;
-
-    // 执行选区截图
-    const result = await captureSelection(area, format, quality);
-    const fileName = generateFileName(format);
-
-    // 打开结果页面显示截图
-    await openResultPage(result.dataUrl, fileName, result.width, result.height);
-
-    return {
-      success: true,
-      fileName,
-      width: result.width,
-      height: result.height,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      fileName: "",
-      width: 0,
-      height: 0,
-      error: String(error),
-    };
-  }
-}
-
-/**
  * 处理开始录制
  */
 async function handleStartRecording(data: RecordingOptions) {
@@ -374,12 +257,9 @@ async function handleStartRecording(data: RecordingOptions) {
 
     let result: { success: boolean; streamId?: string; error?: string };
 
-    if (
-      recordingType === RecordingType.WINDOW ||
-      recordingType === RecordingType.DESKTOP
-    ) {
-      // Window/Desktop recording using getDisplayMedia
-      console.log(`[Background] Starting ${recordingType} recording...`);
+    if (recordingType === RecordingType.WINDOW) {
+      // Window recording using getDisplayMedia
+      console.log("[Background] Starting window recording...");
       result = await startWindowRecording(options, tabId);
     } else {
       // Tab recording (default)
@@ -414,20 +294,15 @@ async function handleStartRecording(data: RecordingOptions) {
 }
 
 /**
- * Start window/desktop recording
+ * Start window recording
  * Uses getDisplayMedia API to show browser's share picker
- * Supports both window and desktop (screen) recording types
  */
 async function startWindowRecording(
   options: RecordingOptions,
   _tabId: number
 ): Promise<{ success: boolean; error?: string }> {
   try {
-    console.log(`[Background] Starting ${options.type} recording...`);
-
-    // Note: desktopCapture streamId doesn't work in offscreen documents (Chrome bug)
-    // We let offscreen document call getDisplayMedia() directly to show the picker
-    // This is the recommended approach by Chrome
+    console.log("[Background] Starting window recording...");
 
     // 确保 offscreen document 已创建
     const { ensureOffscreenDocument } = await import("@/utils/recording");
@@ -586,72 +461,5 @@ async function updateRecordingIcon(isRecording: boolean) {
     );
   } else {
     await setRecordingBadge("", "", "");
-  }
-}
-
-/**
- * Update DOM selection badge
- */
-async function updateDomBadge(isSelecting: boolean) {
-  if (isSelecting) {
-    await setRecordingBadge(
-      RECORDING_BADGE.TEXT.DOM_SELECTION,
-      RECORDING_BADGE.COLORS.DOM_BG,
-      RECORDING_BADGE.COLORS.TEXT
-    );
-  } else {
-    await setRecordingBadge("", "", "");
-  }
-}
-
-/**
- * 处理 DOM 截图
- */
-async function handleCaptureDom(data: {
-  dataUrl: string;
-  width: number;
-  height: number;
-  format: ImageFormat;
-}) {
-  try {
-    console.log("[Background] Processing DOM capture");
-
-    // 清除 badge
-    await updateDomBadge(false);
-
-    // 生成文件名
-    const fileName = generateFileName(data.format || ImageFormat.PNG);
-
-    // 存储数据供后续导出使用
-    const resultId = `dom_screenshot_${Date.now()}`;
-    await browser.storage.local.set({
-      [resultId]: {
-        dataUrl: data.dataUrl,
-        fileName,
-        width: data.width,
-        height: data.height,
-        size: 0,
-        type: "image",
-      },
-    });
-
-    // 打开结果页面
-    const resultUrl = browser.runtime.getURL("/result.html");
-    const params = new URLSearchParams({
-      id: resultId,
-    });
-
-    await browser.tabs.create({
-      url: `${resultUrl}?${params.toString()}`,
-    });
-
-    return {
-      success: true,
-      fileName,
-    };
-  } catch (error) {
-    console.error("[Background] DOM capture failed:", error);
-    await updateDomBadge(false);
-    return { success: false, error: String(error) };
   }
 }
