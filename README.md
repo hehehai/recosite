@@ -11,7 +11,7 @@
 
 ## Overview
 
-Capture web pages as images (viewport, full-page, selection, DOM element) and record screen interactions as videos with format conversion support.
+Capture web pages as images (viewport, full-page) and record screen interactions as videos with format conversion support.
 
 ## Demo
 
@@ -22,21 +22,21 @@ Capture web pages as images (viewport, full-page, selection, DOM element) and re
 ## Features
 
 **Screenshots**
-- Viewport, full-page, selection, and DOM element capture
+- Viewport and full-page capture
 - PNG/JPEG export with quality control
 - Resize with presets (0.25x-3x) or custom dimensions
 - Live preview before export
 
 **Video Recording**
-- Record tab, window, or desktop
+- Record tab or window
 - Resolution: AUTO, 720p, 1080p, 4K
-- Audio: system, microphone, camera support
+- System audio support
 - Auto-stop detection
 - Convert to MP4, MOV, WebM, or GIF
 - Metadata extraction and video resizing
 
 **UI/UX**
-- Clean interface with dark mode
+- Clean unified interface with dark mode
 - Instant downloads with smart file naming
 - Status notifications and custom video player
 
@@ -59,7 +59,7 @@ Capture web pages as images (viewport, full-page, selection, DOM element) and re
 
 This project uses **automated version management** powered by [Semantic Release](https://github.com/semantic-release/semantic-release) and GitHub Actions.
 
-### 🤖 Automated Version Management
+### Automated Version Management
 
 Every push to the `main` branch triggers an automated workflow:
 
@@ -71,7 +71,7 @@ Every push to the `main` branch triggers an automated workflow:
 3. **Changelog Generation** - Updates [CHANGELOG.md](CHANGELOG.md) with release notes
 4. **GitHub Release** - Creates a draft release with version tag
 
-### 🚀 Manual Build and Publish
+### Manual Build and Publish
 
 After Semantic Release creates a new version, manually trigger the **Build and Publish** workflow:
 
@@ -83,7 +83,7 @@ After Semantic Release creates a new version, manually trigger the **Build and P
    - Upload packages to the GitHub Release
    - Publish Chrome extension to [Chrome Web Store](https://chromewebstore.google.com/detail/recosite/cajchbamocblcjllnllipgpioahkhlhk)
 
-### 📝 Commit Message Format
+### Commit Message Format
 
 We follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
 
@@ -125,7 +125,7 @@ git commit -m "docs: update installation instructions"
 git commit -m "chore: update dependencies"
 ```
 
-### 📥 Download
+### Download
 
 #### Chrome
 - **Recommended**: Install from [Chrome Web Store](https://chromewebstore.google.com/detail/recosite/cajchbamocblcjllnllipgpioahkhlhk) (auto-updates)
@@ -139,7 +139,7 @@ git commit -m "chore: update dependencies"
 - Download latest version from [GitHub Releases](https://github.com/hehehai/recosite/releases/latest)
 - Extract ZIP and load in developer mode
 
-### 📜 Version History
+### Version History
 
 - **Releases**: https://github.com/hehehai/recosite/releases
 - **Changelog**: [CHANGELOG.md](CHANGELOG.md)
@@ -178,7 +178,7 @@ npm run compile          # Type check
 
 - **Framework**: [WXT](https://wxt.dev/) (Manifest V3), [Vue 3](https://vuejs.org/), TypeScript
 - **Styling**: [Tailwind CSS 4](https://tailwindcss.com/), [UnoCSS Icons](https://unocss.dev/presets/icons)
-- **Media**: [MediaBunny](https://github.com/TrebledJ/mediabunny) (video conversion), [Snapdom](https://github.com/zumersalad/snapdom) (DOM capture)
+- **Media**: [MediaBunny](https://github.com/TrebledJ/mediabunny) (video conversion)
 - **Tools**: [Biome](https://biomejs.dev/) (linter/formatter), [Vite](https://vitejs.dev/), [webext-bridge](https://github.com/serversideup/webext-bridge) (messaging)
 
 ## Contributing
