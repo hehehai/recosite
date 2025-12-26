@@ -30,8 +30,24 @@ browser.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       return true; // 保持异步通道开启
 
     case "recording:stop-internal":
-      handleStopRecording().then(sendResponse);
+      handleStopRecording()
+        .then((result) => {
+          console.log("[Offscreen] Stop recording completed, sending response...");
+          sendResponse(result);
+          console.log("[Offscreen] Response sent successfully");
+        })
+        .catch((error) => {
+          console.error("[Offscreen] Stop recording failed:", error);
+          sendResponse({ success: false, error: String(error) });
+        });
       return true; // 保持异步通道开启
+
+    case "recording:cleanup-acknowledge":
+      // Background has received our data and processed it
+      // We can safely acknowledge that we're ready to be closed
+      console.log("[Offscreen] Received cleanup acknowledgment, ready to be closed");
+      sendResponse({ acknowledged: true });
+      return false; // Synchronous response
 
     case "recording:status-internal":
       sendResponse({

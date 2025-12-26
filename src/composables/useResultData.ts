@@ -6,7 +6,8 @@ import { formatFileSize } from "@/lib/file";
 export type ResultType = "image" | "video" | "pageinfo";
 
 export interface ResultData {
-  dataUrl: string;
+  dataUrl?: string; // Optional now
+  usesIndexedDB?: boolean; // New flag
   fileName: string;
   width: number;
   height: number;
@@ -70,7 +71,30 @@ export function useResultData() {
 
       // 处理 image/video 类型
       const mediaResult = data as ResultData;
-      mediaData.value = mediaResult.dataUrl;
+
+      // NEW: Check if data is in IndexedDB
+      if (mediaResult.usesIndexedDB) {
+        // Import IndexedDB helper
+        const { getBlobData, deleteBlobData } = await import("@/lib/blobStorage");
+
+        // Load blob from IndexedDB
+        const blob = await getBlobData(resultId);
+        if (!blob) {
+          error.value = t("error_data_expired");
+          loading.value = false;
+          return;
+        }
+
+        // Convert blob to object URL
+        mediaData.value = URL.createObjectURL(blob);
+
+        // Clean up IndexedDB after loading
+        await deleteBlobData(resultId);
+      } else {
+        // Use existing data URL approach
+        mediaData.value = mediaResult.dataUrl || null;
+      }
+
       fileName.value = mediaResult.fileName || "screenshot.png";
       width.value = mediaResult.width || 0;
       height.value = mediaResult.height || 0;

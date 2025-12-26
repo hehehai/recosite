@@ -197,15 +197,9 @@ export async function handleStopRecording(recordingStateManager: RecordingStateM
     const fileName = generateRecordingFileName(VideoFormat.WEBM);
     console.log("[RecordingHandler] Generated file name:", fileName);
 
-    // 将视频数据转换为 data URL
+    // Create Blob directly (no data URL conversion needed)
     const blob = new Blob([result.data as BlobPart], {
       type: result.mimeType || "video/webm",
-    });
-    const reader = new FileReader();
-    const dataUrl = await new Promise<string>((resolve, reject) => {
-      reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(blob);
     });
 
     // 获取录制时的实际尺寸
@@ -235,11 +229,12 @@ export async function handleStopRecording(recordingStateManager: RecordingStateM
       }
     }
 
-    // 打开结果页面显示录屏
-    await openResultPage(dataUrl, fileName, videoWidth, videoHeight, result.size || 0, "video");
+    // Pass Blob directly - no data URL conversion
+    await openResultPage(blob, fileName, videoWidth, videoHeight, result.size || 0, "video");
 
+    // NOW SAFE: All async operations complete, message channels cleaned up
     // 关闭 offscreen document
-    console.log("[RecordingHandler] Closing offscreen document...");
+    console.log("[RecordingHandler] Closing offscreen document (safe after acknowledgment)...");
     const { closeOffscreenDocument } = await import("@/lib/recording");
     await closeOffscreenDocument();
 

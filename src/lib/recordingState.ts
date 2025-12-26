@@ -41,7 +41,10 @@ export async function resetRecordingUI(manager: RecordingStateManager): Promise<
   await updateRecordingIcon(false);
   await clearRecordingBadge();
 
-  // Cleanup resources
+  // Cleanup resources with safety delay
+  // If offscreen document exists, give it time to finish any pending operations
+  await new Promise((resolve) => setTimeout(resolve, 50));
+
   await closeOffscreenDocument().catch((error) => {
     console.warn("[RecordingState] Failed to close offscreen document:", error);
   });

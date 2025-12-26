@@ -1,8 +1,12 @@
 import { ImageFormat } from "@/types/screenshot";
 import { JPEG_QUALITY } from "@/lib/constants/common";
 import { captureFullPage, captureViewport } from "@/lib/screenshot";
-import { generateFileName } from "@/lib/file";
+import { dataURLToBlob, generateFileName } from "@/lib/file";
 import { openResultPage } from "@/lib/resultPage";
+
+// Storage quota threshold in bytes (~5MB)
+// If image data URL is larger than this, convert to Blob for IndexedDB storage
+const STORAGE_QUOTA_THRESHOLD = 5 * 1024 * 1024;
 
 /**
  * 处理视窗截图
@@ -24,8 +28,19 @@ export async function handleCaptureViewport(data: {
     const result = await captureViewport(format, quality);
     const fileName = generateFileName(format);
 
+    // Convert to Blob if data URL is too large
+    const dataUrlSize = result.dataUrl.length;
+    let imageData: Blob | string = result.dataUrl;
+
+    if (dataUrlSize > STORAGE_QUOTA_THRESHOLD) {
+      console.log(
+        `[ScreenshotHandler] Image size ${dataUrlSize} exceeds threshold, using IndexedDB`,
+      );
+      imageData = dataURLToBlob(result.dataUrl);
+    }
+
     // 打开结果页面显示截图
-    await openResultPage(result.dataUrl, fileName, result.width, result.height);
+    await openResultPage(imageData, fileName, result.width, result.height);
 
     return {
       success: true,
@@ -67,8 +82,19 @@ export async function handleCaptureFullPage(data: {
 
     const fileName = generateFileName(format);
 
+    // Convert to Blob if data URL is too large (full page screenshots are often large)
+    const dataUrlSize = result.dataUrl.length;
+    let imageData: Blob | string = result.dataUrl;
+
+    if (dataUrlSize > STORAGE_QUOTA_THRESHOLD) {
+      console.log(
+        `[ScreenshotHandler] Image size ${dataUrlSize} exceeds threshold, using IndexedDB`,
+      );
+      imageData = dataURLToBlob(result.dataUrl);
+    }
+
     // 打开结果页面显示截图
-    await openResultPage(result.dataUrl, fileName, result.width, result.height);
+    await openResultPage(imageData, fileName, result.width, result.height);
     console.log("[ScreenshotHandler] Result page opened");
 
     return {

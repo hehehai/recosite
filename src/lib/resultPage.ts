@@ -1,12 +1,14 @@
 import { browser } from "wxt/browser";
 import type { PageInfo } from "@/types/screenshot";
+import { storeBlobData } from "@/lib/blobStorage";
 
 /**
  * 打开结果页面并显示截图或录屏
- * 使用 storage API 传递大数据，避免 URL 长度限制
+ * 对于视频和大图片使用 IndexedDB 存储 Blob,避免 storage.local 的容量限制
+ * 对于小图片使用 data URL 存储在 storage.local
  */
 export async function openResultPage(
-  dataUrl: string,
+  data: Blob | string, // Accept Blob or data URL
   fileName: string,
   width: number,
   height: number,
@@ -16,17 +18,34 @@ export async function openResultPage(
   // 生成唯一 ID
   const resultId = `screenshot_${Date.now()}`;
 
-  // 将数据存储到 local storage（跨标签页访问）
-  await browser.storage.local.set({
-    [resultId]: {
-      dataUrl,
-      fileName,
-      width,
-      height,
-      size,
-      type,
-    },
-  });
+  // For videos or large images (passed as Blob), store in IndexedDB
+  if (data instanceof Blob) {
+    await storeBlobData(resultId, data);
+
+    // Store metadata in storage.local (small)
+    await browser.storage.local.set({
+      [resultId]: {
+        usesIndexedDB: true,
+        fileName,
+        width,
+        height,
+        size,
+        type,
+      },
+    });
+  } else {
+    // For small images (data URL), use existing storage.local approach
+    await browser.storage.local.set({
+      [resultId]: {
+        dataUrl: data,
+        fileName,
+        width,
+        height,
+        size,
+        type,
+      },
+    });
+  }
 
   // 打开结果页面，只传递 ID
   const resultUrl = browser.runtime.getURL("/result.html");

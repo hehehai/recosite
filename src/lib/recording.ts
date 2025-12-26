@@ -179,6 +179,28 @@ export async function stopRecording(): Promise<{
 
     console.log(`[Recording] Received recording data: ${response.size} bytes`);
 
+    // CRITICAL: Send cleanup acknowledgment and wait
+    // This ensures the message channel is fully closed before we terminate the document
+    console.log("[Recording] Sending cleanup acknowledgment to offscreen document...");
+    try {
+      await browser.runtime.sendMessage({
+        type: "recording:cleanup-acknowledge",
+      });
+      console.log("[Recording] Cleanup acknowledged by offscreen document");
+    } catch (ackError) {
+      // If acknowledgment fails, it might be because the offscreen is already closing
+      // Log but don't fail the entire operation
+      console.warn(
+        "[Recording] Cleanup acknowledgment failed (offscreen may be closing):",
+        ackError,
+      );
+    }
+
+    // Add a small safety delay to ensure message channel cleanup
+    // This is belt-and-suspenders: even if acknowledgment works, give Chrome time to cleanup
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    console.log("[Recording] Safety delay completed");
+
     // 将 Array 转换回 Uint8Array
     const data = new Uint8Array(response.data);
 
