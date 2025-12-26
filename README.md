@@ -37,12 +37,20 @@ Capture web pages as images (viewport, full-page) and record screen interactions
 - Auto-stop detection
 - Convert to MP4, MOV, WebM, or GIF
 - Metadata extraction and video resizing
+- Portrait video display optimization
+
+**Page Information**
+
+- Favicon copy and download functionality
+- Page metadata extraction (title, description, og:image)
+- Meta tags export
 
 **UI/UX**
 
 - Clean unified interface with dark mode
 - Instant downloads with smart file naming
 - Status notifications and custom video player
+- Optimized storage management
 
 ## Installation
 
@@ -166,22 +174,50 @@ npm install
 **Commands**
 
 ```bash
-npm run dev              # Start dev server
+# Development
+npm run dev              # Start dev server (Chrome)
 npm run dev:firefox      # Start dev server (Firefox)
-npm run build            # Production build
-npm run zip              # Package for store
-npm run check            # Format and lint
-npm run compile          # Type check
+npm run dev:edge         # Start dev server (Edge)
+
+# Building
+npm run build            # Production build (Chrome)
+npm run build:firefox    # Production build (Firefox)
+npm run build:edge       # Production build (Edge)
+
+# Packaging
+npm run zip              # Package for Chrome Web Store
+npm run zip:firefox      # Package for Firefox
+npm run zip:edge         # Package for Edge Add-ons
+
+# Code Quality
+npm run check            # Format and lint with Oxlint/Oxfmt
+npm run compile          # TypeScript type checking
 ```
 
-**Load Extension**
+**Load Extension (Chrome)**
 
-1. Open `chrome://extensions/`
-2. Enable "Developer mode"
-3. Click "Load unpacked"
-4. Select `.output/chrome-mv3` directory
+1. Run `npm run dev` to start the development server
+2. Open `chrome://extensions/`
+3. Enable "Developer mode"
+4. Click "Load unpacked"
+5. Select the `.output/chrome-mv3` directory
 
-**Requirements**: Node.js 18+
+**Load Extension (Firefox)**
+
+1. Run `npm run dev:firefox`
+2. Open `about:debugging#/runtime/this-firefox`
+3. Click "Load Temporary Add-on"
+4. Select any file in the `.output/firefox-mv3` directory
+
+**Load Extension (Edge)**
+
+1. Run `npm run dev:edge`
+2. Open `edge://extensions/`
+3. Enable "Developer mode"
+4. Click "Load unpacked"
+5. Select the `.output/edge-mv3` directory
+
+**Requirements**: Node.js 18+, pnpm 10.14.0+
 
 ## Tech Stack
 
