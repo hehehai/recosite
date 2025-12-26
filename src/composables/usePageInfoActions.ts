@@ -1,16 +1,20 @@
 import { ref } from "vue";
+import { toast } from "vue-sonner";
 import { t } from "@/lib/i18n";
 import { useClipboard } from "./useClipboard";
 import { useFileDownload } from "./useFileDownload";
+import { extractLargestIcoImage, isIcoUrl } from "@/lib/ico";
 
 export function usePageInfoActions() {
   const urlCopySuccess = ref(false);
   const titleCopySuccess = ref(false);
   const descCopySuccess = ref(false);
   const metaCopySuccess = ref(false);
+  const faviconCopySuccess = ref(false);
+  const faviconDownloadSuccess = ref(false);
 
-  const { copyText: copyTextToClipboard, copyImageFromUrl } = useClipboard();
-  const { downloadFromDataUrl } = useFileDownload();
+  const { copyText: copyTextToClipboard, copyImageFromUrl, copyBlob } = useClipboard();
+  const { downloadFromDataUrl, downloadBlob } = useFileDownload();
 
   async function copyText(text: string, field: "url" | "title" | "desc", notificationKey: string) {
     const success = await copyTextToClipboard(text, {
@@ -65,14 +69,84 @@ export function usePageInfoActions() {
     });
   }
 
+  async function copyFavicon(faviconUrl: string) {
+    try {
+      let blob: Blob;
+
+      // 检查是否为 ICO 格式
+      if (isIcoUrl(faviconUrl)) {
+        // 提取最大尺寸并转换为 PNG
+        blob = await extractLargestIcoImage(faviconUrl);
+      } else {
+        // 直接从 URL 获取 Blob
+        const response = await fetch(faviconUrl);
+        blob = await response.blob();
+      }
+
+      // 复制到剪贴板
+      const success = await copyBlob(blob, {
+        successMessage: t("pageinfo_image_copied", "Favicon"),
+      });
+
+      if (success) {
+        faviconCopySuccess.value = true;
+        setTimeout(() => {
+          faviconCopySuccess.value = false;
+        }, 2000);
+      }
+    } catch (error) {
+      console.error("Failed to copy favicon:", error);
+      toast.error(t("result_copy_failed"));
+    }
+  }
+
+  async function downloadFavicon(faviconUrl: string) {
+    try {
+      let blob: Blob;
+      let fileName = "favicon.png";
+
+      // 检查是否为 ICO 格式
+      if (isIcoUrl(faviconUrl)) {
+        // 提取最大尺寸并转换为 PNG
+        blob = await extractLargestIcoImage(faviconUrl);
+        fileName = "favicon.png"; // 始终保存为 PNG
+      } else {
+        // 直接从 URL 获取 Blob
+        const response = await fetch(faviconUrl);
+        blob = await response.blob();
+
+        // 根据 MIME 类型确定扩展名
+        const extension = blob.type.split("/")[1] || "png";
+        fileName = `favicon.${extension}`;
+      }
+
+      // 下载文件
+      downloadBlob(blob, fileName, {
+        successMessage: t("pageinfo_image_downloaded", fileName),
+      });
+
+      faviconDownloadSuccess.value = true;
+      setTimeout(() => {
+        faviconDownloadSuccess.value = false;
+      }, 2000);
+    } catch (error) {
+      console.error("Failed to download favicon:", error);
+      toast.error(t("result_export_failed"));
+    }
+  }
+
   return {
     urlCopySuccess,
     titleCopySuccess,
     descCopySuccess,
     metaCopySuccess,
+    faviconCopySuccess,
+    faviconDownloadSuccess,
     copyText,
     copyMetaTags,
     copyPageInfoImage,
     downloadPageInfoImage,
+    copyFavicon,
+    downloadFavicon,
   };
 }
