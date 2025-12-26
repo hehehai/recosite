@@ -464,5 +464,115 @@
   "size_unit_gigabytes": {
     "message": "GB",
     "description": "Gigabytes-Einheit"
+  },
+  "section_tools": {
+    "message": "Werkzeuge",
+    "description": "Werkzeuge-Bereich-Bezeichnung"
+  },
+  "action_pageinfo": {
+    "message": "Seiteninformationen",
+    "description": "Seiteninformationen abrufen-Button"
+  },
+  "error_pageinfo_failed": {
+    "message": "Seiteninformationen abrufen fehlgeschlagen: $1",
+    "description": "Seiteninformationen abrufen fehlgeschlagen-Fehler",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "Berechtigung verweigert"
+      }
+    }
+  },
+  "pageinfo_title": {
+    "message": "Seiteninformationen",
+    "description": "Seiteninformationen-Ergebnistitel"
+  },
+  "pageinfo_url": {
+    "message": "URL",
+    "description": "URL-Bezeichnung"
+  },
+  "pageinfo_page_title": {
+    "message": "Titel",
+    "description": "Seitentitel-Bezeichnung"
+  },
+  "pageinfo_description": {
+    "message": "Beschreibung",
+    "description": "Beschreibung-Bezeichnung"
+  },
+  "pageinfo_favicon": {
+    "message": "Favicon",
+    "description": "Favicon-Bezeichnung"
+  },
+  "pageinfo_og_image": {
+    "message": "Open Graph Bild",
+    "description": "OG-Bild-Bezeichnung"
+  },
+  "pageinfo_screenshot": {
+    "message": "Viewport-Screenshot",
+    "description": "Screenshot-Bezeichnung"
+  },
+  "pageinfo_meta_tags": {
+    "message": "Meta-Tags",
+    "description": "Meta-Tags-Bezeichnung"
+  },
+  "pageinfo_copy_meta": {
+    "message": "Kopieren",
+    "description": "Meta-Tags kopieren-Button"
+  },
+  "pageinfo_copied": {
+    "message": "Kopiert",
+    "description": "Kopiert-Button-Text"
+  },
+  "pageinfo_meta_copied": {
+    "message": "Meta-Tags in Zwischenablage kopiert",
+    "description": "Meta-Tags kopieren erfolgreich"
+  },
+  "pageinfo_copy": {
+    "message": "Kopieren",
+    "description": "Kopieren-Button-Text"
+  },
+  "pageinfo_download": {
+    "message": "Herunterladen",
+    "description": "Herunterladen-Button-Text"
+  },
+  "pageinfo_url_copied": {
+    "message": "URL in Zwischenablage kopiert",
+    "description": "URL kopieren erfolgreich"
+  },
+  "pageinfo_title_copied": {
+    "message": "Titel in Zwischenablage kopiert",
+    "description": "Titel kopieren erfolgreich"
+  },
+  "pageinfo_desc_copied": {
+    "message": "Beschreibung in Zwischenablage kopiert",
+    "description": "Beschreibung kopieren erfolgreich"
+  },
+  "pageinfo_image_copied": {
+    "message": "$1 in Zwischenablage kopiert",
+    "description": "Bild kopieren erfolgreich",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Screenshot"
+      }
+    }
+  },
+  "pageinfo_image_downloaded": {
+    "message": "$1 heruntergeladen",
+    "description": "Bild herunterladen erfolgreich",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "screenshot.png"
+      }
+    }
+  },
+  "pageinfo_no_title": {
+    "message": "Kein Titel",
+    "description": "Kein Titel-Platzhalter"
+  },
+  "pageinfo_no_description": {
+    "message": "Keine Beschreibung",
+    "description": "Keine Beschreibung-Platzhalter"
   }
 }

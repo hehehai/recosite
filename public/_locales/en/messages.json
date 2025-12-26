@@ -464,5 +464,115 @@
   "size_unit_gigabytes": {
     "message": "GB",
     "description": "Gigabytes unit"
+  },
+  "section_tools": {
+    "message": "Tools",
+    "description": "Tools section label"
+  },
+  "action_pageinfo": {
+    "message": "Page Info",
+    "description": "Button to get page information"
+  },
+  "error_pageinfo_failed": {
+    "message": "Failed to get page info: $1",
+    "description": "Error when getting page info fails",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "Permission denied"
+      }
+    }
+  },
+  "pageinfo_title": {
+    "message": "Page Information",
+    "description": "Page info result title"
+  },
+  "pageinfo_url": {
+    "message": "URL",
+    "description": "URL label"
+  },
+  "pageinfo_page_title": {
+    "message": "Title",
+    "description": "Page title label"
+  },
+  "pageinfo_description": {
+    "message": "Description",
+    "description": "Description label"
+  },
+  "pageinfo_favicon": {
+    "message": "Favicon",
+    "description": "Favicon label"
+  },
+  "pageinfo_og_image": {
+    "message": "Open Graph Image",
+    "description": "OG image label"
+  },
+  "pageinfo_screenshot": {
+    "message": "Viewport Screenshot",
+    "description": "Screenshot label"
+  },
+  "pageinfo_meta_tags": {
+    "message": "Meta Tags",
+    "description": "Meta tags label"
+  },
+  "pageinfo_copy_meta": {
+    "message": "Copy",
+    "description": "Copy meta tags button"
+  },
+  "pageinfo_copied": {
+    "message": "Copied",
+    "description": "Copied button text"
+  },
+  "pageinfo_meta_copied": {
+    "message": "Meta tags copied to clipboard",
+    "description": "Meta tags copy success"
+  },
+  "pageinfo_copy": {
+    "message": "Copy",
+    "description": "Copy button text"
+  },
+  "pageinfo_download": {
+    "message": "Download",
+    "description": "Download button text"
+  },
+  "pageinfo_url_copied": {
+    "message": "URL copied to clipboard",
+    "description": "URL copy success"
+  },
+  "pageinfo_title_copied": {
+    "message": "Title copied to clipboard",
+    "description": "Title copy success"
+  },
+  "pageinfo_desc_copied": {
+    "message": "Description copied to clipboard",
+    "description": "Description copy success"
+  },
+  "pageinfo_image_copied": {
+    "message": "$1 copied to clipboard",
+    "description": "Image copy success",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "Screenshot"
+      }
+    }
+  },
+  "pageinfo_image_downloaded": {
+    "message": "$1 downloaded",
+    "description": "Image download success",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "screenshot.png"
+      }
+    }
+  },
+  "pageinfo_no_title": {
+    "message": "No title",
+    "description": "No title placeholder"
+  },
+  "pageinfo_no_description": {
+    "message": "No description",
+    "description": "No description placeholder"
   }
 }

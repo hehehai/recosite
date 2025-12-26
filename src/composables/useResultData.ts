@@ -1,7 +1,9 @@
 import { computed, ref } from "vue";
-import { t } from "@/utils/i18n";
+import type { PageInfo } from "@/types/screenshot";
+import { t } from "@/lib/i18n";
+import { formatFileSize } from "@/lib/file";
 
-export type ResultType = "image" | "video";
+export type ResultType = "image" | "video" | "pageinfo";
 
 export interface ResultData {
   dataUrl: string;
@@ -10,6 +12,11 @@ export interface ResultData {
   height: number;
   size: number;
   type: ResultType;
+}
+
+export interface PageInfoResultData {
+  type: "pageinfo";
+  pageInfo: PageInfo;
 }
 
 export function useResultData() {
@@ -23,41 +30,27 @@ export function useResultData() {
   const originalFormat = ref<string>("");
   const loading = ref(true);
   const error = ref<string | null>(null);
+  const pageInfo = ref<PageInfo | null>(null);
 
   const fileSizeFormatted = computed(() => {
     if (fileSize.value === 0 && mediaData.value) {
       // 估算 dataURL 的大小
       const base64Length = mediaData.value.split(",")[1]?.length || 0;
       const bytes = (base64Length * 3) / 4;
-      return formatBytes(bytes);
+      return formatFileSize(bytes);
     }
-    return formatBytes(fileSize.value);
+    return formatFileSize(fileSize.value);
   });
 
   const resultTypeLabel = computed(() =>
-    resultType.value === "image"
-      ? t("popup_screenshot_tab")
-      : t("popup_recording_tab")
+    resultType.value === "image" ? t("popup_screenshot_tab") : t("popup_recording_tab"),
   );
-
-  function formatBytes(bytes: number): string {
-    if (bytes === 0) {
-      return "0 B";
-    }
-    const k = 1024;
-    const sizes = ["B", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${Number.parseFloat((bytes / k ** i).toFixed(2))} ${sizes[i]}`;
-  }
 
   async function loadResultData(resultId: string) {
     try {
       const { browser } = await import("wxt/browser");
-      const storageData = await browser.storage.local.get([
-        resultId,
-        `${resultId}_svg`,
-      ]);
-      const data = storageData[resultId] as ResultData;
+      const storageData = await browser.storage.local.get([resultId, `${resultId}_svg`]);
+      const data = storageData[resultId] as ResultData | PageInfoResultData;
 
       if (!data) {
         error.value = t("error_data_expired");
@@ -65,12 +58,24 @@ export function useResultData() {
         return;
       }
 
-      mediaData.value = data.dataUrl;
-      fileName.value = data.fileName || "screenshot.png";
-      width.value = data.width || 0;
-      height.value = data.height || 0;
-      fileSize.value = data.size || 0;
-      resultType.value = data.type || "image";
+      // 处理 pageinfo 类型
+      if (data.type === "pageinfo") {
+        resultType.value = "pageinfo";
+        pageInfo.value = (data as PageInfoResultData).pageInfo;
+        loading.value = false;
+        // 清理 storage 数据
+        await browser.storage.local.remove([resultId]);
+        return;
+      }
+
+      // 处理 image/video 类型
+      const mediaResult = data as ResultData;
+      mediaData.value = mediaResult.dataUrl;
+      fileName.value = mediaResult.fileName || "screenshot.png";
+      width.value = mediaResult.width || 0;
+      height.value = mediaResult.height || 0;
+      fileSize.value = mediaResult.size || 0;
+      resultType.value = mediaResult.type || "image";
 
       // 加载 SVG 数据（如果存在且有效）
       const svgKey = `${resultId}_svg`;
@@ -107,6 +112,7 @@ export function useResultData() {
     originalFormat,
     loading,
     error,
+    pageInfo,
     fileSizeFormatted,
     resultTypeLabel,
     loadResultData,

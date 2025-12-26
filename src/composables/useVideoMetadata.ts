@@ -135,7 +135,7 @@ export function useVideoMetadata() {
           }
 
           return baseInfo;
-        })
+        }),
       );
 
       metadata.value = {

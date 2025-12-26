@@ -3,10 +3,11 @@
   <h1>Recosite</h1>
   <p>Browser extension for capturing web pages and recording screen interactions</p>
 
-  [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-  [![Chrome Web Store](https://img.shields.io/badge/Chrome-Available-brightgreen.svg)](https://chromewebstore.google.com/detail/recosite/cajchbamocblcjllnllipgpioahkhlhk)
-  [![CI](https://github.com/hehehai/recosite/workflows/CI/badge.svg)](https://github.com/hehehai/recosite/actions/workflows/ci.yml)
-  [![Release](https://github.com/hehehai/recosite/workflows/Release/badge.svg)](https://github.com/hehehai/recosite/actions/workflows/release.yml)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Chrome Web Store](https://img.shields.io/badge/Chrome-Available-brightgreen.svg)](https://chromewebstore.google.com/detail/recosite/cajchbamocblcjllnllipgpioahkhlhk)
+[![CI](https://github.com/hehehai/recosite/workflows/CI/badge.svg)](https://github.com/hehehai/recosite/actions/workflows/ci.yml)
+[![Release](https://github.com/hehehai/recosite/workflows/Release/badge.svg)](https://github.com/hehehai/recosite/actions/workflows/release.yml)
+
 </div>
 
 ## Overview
@@ -22,12 +23,14 @@ Capture web pages as images (viewport, full-page) and record screen interactions
 ## Features
 
 **Screenshots**
+
 - Viewport and full-page capture
 - PNG/JPEG export with quality control
 - Resize with presets (0.25x-3x) or custom dimensions
 - Live preview before export
 
 **Video Recording**
+
 - Record tab or window
 - Resolution: AUTO, 720p, 1080p, 4K
 - System audio support
@@ -36,6 +39,7 @@ Capture web pages as images (viewport, full-page) and record screen interactions
 - Metadata extraction and video resizing
 
 **UI/UX**
+
 - Clean unified interface with dark mode
 - Instant downloads with smart file naming
 - Status notifications and custom video player
@@ -96,6 +100,7 @@ We follow the [Conventional Commits](https://www.conventionalcommits.org/) speci
 ```
 
 **Types:**
+
 - `feat`: New feature (triggers minor release)
 - `fix`: Bug fix (triggers patch release)
 - `docs`: Documentation changes (no release)
@@ -128,14 +133,17 @@ git commit -m "chore: update dependencies"
 ### Download
 
 #### Chrome
+
 - **Recommended**: Install from [Chrome Web Store](https://chromewebstore.google.com/detail/recosite/cajchbamocblcjllnllipgpioahkhlhk) (auto-updates)
 - **Manual**: Download from [GitHub Releases](https://github.com/hehehai/recosite/releases/latest)
 
 #### Firefox
+
 - Download latest version from [GitHub Releases](https://github.com/hehehai/recosite/releases/latest)
 - Extract ZIP and load as temporary add-on in `about:debugging`
 
 #### Edge
+
 - Download latest version from [GitHub Releases](https://github.com/hehehai/recosite/releases/latest)
 - Extract ZIP and load in developer mode
 
@@ -167,6 +175,7 @@ npm run compile          # Type check
 ```
 
 **Load Extension**
+
 1. Open `chrome://extensions/`
 2. Enable "Developer mode"
 3. Click "Load unpacked"
@@ -184,6 +193,7 @@ npm run compile          # Type check
 ## Contributing
 
 Contributions welcome! Please:
+
 1. Fork the repository
 2. Create feature branch (`git checkout -b feature/name`)
 3. Run `npm run check` before committing

@@ -1,9 +1,5 @@
 import { type Ref, ref } from "vue";
-import {
-  DEFAULT_VALUES,
-  PRESET_SCALES,
-  SIZE_LIMITS,
-} from "@/constants/export-size";
+import { DEFAULT_VALUES, PRESET_SCALES, SIZE_LIMITS } from "@/lib/constants/export-size";
 
 export interface ExportSizeSettings {
   width: number;
@@ -25,9 +21,7 @@ export function useExportSize(options: UseExportSizeOptions) {
   const currentScale = ref(initialValue?.scale ?? DEFAULT_VALUES.SCALE);
   const currentWidth = ref(initialValue?.width ?? originalWidth);
   const currentHeight = ref(initialValue?.height ?? originalHeight);
-  const showOriginal = ref(
-    initialValue?.showOriginal ?? DEFAULT_VALUES.SHOW_ORIGINAL
-  );
+  const showOriginal = ref(initialValue?.showOriginal ?? DEFAULT_VALUES.SHOW_ORIGINAL);
 
   // 计算等比缩放后的尺寸
   function calculateDimensions(scale: number) {
@@ -35,13 +29,10 @@ export function useExportSize(options: UseExportSizeOptions) {
     const newHeight = Math.round(originalHeight * scale);
 
     // 应用宽高限制
-    const clampedWidth = Math.max(
-      SIZE_LIMITS.MIN_WIDTH,
-      Math.min(SIZE_LIMITS.MAX_WIDTH, newWidth)
-    );
+    const clampedWidth = Math.max(SIZE_LIMITS.MIN_WIDTH, Math.min(SIZE_LIMITS.MAX_WIDTH, newWidth));
     const clampedHeight = Math.max(
       SIZE_LIMITS.MIN_HEIGHT,
-      Math.min(SIZE_LIMITS.MAX_HEIGHT, newHeight)
+      Math.min(SIZE_LIMITS.MAX_HEIGHT, newHeight),
     );
 
     return { width: clampedWidth, height: clampedHeight };
@@ -64,11 +55,7 @@ export function useExportSize(options: UseExportSizeOptions) {
 
   // 当宽度改变时，按比例调整高度
   function onWidthChange(newWidth: number) {
-    const clampedWidth = clampValue(
-      newWidth,
-      SIZE_LIMITS.MIN_WIDTH,
-      SIZE_LIMITS.MAX_WIDTH
-    );
+    const clampedWidth = clampValue(newWidth, SIZE_LIMITS.MIN_WIDTH, SIZE_LIMITS.MAX_WIDTH);
     currentWidth.value = clampedWidth;
     currentScale.value = clampedWidth / originalWidth;
     currentHeight.value = Math.round(originalHeight * currentScale.value);
@@ -89,11 +76,7 @@ export function useExportSize(options: UseExportSizeOptions) {
 
   // 当高度改变时，按比例调整宽度
   function onHeightChange(newHeight: number) {
-    const clampedHeight = clampValue(
-      newHeight,
-      SIZE_LIMITS.MIN_HEIGHT,
-      SIZE_LIMITS.MAX_HEIGHT
-    );
+    const clampedHeight = clampValue(newHeight, SIZE_LIMITS.MIN_HEIGHT, SIZE_LIMITS.MAX_HEIGHT);
     currentHeight.value = clampedHeight;
     currentScale.value = clampedHeight / originalHeight;
     currentWidth.value = Math.round(originalWidth * currentScale.value);

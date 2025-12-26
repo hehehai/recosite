@@ -1,64 +1,64 @@
 <script setup lang="ts">
-  import { ref, watch } from "vue";
-  import {
-    useVideoMetadata,
-    type VideoMetadata,
-  } from "@/composables/useVideoMetadata";
-  import { t } from "@/utils/i18n";
+import { ref, watch } from "vue";
+import {
+  useVideoMetadata,
+  type VideoMetadata,
+} from "@/composables/useVideoMetadata";
+import { t } from "@/lib/i18n";
 
-  const props = defineProps<{
-    show: boolean;
-    dataUrl: string;
-  }>();
+const props = defineProps<{
+  show: boolean;
+  dataUrl: string;
+}>();
 
-  const emit = defineEmits<{
-    close: [];
-  }>();
+const emit = defineEmits<{
+  close: [];
+}>();
 
-  const { metadata, loading, error, extractMetadata } = useVideoMetadata();
-  const activeTab = ref<"overview" | "tracks">("overview");
+const { metadata, loading, error, extractMetadata } = useVideoMetadata();
+const activeTab = ref<"overview" | "tracks">("overview");
 
-  watch(
-    () => props.show,
-    (show) => {
-      if (show && props.dataUrl) {
-        extractMetadata(props.dataUrl).catch(console.error);
-      }
-    },
-    { immediate: true }
-  );
-
-  const formatDuration = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = Math.floor(seconds % 60);
-    const ms = Math.floor((seconds % 1) * 1000);
-
-    if (hours > 0) {
-      return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}.${ms.toString().padStart(3, "0")}`;
+watch(
+  () => props.show,
+  (show) => {
+    if (show && props.dataUrl) {
+      extractMetadata(props.dataUrl).catch(console.error);
     }
-    return `${minutes}:${secs.toString().padStart(2, "0")}.${ms.toString().padStart(3, "0")}`;
-  };
+  },
+  { immediate: true }
+);
 
-  const formatBitrate = (bps: number) => {
-    if (bps >= 1_000_000) {
-      return `${(bps / 1_000_000).toFixed(2)} Mbps`;
-    }
-    if (bps >= 1000) {
-      return `${(bps / 1000).toFixed(2)} Kbps`;
-    }
-    return `${bps} bps`;
-  };
+const formatDuration = (seconds: number) => {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+  const ms = Math.floor((seconds % 1) * 1000);
 
-  const handleClose = () => {
-    emit("close");
-  };
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}.${ms.toString().padStart(3, "0")}`;
+  }
+  return `${minutes}:${secs.toString().padStart(2, "0")}.${ms.toString().padStart(3, "0")}`;
+};
 
-  const handleBackdropClick = (e: MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      handleClose();
-    }
-  };
+const formatBitrate = (bps: number) => {
+  if (bps >= 1_000_000) {
+    return `${(bps / 1_000_000).toFixed(2)} Mbps`;
+  }
+  if (bps >= 1000) {
+    return `${(bps / 1000).toFixed(2)} Kbps`;
+  }
+  return `${bps} bps`;
+};
+
+const handleClose = () => {
+  emit("close");
+};
+
+const handleBackdropClick = (e: MouseEvent) => {
+  if (e.target === e.currentTarget) {
+    handleClose();
+  }
+};
 </script>
 
 <template>
@@ -90,12 +90,7 @@
               class="rounded-lg p-2 text-gray-500 transition hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
               @click="handleClose"
             >
-              <svg
-                class="size-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
+              <svg class="size-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -133,10 +128,7 @@
           </div>
 
           <!-- Content -->
-          <div
-            class="overflow-y-auto p-6"
-            style="max-height: calc(90vh - 180px)"
-          >
+          <div class="overflow-y-auto p-6" style="max-height: calc(90vh - 180px)">
             <!-- Loading State -->
             <div v-if="loading" class="flex items-center justify-center py-12">
               <div class="text-center">
@@ -150,10 +142,7 @@
             </div>
 
             <!-- Error State -->
-            <div
-              v-else-if="error"
-              class="flex items-center justify-center py-12"
-            >
+            <div v-else-if="error" class="flex items-center justify-center py-12">
               <div class="text-center">
                 <svg
                   class="mx-auto size-12 text-red-500"
@@ -175,22 +164,15 @@
             </div>
 
             <!-- Overview Tab -->
-            <div
-              v-else-if="activeTab === 'overview' && metadata"
-              class="space-y-4"
-            >
+            <div v-else-if="activeTab === 'overview' && metadata" class="space-y-4">
               <div class="grid grid-cols-2 gap-4">
                 <div
                   class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900"
                 >
-                  <p
-                    class="text-sm font-medium text-gray-500 dark:text-gray-400"
-                  >
+                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
                     {{ t("video_format") }}
                   </p>
-                  <p
-                    class="mt-1 text-lg font-semibold text-gray-900 dark:text-white"
-                  >
+                  <p class="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
                     {{
                                             metadata.format }}
                   </p>
@@ -198,29 +180,21 @@
                 <div
                   class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900"
                 >
-                  <p
-                    class="text-sm font-medium text-gray-500 dark:text-gray-400"
-                  >
+                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
                     {{ t("video_mime_type") }}
                   </p>
-                  <p
-                    class="mt-1 text-lg font-mono text-gray-900 dark:text-white"
-                  >
+                  <p class="mt-1 text-lg font-mono text-gray-900 dark:text-white">
                     {{ metadata.mimeType
-                                        }}
+                    }}
                   </p>
                 </div>
                 <div
                   class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900"
                 >
-                  <p
-                    class="text-sm font-medium text-gray-500 dark:text-gray-400"
-                  >
+                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
                     {{ t("video_duration") }}
                   </p>
-                  <p
-                    class="mt-1 text-lg font-mono font-semibold text-gray-900 dark:text-white"
-                  >
+                  <p class="mt-1 text-lg font-mono font-semibold text-gray-900 dark:text-white">
                     {{
                                             formatDuration(metadata.duration) }}
                   </p>
@@ -228,14 +202,10 @@
                 <div
                   class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900"
                 >
-                  <p
-                    class="text-sm font-medium text-gray-500 dark:text-gray-400"
-                  >
+                  <p class="text-sm font-medium text-gray-500 dark:text-gray-400">
                     {{ t("video_track_count") }}
                   </p>
-                  <p
-                    class="mt-1 text-lg font-semibold text-gray-900 dark:text-white"
-                  >
+                  <p class="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
                     {{
                                             metadata.tracks.length }}
                   </p>
@@ -244,19 +214,14 @@
             </div>
 
             <!-- Tracks Tab -->
-            <div
-              v-else-if="activeTab === 'tracks' && metadata"
-              class="space-y-4"
-            >
+            <div v-else-if="activeTab === 'tracks' && metadata" class="space-y-4">
               <div
                 v-for="(track, index) in metadata.tracks"
                 :key="index"
                 class="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900"
               >
                 <div class="mb-3 flex items-center gap-2">
-                  <span
-                    class="rounded bg-blue-500 px-2 py-1 text-xs font-medium text-white"
-                  >
+                  <span class="rounded bg-blue-500 px-2 py-1 text-xs font-medium text-white">
                     {{ t("video_track_number", String(index + 1)) }}
                   </span>
                   <span
@@ -279,9 +244,7 @@
                     <dt class="font-medium text-gray-500 dark:text-gray-400">
                       {{ t("video_full_codec") }}
                     </dt>
-                    <dd
-                      class="mt-1 font-mono text-xs text-gray-900 dark:text-white"
-                    >
+                    <dd class="mt-1 font-mono text-xs text-gray-900 dark:text-white">
                       {{
                                                 track.codecString }}
                     </dd>
@@ -304,7 +267,7 @@
                       </dt>
                       <dd class="mt-1 font-mono text-gray-900 dark:text-white">
                         {{ track.codedWidth
-                                                }}
+                        }}
                         × {{ track.codedHeight }}
                       </dd>
                     </div>

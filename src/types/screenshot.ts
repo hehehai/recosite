@@ -8,8 +8,7 @@ export const ScreenshotType = {
   FULL_PAGE: "full_page", // 长截图
 } as const;
 
-export type ScreenshotType =
-  (typeof ScreenshotType)[keyof typeof ScreenshotType];
+export type ScreenshotType = (typeof ScreenshotType)[keyof typeof ScreenshotType];
 
 /**
  * 图片格式
@@ -86,8 +85,7 @@ export const RecordingState = {
   PROCESSING: "processing",
 } as const;
 
-export type RecordingState =
-  (typeof RecordingState)[keyof typeof RecordingState];
+export type RecordingState = (typeof RecordingState)[keyof typeof RecordingState];
 
 /**
  * 视频分辨率选项
@@ -99,8 +97,7 @@ export const VideoResolution = {
   UHD: "4k", // 3840x2160
 } as const;
 
-export type VideoResolution =
-  (typeof VideoResolution)[keyof typeof VideoResolution];
+export type VideoResolution = (typeof VideoResolution)[keyof typeof VideoResolution];
 
 /**
  * 录制配置选项
@@ -120,4 +117,19 @@ export interface RecordingOptions {
 export interface Message {
   type: MessageType;
   data?: unknown;
+}
+
+/**
+ * 页面信息
+ */
+export interface PageInfo {
+  url: string;
+  title: string;
+  description: string;
+  favicon: string;
+  ogImage: string;
+  screenshot: string; // dataUrl
+  metaTags: string; // HTML code of all meta tags
+  width: number;
+  height: number;
 }

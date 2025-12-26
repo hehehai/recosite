@@ -21,11 +21,7 @@ export function useRecordingState() {
    */
   async function checkRecordingStatus() {
     try {
-      const response = await sendMessage(
-        "recording:get-status",
-        {},
-        "background"
-      );
+      const response = await sendMessage("recording:get-status", {}, "background");
       recordingState.value = response.state;
       if (response.recordingType) {
         recordingType.value = response.recordingType;
@@ -43,7 +39,7 @@ export function useRecordingState() {
     options?: {
       type?: RecordingType;
       resolution?: import("@/types/screenshot").VideoResolution;
-    }
+    },
   ) {
     try {
       lastRecordingResult.value = null;
@@ -52,7 +48,7 @@ export function useRecordingState() {
       const response = await sendMessage(
         "recording:start-request",
         { type, format, ...options },
-        "background"
+        "background",
       );
 
       if (response.error) {
@@ -79,11 +75,7 @@ export function useRecordingState() {
       recordingState.value = RecordingState.PROCESSING;
       lastRecordingResult.value = null;
 
-      const response = await sendMessage(
-        "recording:stop-request",
-        {},
-        "background"
-      );
+      const response = await sendMessage("recording:stop-request", {}, "background");
 
       if (response.error) {
         throw new Error(response.error);
@@ -115,7 +107,7 @@ export function useRecordingState() {
     options?: {
       type?: RecordingType;
       resolution?: import("@/types/screenshot").VideoResolution;
-    }
+    },
   ) {
     if (recordingState.value === RecordingState.RECORDING) {
       return await stopRecording();

@@ -1,33 +1,27 @@
 import { ref } from "vue";
 import type { ImageFormat } from "@/types/screenshot";
-import { t } from "@/utils/i18n";
-
-const FILE_EXTENSION_REGEX = /\.[^.]+$/;
+import { t } from "@/lib/i18n";
+import { FILE_EXTENSION_REGEX, JPEG_QUALITY } from "@/lib/constants/common";
+import { useFileDownload } from "./useFileDownload";
+import { useClipboard } from "./useClipboard";
 
 export function useImageExport() {
   const exportingFormat = ref<string | null>(null);
-
-  function downloadFile(url: string, name: string) {
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = name;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
+  const { downloadFromUrl, downloadBlob } = useFileDownload();
+  const { copyImageFromDataUrl } = useClipboard();
 
   async function exportImage(
     dataUrl: string,
     fileName: string,
     originalFormat: string,
-    targetFormat: ImageFormat
+    targetFormat: ImageFormat,
   ): Promise<{ success: boolean; error?: string }> {
     exportingFormat.value = targetFormat;
 
     try {
       // 如果格式相同，直接下载
       if (targetFormat === originalFormat) {
-        downloadFile(dataUrl, fileName);
+        downloadFromUrl(dataUrl, fileName);
         return { success: true };
       }
 
@@ -51,7 +45,7 @@ export function useImageExport() {
 
       ctx.drawImage(img, 0, 0);
 
-      const quality = targetFormat === "jpeg" ? 0.92 : undefined;
+      const quality = targetFormat === "jpeg" ? JPEG_QUALITY : undefined;
       const mimeType = `image/${targetFormat}`;
 
       return await new Promise((resolve) => {
@@ -62,17 +56,12 @@ export function useImageExport() {
               return;
             }
 
-            const url = URL.createObjectURL(blob);
-            const newFileName = fileName.replace(
-              FILE_EXTENSION_REGEX,
-              `.${targetFormat}`
-            );
-            downloadFile(url, newFileName);
-            URL.revokeObjectURL(url);
+            const newFileName = fileName.replace(FILE_EXTENSION_REGEX, `.${targetFormat}`);
+            downloadBlob(blob, newFileName);
             resolve({ success: true });
           },
           mimeType,
-          quality
+          quality,
         );
       });
     } catch (err) {
@@ -83,21 +72,12 @@ export function useImageExport() {
   }
 
   async function copyToClipboard(dataUrl: string): Promise<boolean> {
-    try {
-      const blob = await fetch(dataUrl).then((res) => res.blob());
-      const item = new ClipboardItem({ [blob.type]: blob });
-      await navigator.clipboard.write([item]);
-      return true;
-    } catch (err) {
-      console.error(t("error_copy_failed"), err);
-      return false;
-    }
+    return await copyImageFromDataUrl(dataUrl);
   }
 
   return {
     exportingFormat,
     exportImage,
     copyToClipboard,
-    downloadFile,
   };
 }

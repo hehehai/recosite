@@ -21,7 +21,7 @@ git stash push --quiet --keep-index --message "pre-commit-stash" || true
 STASHED=$?
 
 # Run formatter on the staged files
-pnpm dlx ultracite fix
+pnpm dlx oxfmt --no-error-on-unmatched-pattern
 FORMAT_EXIT_CODE=$?
 
 # Restore working directory state
@@ -62,7 +62,7 @@ fi
 # Check if staged files actually changed
 NEW_STAGED_HASH=$(git diff --cached | sha256sum | cut -d' ' -f1)
 if [ "$STAGED_HASH" != "$NEW_STAGED_HASH" ]; then
-  echo "✨ Files formatted by Ultracite"
+  echo "✨ Files formatted by oxc"
 fi
 
 exit $FORMAT_EXIT_CODE

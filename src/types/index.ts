@@ -1,5 +1,3 @@
 import type { IsolatedWorldContentScriptDefinition } from "wxt";
 
-export type ContentScriptContext = Parameters<
-  IsolatedWorldContentScriptDefinition["main"]
->[0];
+export type ContentScriptContext = Parameters<IsolatedWorldContentScriptDefinition["main"]>[0];

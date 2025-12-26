@@ -1,9 +1,9 @@
 import { ref } from "vue";
 import type { VideoFormat } from "@/types/screenshot";
-import { t } from "@/utils/i18n";
+import { t } from "@/lib/i18n";
+import { FILE_EXTENSION_REGEX } from "@/lib/constants/common";
 import type { ExportSizeSettings } from "./useExportSize";
-
-const FILE_EXTENSION_REGEX = /\.[^.]+$/;
+import { useFileDownload } from "./useFileDownload";
 
 /**
  * 调整视频尺寸
@@ -11,7 +11,7 @@ const FILE_EXTENSION_REGEX = /\.[^.]+$/;
 async function resizeVideo(
   blob: Blob,
   sizeSettings: ExportSizeSettings,
-  onProgress?: (progress: number) => void
+  onProgress?: (progress: number) => void,
 ): Promise<Blob> {
   console.log(`[VideoExport] Resizing video with scale: ${sizeSettings.scale}`);
 
@@ -24,9 +24,7 @@ async function resizeVideo(
   try {
     // 目前 MediaBunny API 限制，暂时跳过尺寸调整
     // 将来可以考虑使用其他库如 FFmpeg.wasm 或服务端处理
-    console.warn(
-      "[VideoExport] Video resizing not yet supported, returning original video"
-    );
+    console.warn("[VideoExport] Video resizing not yet supported, returning original video");
 
     // 模拟进度
     if (onProgress) {
@@ -37,9 +35,7 @@ async function resizeVideo(
   } catch (error) {
     console.error("[VideoExport] Failed to resize video:", error);
     // 如果尺寸调整失败，返回原始视频而不是抛出错误
-    console.warn(
-      "[VideoExport] Falling back to original video due to resize failure"
-    );
+    console.warn("[VideoExport] Falling back to original video due to resize failure");
     return blob;
   }
 }
@@ -47,33 +43,22 @@ async function resizeVideo(
 export function useVideoExport() {
   const exportingFormat = ref<string | null>(null);
   const conversionProgress = ref<number>(0);
-
-  function downloadFile(url: string, name: string) {
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = name;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
+  const { downloadFromUrl, downloadBlob } = useFileDownload();
 
   async function exportVideo(
     dataUrl: string,
     fileName: string,
     originalFormat: string,
     targetFormat: VideoFormat,
-    sizeSettings?: ExportSizeSettings
+    sizeSettings?: ExportSizeSettings,
   ): Promise<{ success: boolean; error?: string }> {
     exportingFormat.value = targetFormat;
     conversionProgress.value = 0;
 
     try {
       // 如果格式相同且没有尺寸调整，直接下载
-      if (
-        targetFormat === originalFormat &&
-        (!sizeSettings || sizeSettings.scale === 1)
-      ) {
-        downloadFile(dataUrl, fileName);
+      if (targetFormat === originalFormat && (!sizeSettings || sizeSettings.scale === 1)) {
+        downloadFromUrl(dataUrl, fileName);
         return { success: true };
       }
 
@@ -83,15 +68,12 @@ export function useVideoExport() {
       // 如果需要尺寸调整，先处理视频尺寸
       if (sizeSettings && sizeSettings.scale !== 1) {
         blob = await resizeVideo(blob, sizeSettings, (progress) => {
-          conversionProgress.value = Math.max(
-            conversionProgress.value,
-            progress
-          );
+          conversionProgress.value = Math.max(conversionProgress.value, progress);
         });
 
         // 如果尺寸调整返回了原始视频，记录警告
         console.warn(
-          "[VideoExport] Video resizing skipped, proceeding with original video for format conversion"
+          "[VideoExport] Video resizing skipped, proceeding with original video for format conversion",
         );
       }
 
@@ -145,14 +127,9 @@ export function useVideoExport() {
 
       // 检查转换是否有效
       if (!conversion.isValid) {
-        console.warn(
-          "Conversion invalid, discarded tracks:",
-          conversion.discardedTracks
-        );
+        console.warn("Conversion invalid, discarded tracks:", conversion.discardedTracks);
         const discardedInfo = conversion.discardedTracks
-          .map(
-            (track: any) => `${track.track?.type || "unknown"}: ${track.reason}`
-          )
+          .map((track: any) => `${track.track?.type || "unknown"}: ${track.reason}`)
           .join(", ");
         return {
           success: false,
@@ -164,9 +141,7 @@ export function useVideoExport() {
       conversion.onProgress = (newProgress: number) => {
         // 由于尺寸调整暂时跳过，格式转换占100%进度
         conversionProgress.value = newProgress;
-        console.log(
-          `Conversion progress: ${Math.round(conversionProgress.value * 100)}%`
-        );
+        console.log(`Conversion progress: ${Math.round(conversionProgress.value * 100)}%`);
       };
 
       // Start the conversion process
@@ -182,13 +157,8 @@ export function useVideoExport() {
       const outputBlob = new Blob([outputBuffer], { type: mimeType });
 
       // 下载转换后的文件
-      const url = URL.createObjectURL(outputBlob);
-      const newFileName = fileName.replace(
-        FILE_EXTENSION_REGEX,
-        `.${targetFormat}`
-      );
-      downloadFile(url, newFileName);
-      URL.revokeObjectURL(url);
+      const newFileName = fileName.replace(FILE_EXTENSION_REGEX, `.${targetFormat}`);
+      downloadBlob(outputBlob, newFileName);
 
       return { success: true };
     } catch (err) {
@@ -204,7 +174,6 @@ export function useVideoExport() {
     exportingFormat,
     conversionProgress,
     exportVideo,
-    downloadFile,
     resizeVideo,
   };
 }

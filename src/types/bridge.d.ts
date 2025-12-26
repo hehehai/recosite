@@ -1,10 +1,5 @@
 import type { ProtocolWithReturn } from "webext-bridge";
-import type {
-  ImageFormat,
-  RecordingOptions,
-  RecordingState,
-  RecordingType,
-} from "./screenshot";
+import type { ImageFormat, RecordingOptions, RecordingState, RecordingType } from "./screenshot";
 
 declare module "webext-bridge" {
   export interface ProtocolMap {
@@ -69,6 +64,16 @@ declare module "webext-bridge" {
     "recording:status-internal": ProtocolWithReturn<
       Record<string, never>,
       { isRecording: boolean }
+    >;
+
+    // 页面信息相关 - Popup to Background
+    "pageinfo:capture": ProtocolWithReturn<
+      Record<string, never>,
+      {
+        success: boolean;
+        pageInfo?: PageInfo;
+        error?: string;
+      }
     >;
   }
 }

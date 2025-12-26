@@ -1,25 +1,8 @@
 import { browser } from "wxt/browser";
-import { RECORDING_BITRATES, RECORDING_TIMING } from "@/constants/recording";
+import { RECORDING_BITRATES, RECORDING_TIMING } from "@/lib/constants/recording";
+import { getResolutionDimensions } from "@/lib/constants/resolution";
 import { type RecordingOptions, VideoResolution } from "@/types/screenshot";
-import { getMediaRecorderOptions } from "@/utils/recordingConfig";
-
-/**
- * 获取分辨率对应的尺寸
- */
-function getResolutionDimensions(
-  resolution: VideoResolution
-): { width: number; height: number } | null {
-  switch (resolution) {
-    case VideoResolution.HD:
-      return { width: 1280, height: 720 };
-    case VideoResolution.FHD:
-      return { width: 1920, height: 1080 };
-    case VideoResolution.UHD:
-      return { width: 3840, height: 2160 };
-    default:
-      return null; // 使用原始尺寸 (AUTO 或其他值)
-  }
-}
+import { getMediaRecorderOptions } from "@/lib/recordingConfig";
 
 let mediaRecorder: MediaRecorder | null = null;
 let recordedChunks: Blob[] = [];
@@ -52,8 +35,7 @@ browser.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
     case "recording:status-internal":
       sendResponse({
-        isRecording:
-          mediaRecorder !== null && mediaRecorder.state === "recording",
+        isRecording: mediaRecorder !== null && mediaRecorder.state === "recording",
       });
       return false;
 
@@ -70,13 +52,8 @@ browser.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 async function handleStartWindowCapture(data: {
   options: RecordingOptions;
 }): Promise<{ success: boolean; error?: string }> {
-  console.log(
-    "[Offscreen] ========== handleStartWindowCapture called =========="
-  );
-  console.log(
-    "[Offscreen] Received options:",
-    JSON.stringify(data.options, null, 2)
-  );
+  console.log("[Offscreen] ========== handleStartWindowCapture called ==========");
+  console.log("[Offscreen] Received options:", JSON.stringify(data.options, null, 2));
 
   try {
     const { options } = data;
@@ -91,7 +68,7 @@ async function handleStartWindowCapture(data: {
       const resolutionDimensions = getResolutionDimensions(options.resolution);
       if (resolutionDimensions) {
         console.log(
-          `[Offscreen] Applying resolution: ${options.resolution} (${resolutionDimensions.width}x${resolutionDimensions.height})`
+          `[Offscreen] Applying resolution: ${options.resolution} (${resolutionDimensions.width}x${resolutionDimensions.height})`,
         );
         videoConstraints.width = {
           ideal: resolutionDimensions.width,
@@ -110,8 +87,7 @@ async function handleStartWindowCapture(data: {
       surfaceSwitching: "exclude", // 禁用动态切换按钮
     } as DisplayMediaStreamOptions;
 
-    const stream =
-      await navigator.mediaDevices.getDisplayMedia(displayMediaOptions);
+    const stream = await navigator.mediaDevices.getDisplayMedia(displayMediaOptions);
 
     console.log("[Offscreen] Got MediaStream with tracks:", {
       video: stream.getVideoTracks().length,
@@ -134,14 +110,8 @@ async function handleStartWindowCapture(data: {
         console.log("[Offscreen] Video track ended - user stopped sharing");
 
         // 只通知 background，让 background 来统一处理停止流程
-        if (
-          !isStopping &&
-          mediaRecorder &&
-          mediaRecorder.state === "recording"
-        ) {
-          console.log(
-            "[Offscreen] Notifying background to stop recording due to stream end"
-          );
+        if (!isStopping && mediaRecorder && mediaRecorder.state === "recording") {
+          console.log("[Offscreen] Notifying background to stop recording due to stream end");
           browser.runtime
             .sendMessage({
               type: "recording:track-ended",
@@ -161,7 +131,7 @@ async function handleStartWindowCapture(data: {
     const recorderOptions = getMediaRecorderOptions(
       options.format,
       options.videoBitsPerSecond || RECORDING_BITRATES.VIDEO_HIGH,
-      options.audioBitsPerSecond || RECORDING_BITRATES.AUDIO
+      options.audioBitsPerSecond || RECORDING_BITRATES.AUDIO,
     );
 
     mediaRecorder = new MediaRecorder(stream, recorderOptions);
@@ -172,23 +142,18 @@ async function handleStartWindowCapture(data: {
       if (event.data.size > 0) {
         recordedChunks.push(event.data);
         console.log(
-          `[Offscreen] Data available: ${event.data.size} bytes, total chunks: ${recordedChunks.length}`
+          `[Offscreen] Data available: ${event.data.size} bytes, total chunks: ${recordedChunks.length}`,
         );
       }
     };
 
     mediaRecorder.onstop = async () => {
-      console.log(
-        "[Offscreen] MediaRecorder stopped, total chunks:",
-        recordedChunks.length
-      );
+      console.log("[Offscreen] MediaRecorder stopped, total chunks:", recordedChunks.length);
 
       // 如果不是手动停止（isStopping = false），说明是流媒体自动关闭导致的
       // 需要保存数据以便后续 background 请求时返回
       if (!isStopping && recordedChunks.length > 0) {
-        console.log(
-          "[Offscreen] MediaRecorder auto-stopped, saving recorded data"
-        );
+        console.log("[Offscreen] MediaRecorder auto-stopped, saving recorded data");
 
         // 合并所有录制的数据块
         const blob = new Blob(recordedChunks, { type: "video/webm" });
@@ -202,11 +167,7 @@ async function handleStartWindowCapture(data: {
           mimeType: blob.type,
         };
 
-        console.log(
-          "[Offscreen] Saved auto-stopped data:",
-          autoStoppedData.size,
-          "bytes"
-        );
+        console.log("[Offscreen] Saved auto-stopped data:", autoStoppedData.size, "bytes");
       }
 
       // 停止所有 tracks
@@ -223,10 +184,7 @@ async function handleStartWindowCapture(data: {
 
     // Start recording
     mediaRecorder.start(RECORDING_TIMING.DATA_COLLECTION_INTERVAL);
-    console.log(
-      "[Offscreen] MediaRecorder started, state:",
-      mediaRecorder.state
-    );
+    console.log("[Offscreen] MediaRecorder started, state:", mediaRecorder.state);
 
     return { success: true };
   } catch (error) {
@@ -268,7 +226,7 @@ async function handleStartRecording(data: {
         "[Offscreen] Applying resolution:",
         targetSize.width !== targetSize.originalWidth
           ? `${targetSize.width}x${targetSize.height}`
-          : "original"
+          : "original",
       );
     }
 
@@ -298,10 +256,7 @@ async function handleStartRecording(data: {
       },
     };
 
-    console.log(
-      "[Offscreen] getUserMedia constraints:",
-      JSON.stringify(constraints, null, 2)
-    );
+    console.log("[Offscreen] getUserMedia constraints:", JSON.stringify(constraints, null, 2));
 
     let stream: MediaStream;
     try {
@@ -340,9 +295,7 @@ async function handleStartRecording(data: {
 
     // 检查浏览器是否支持该 MIME 类型
     if (!MediaRecorder.isTypeSupported(mimeType)) {
-      console.warn(
-        `[Offscreen] ${mimeType} not supported, falling back to video/webm`
-      );
+      console.warn(`[Offscreen] ${mimeType} not supported, falling back to video/webm`);
       mimeType = "video/webm"; // 降级到基本 WebM
     }
 
@@ -353,7 +306,7 @@ async function handleStartRecording(data: {
     const mediaRecorderOptions = getMediaRecorderOptions(
       options.format,
       options.videoBitsPerSecond || RECORDING_BITRATES.VIDEO_STANDARD,
-      options.audioBitsPerSecond || RECORDING_BITRATES.AUDIO
+      options.audioBitsPerSecond || RECORDING_BITRATES.AUDIO,
     );
 
     mediaRecorder = new MediaRecorder(stream, mediaRecorderOptions);
@@ -363,16 +316,14 @@ async function handleStartRecording(data: {
       if (event.data.size > 0) {
         recordedChunks.push(event.data);
         console.log(
-          `[Offscreen] Data chunk received: ${event.data.size} bytes (total chunks: ${recordedChunks.length})`
+          `[Offscreen] Data chunk received: ${event.data.size} bytes (total chunks: ${recordedChunks.length})`,
         );
       }
     };
 
     // 监听停止事件
     mediaRecorder.onstop = async () => {
-      console.log(
-        `[Offscreen] Recording stopped, total chunks: ${recordedChunks.length}`
-      );
+      console.log(`[Offscreen] Recording stopped, total chunks: ${recordedChunks.length}`);
       // 停止所有 tracks
       for (const track of stream.getTracks()) {
         track.stop();
@@ -415,11 +366,7 @@ async function handleStopRecording(): Promise<{
 
     // 如果有自动停止的数据，直接返回
     if (autoStoppedData) {
-      console.log(
-        "[Offscreen] Returning auto-stopped data:",
-        autoStoppedData.size,
-        "bytes"
-      );
+      console.log("[Offscreen] Returning auto-stopped data:", autoStoppedData.size, "bytes");
       const result = {
         success: true,
         data: autoStoppedData.data,
@@ -460,9 +407,7 @@ async function handleStopRecording(): Promise<{
     // 创建一个 Promise 来等待录制停止
     const stopPromise = new Promise<void>((resolve) => {
       currentRecorder.onstop = async () => {
-        console.log(
-          `[Offscreen] Recording stopped, total chunks: ${recordedChunks.length}`
-        );
+        console.log(`[Offscreen] Recording stopped, total chunks: ${recordedChunks.length}`);
         // 停止所有 tracks
         if (currentRecorder.stream) {
           for (const track of currentRecorder.stream.getTracks()) {

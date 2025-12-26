@@ -1,8 +1,8 @@
 {
   "name": "recosite",
-  "description": "Web screenshot and screen recording Chrome extension - supports long screenshots, partial captures, and video recording",
-  "private": true,
   "version": "1.2.9",
+  "private": true,
+  "description": "Web screenshot and screen recording Chrome extension - supports long screenshots, partial captures, and video recording",
   "type": "module",
   "scripts": {
     "dev": "wxt",
@@ -17,15 +17,25 @@
     "compile": "vue-tsc --noEmit",
     "postinstall": "wxt prepare",
     "prepare": "husky",
-    "check": "biome check --write ."
+    "check": "oxlint --fix --fix-suggestions && oxfmt --write"
   },
   "dependencies": {
+    "@fontsource/google-sans-flex": "^5.2.1",
+    "@vee-validate/zod": "^4.15.1",
+    "@vueuse/core": "^14.1.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-vue-next": "^0.562.0",
     "mediabunny": "^1.24.3",
+    "reka-ui": "^2.7.0",
+    "tailwind-merge": "^3.4.0",
+    "vee-validate": "^4.15.1",
     "vue": "^3.5.21",
-    "webext-bridge": "^6.0.1"
+    "vue-sonner": "^2.0.9",
+    "webext-bridge": "^6.0.1",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.3.2",
     "@egoist/tailwindcss-icons": "^1.9.0",
     "@iconify-json/hugeicons": "^1.2.17",
     "@semantic-release/changelog": "^6.0.3",
@@ -34,11 +44,14 @@
     "@wxt-dev/module-vue": "^1.0.2",
     "conventional-changelog-conventionalcommits": "^8.0.0",
     "husky": "^9.1.7",
+    "oxfmt": "^0.19.0",
+    "oxlint": "^1.34.0",
     "semantic-release": "^24.2.0",
     "tailwindcss": "^4.1.16",
+    "tw-animate-css": "^1.4.0",
     "typescript": "^5.9.2",
-    "ultracite": "6.1.0",
     "vue-tsc": "^3.0.6",
     "wxt": "^0.20.6"
-  }
+  },
+  "packageManager": "pnpm@10.14.0"
 }

@@ -464,5 +464,115 @@
   "size_unit_gigabytes": {
     "message": "GB",
     "description": "吉字节单位"
+  },
+  "section_tools": {
+    "message": "工具",
+    "description": "工具区域标签"
+  },
+  "action_pageinfo": {
+    "message": "页面信息",
+    "description": "获取页面信息按钮"
+  },
+  "error_pageinfo_failed": {
+    "message": "获取页面信息失败: $1",
+    "description": "获取页面信息失败错误",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "权限被拒绝"
+      }
+    }
+  },
+  "pageinfo_title": {
+    "message": "页面信息",
+    "description": "页面信息结果标题"
+  },
+  "pageinfo_url": {
+    "message": "网址",
+    "description": "网址标签"
+  },
+  "pageinfo_page_title": {
+    "message": "标题",
+    "description": "页面标题标签"
+  },
+  "pageinfo_description": {
+    "message": "描述",
+    "description": "描述标签"
+  },
+  "pageinfo_favicon": {
+    "message": "网站图标",
+    "description": "网站图标标签"
+  },
+  "pageinfo_og_image": {
+    "message": "Open Graph 图片",
+    "description": "OG图片标签"
+  },
+  "pageinfo_screenshot": {
+    "message": "视窗截图",
+    "description": "截图标签"
+  },
+  "pageinfo_meta_tags": {
+    "message": "Meta 标签",
+    "description": "Meta标签标签"
+  },
+  "pageinfo_copy_meta": {
+    "message": "复制",
+    "description": "复制Meta标签按钮"
+  },
+  "pageinfo_copied": {
+    "message": "已复制",
+    "description": "已复制按钮文本"
+  },
+  "pageinfo_meta_copied": {
+    "message": "Meta 标签已复制到剪贴板",
+    "description": "Meta标签复制成功"
+  },
+  "pageinfo_copy": {
+    "message": "复制",
+    "description": "复制按钮文本"
+  },
+  "pageinfo_download": {
+    "message": "下载",
+    "description": "下载按钮文本"
+  },
+  "pageinfo_url_copied": {
+    "message": "网址已复制到剪贴板",
+    "description": "网址复制成功"
+  },
+  "pageinfo_title_copied": {
+    "message": "标题已复制到剪贴板",
+    "description": "标题复制成功"
+  },
+  "pageinfo_desc_copied": {
+    "message": "描述已复制到剪贴板",
+    "description": "描述复制成功"
+  },
+  "pageinfo_image_copied": {
+    "message": "$1 已复制到剪贴板",
+    "description": "图片复制成功",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "截图"
+      }
+    }
+  },
+  "pageinfo_image_downloaded": {
+    "message": "$1 已下载",
+    "description": "图片下载成功",
+    "placeholders": {
+      "name": {
+        "content": "$1",
+        "example": "screenshot.png"
+      }
+    }
+  },
+  "pageinfo_no_title": {
+    "message": "无标题",
+    "description": "无标题占位符"
+  },
+  "pageinfo_no_description": {
+    "message": "无描述",
+    "description": "无描述占位符"
   }
 }

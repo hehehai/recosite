@@ -28,6 +28,7 @@ npm run compile          # TypeScript type checking
 ```
 
 Load extension during development:
+
 1. Open `chrome://extensions/`
 2. Enable "Developer mode"
 3. Click "Load unpacked"
@@ -47,6 +48,7 @@ Load extension during development:
 ### Message Communication
 
 Uses `webext-bridge` for type-safe cross-context messaging. All message types defined in `src/types/bridge.d.ts`:
+
 - **Popup ↔ Background**: Recording start/stop, screenshot requests
 - **Background ↔ Offscreen**: Recording control (start-internal, stop-internal)
 - **Background ↔ Content Script**: Selection initiation, DOM capture
@@ -67,6 +69,7 @@ Recording state managed in `src/utils/recordingState.ts` and persisted across co
 ### Screenshot Architecture
 
 Three capture modes:
+
 - **Viewport**: Direct `chrome.tabs.captureVisibleTab()`
 - **Full Page**: Scroll-and-stitch using Canvas API (`src/utils/screenshot.ts`)
 - **Selection**: Inject content script with selection overlay, capture selected region
@@ -81,10 +84,12 @@ Three capture modes:
 ## Key Files and Patterns
 
 ### Type Definitions
+
 - `src/types/screenshot.ts`: Core types for RecordingOptions, RecordingState, VideoResolution, ImageFormat
 - `src/types/bridge.d.ts`: Webext-bridge message protocol definitions
 
 ### Composables (Vue Composition API)
+
 - `useRecordingState.ts`: Recording state synchronization across UI
 - `useImageExport.ts`/`useVideoExport.ts`: Format conversion and export logic
 - `useExportSize.ts`: Size adjustment calculations
@@ -92,10 +97,12 @@ Three capture modes:
 - `useToast.ts`: Toast notification system
 
 ### Constants
+
 - `src/constants/recording.ts`: Bitrates (VIDEO_BITRATE, AUDIO_BITRATE), timing constants, badge text
 - `src/constants/export-size.ts`: Size presets, dimension limits
 
 ### Utilities
+
 - `src/utils/recording.ts`: Offscreen document management, stream acquisition
 - `src/utils/recordingConfig.ts`: MediaRecorder configuration helpers
 - `src/utils/screenshot.ts`: Screenshot capture implementations
@@ -107,6 +114,7 @@ Three capture modes:
 Uses Biome with Ultracite presets (`ultracite/core`, `ultracite/vue`). Pre-commit hook runs `pnpm dlx ultracite fix` automatically.
 
 ### Key Style Rules
+
 - Use arrow functions over function expressions
 - Use `for...of` over `Array.forEach`
 - Use `const` for variables only assigned once
@@ -116,7 +124,9 @@ Uses Biome with Ultracite presets (`ultracite/core`, `ultracite/vue`). Pre-commi
 - Prefer `import type` for type-only imports
 
 ### WXT Framework Globals
+
 Available in appropriate contexts (defined in biome.jsonc):
+
 - `defineBackground`, `defineContentScript`, `defineUnlistedScript`
 - `browser`, `chrome`, `storage`
 - `createIframeUi`, `createShadowRootUi`, `createIntegratedUi`
@@ -124,7 +134,9 @@ Available in appropriate contexts (defined in biome.jsonc):
 ## Common Patterns
 
 ### Recording State Management
+
 Recording state must be synchronized between background, popup, and offscreen:
+
 ```typescript
 // Background maintains source of truth
 const recordingStateManager: RecordingStateManager = {
@@ -139,12 +151,15 @@ const status = await sendMessage('recording:get-status', {});
 ```
 
 ### Adding New Message Types
+
 1. Add to `ProtocolMap` in `src/types/bridge.d.ts`
 2. Register handler in background.ts with `onMessage()`
 3. Send from popup/content script with `sendMessage()`
 
 ### Format Conversion
+
 Both image and video exports use unified size adjustment:
+
 ```typescript
 const { exportSettings, dimensions } = useExportSize(originalWidth, originalHeight);
 // Then pass to useImageExport or useVideoExport
@@ -153,6 +168,7 @@ const { exportSettings, dimensions } = useExportSize(originalWidth, originalHeig
 ## Browser API Usage
 
 ### Permissions (wxt.config.ts)
+
 - `tabCapture`: Tab content recording
 - `desktopCapture`: Window/desktop recording
 - `offscreen`: Required for MediaRecorder in Manifest V3
@@ -160,7 +176,9 @@ const { exportSettings, dimensions } = useExportSize(originalWidth, originalHeig
 - `downloads`: File downloads
 
 ### MediaStream Constraints
+
 Resolution control via constraints:
+
 ```typescript
 const constraints = {
   video: {
@@ -180,6 +198,7 @@ const constraints = {
 Extension uses `minify: false` in Vite config to avoid UTF-8 encoding issues with Chinese text in manifest.
 
 When testing recording:
+
 - Auto-stop detection tracks stream `onended` events
 - Recording badge shows "REC" during active recording
 - Icon state managed in `src/utils/icon.ts`
@@ -191,12 +210,14 @@ When testing recording:
 The project uses automated CI/CD pipelines with **Semantic Release** for version management:
 
 **CI Workflow** (`.github/workflows/ci.yml`)
+
 - Triggers on push/PR to `main` and `develop` branches
 - Runs quality checks: TypeScript compilation and Biome linting
 - Builds extension for all browsers (Chrome, Firefox, Edge) in parallel
 - Uploads build artifacts for 7 days
 
 **Semantic Release Workflow** (`.github/workflows/semantic-release.yml`)
+
 - Triggers on push to `main` branch
 - Analyzes commit messages using Conventional Commits
 - Automatically determines version bump (major/minor/patch)
@@ -204,6 +225,7 @@ The project uses automated CI/CD pipelines with **Semantic Release** for version
 - Creates git tag and draft GitHub Release
 
 **Build and Publish Workflow** (`.github/workflows/release.yml`)
+
 - Triggers manually via GitHub Actions UI (workflow_dispatch)
 - Can also be triggered by git tag push
 - Runs pre-release quality checks
@@ -219,20 +241,22 @@ The project uses automated CI/CD pipelines with **Semantic Release** for version
 No manual version bumping needed! Just push commits with proper format:
 
 1. **Write conventional commit messages**:
+
    ```bash
    # Bug fix → patch version (0.0.x)
    git commit -m "fix: resolve recording audio sync issue"
-   
+
    # New feature → minor version (0.x.0)
    git commit -m "feat: add video quality presets"
-   
+
    # Breaking change → major version (x.0.0)
    git commit -m "feat: redesign settings system
-   
+
    BREAKING CHANGE: settings API completely changed"
    ```
 
 2. **Push to main branch**:
+
    ```bash
    git push origin main
    ```
@@ -264,6 +288,7 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/) specific
 **Format**: `<type>(<scope>): <description>`
 
 **Types** (determines version bump):
+
 - `feat`: New feature (minor bump)
 - `fix`: Bug fix (patch bump)
 - `perf`: Performance improvement (patch bump)
@@ -276,6 +301,7 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/) specific
 - `build`: Build system changes (no release)
 
 **Examples**:
+
 ```bash
 feat(screenshot): add custom dimension support
 fix(recording): resolve memory leak in offscreen document
@@ -287,6 +313,7 @@ chore(deps): update dependencies
 ```
 
 **Breaking Changes** (major bump):
+
 ```bash
 feat(api): redesign message protocol
 
@@ -301,6 +328,7 @@ BREAKING CHANGE: all message types have been renamed
 4. **Reference issues**: Use "fixes #123" or "closes #456"
 
 **Good examples**:
+
 ```bash
 feat(recording): add 4K resolution support
 
@@ -322,6 +350,7 @@ Fixes #78
 ### GitHub Secrets Configuration
 
 Required secrets for Chrome Web Store publishing:
+
 - `CHROME_EXTENSION_ID`: Extension ID (cajchbamocblcjllnllipgpioahkhlhk)
 - `CHROME_CLIENT_ID`: Google OAuth2 Client ID
 - `CHROME_CLIENT_SECRET`: Google OAuth2 Client Secret
@@ -336,14 +365,17 @@ Required secrets for Chrome Web Store publishing:
 ### Workflow Details
 
 **CI Jobs**:
+
 1. `quality-checks`: TypeScript + Biome validation
 2. `build-test`: Matrix build for all browsers (fail-fast: false)
 3. `ci-success`: Aggregates results for branch protection
 
 **Semantic Release Jobs**:
+
 1. `release`: Analyzes commits, bumps version, creates tag and GitHub Release
 
 **Build and Publish Jobs**:
+
 1. `quality-checks`: Pre-release validation
 2. `build-all-browsers`: Matrix build + ZIP creation (fail-fast: true)
 3. `upload-release-assets`: Upload ZIPs to GitHub Release
