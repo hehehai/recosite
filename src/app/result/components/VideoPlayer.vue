@@ -8,7 +8,7 @@ import {
   type WrappedAudioBuffer,
   type WrappedCanvas,
 } from "mediabunny";
-import { onMounted, onUnmounted, ref, watch } from "vue";
+import { onMounted, onUnmounted, ref, watch, computed } from "vue";
 import { t } from "@/lib/i18n";
 
 const props = defineProps<{
@@ -34,6 +34,26 @@ const hasVideo = ref(false);
 const hasAudio = ref(false);
 const draggingProgress = ref(false);
 const draggingVolume = ref(false);
+
+// Detect if video is portrait (vertical) or landscape (horizontal)
+const isPortraitVideo = computed(() => {
+  const width = props.targetWidth || props.originalWidth || 0;
+  const height = props.targetHeight || props.originalHeight || 0;
+
+  if (width === 0 || height === 0) {
+    return false; // Default to landscape if unknown
+  }
+
+  return height > width; // Portrait if height > width
+});
+
+// Calculate aspect ratio for styling
+const videoAspectRatio = computed(() => {
+  const width = props.targetWidth || props.originalWidth || 1;
+  const height = props.targetHeight || props.originalHeight || 1;
+
+  return width / height;
+});
 
 let context: CanvasRenderingContext2D | null = null;
 let audioContext: AudioContext | null = null;
@@ -571,17 +591,19 @@ watch(
 
 <template>
   <div class="relative w-full">
-    <!-- Player Container - always rendered -->
+    <!-- Player Container - always full width -->
     <div
       ref="playerContainer"
-      class="relative w-full bg-black rounded-lg overflow-hidden select-none"
+      class="relative w-full bg-black rounded-lg overflow-hidden select-none flex items-center justify-center"
+      :style="isPortraitVideo ? { minHeight: '600px', maxHeight: '80vh' } : { aspectRatio: videoAspectRatio }"
       @click="handlePlayerClick"
       @pointermove="handlePlayerMouseMove"
     >
       <canvas
         ref="canvas"
-        :class="['w-full h-auto object-contain', hasVideo ? '' : 'hidden']"
-        style="display: block; max-height: 100%;"
+        class="max-w-full max-h-full object-contain"
+        :class="hasVideo ? '' : 'hidden'"
+        :style="isPortraitVideo ? { height: '100%', width: 'auto' } : { width: '100%', height: 'auto' }"
       />
 
       <!-- Loading Overlay -->
