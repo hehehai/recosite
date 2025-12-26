@@ -35,9 +35,13 @@ const formatDuration = (seconds: number) => {
   const ms = Math.floor((seconds % 1) * 1000);
 
   if (hours > 0) {
-    return `${hours}:${minutes.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}.${ms.toString().padStart(3, "0")}`;
+    return `${hours}:${minutes.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}.${ms.toString().padStart(3, "0")}`;
   }
-  return `${minutes}:${secs.toString().padStart(2, "0")}.${ms.toString().padStart(3, "0")}`;
+  return `${minutes}:${secs.toString().padStart(2, "0")}.${ms
+    .toString()
+    .padStart(3, "0")}`;
 };
 
 const formatBitrate = (bps: number) => {
@@ -80,9 +84,9 @@ const handleBackdropClick = (e: MouseEvent) => {
         >
           <!-- Header -->
           <div
-            class="flex items-center justify-between border-b border-gray-200 px-6 py-4 dark:border-gray-700"
+            class="flex items-center justify-between border-b border-gray-200 px-6 py-3 dark:border-gray-700"
           >
-            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
               {{ t("video_details_title") }}
             </h2>
             <button
@@ -107,9 +111,11 @@ const handleBackdropClick = (e: MouseEvent) => {
               <button
                 type="button"
                 class="border-b-2 px-1 py-3 text-sm font-medium transition"
-                :class="activeTab === 'overview'
-                                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
+                :class="
+                  activeTab === 'overview'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                "
                 @click="activeTab = 'overview'"
               >
                 {{ t("video_details_overview") }}
@@ -117,9 +123,11 @@ const handleBackdropClick = (e: MouseEvent) => {
               <button
                 type="button"
                 class="border-b-2 px-1 py-3 text-sm font-medium transition"
-                :class="activeTab === 'tracks'
-                                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'"
+                :class="
+                  activeTab === 'tracks'
+                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
+                    : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300'
+                "
                 @click="activeTab = 'tracks'"
               >
                 {{ t("video_details_tracks") }}
@@ -173,8 +181,7 @@ const handleBackdropClick = (e: MouseEvent) => {
                     {{ t("video_format") }}
                   </p>
                   <p class="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
-                    {{
-                                            metadata.format }}
+                    {{ metadata.format }}
                   </p>
                 </div>
                 <div
@@ -184,8 +191,7 @@ const handleBackdropClick = (e: MouseEvent) => {
                     {{ t("video_mime_type") }}
                   </p>
                   <p class="mt-1 text-lg font-mono text-gray-900 dark:text-white">
-                    {{ metadata.mimeType
-                    }}
+                    {{ metadata.mimeType }}
                   </p>
                 </div>
                 <div
@@ -195,8 +201,7 @@ const handleBackdropClick = (e: MouseEvent) => {
                     {{ t("video_duration") }}
                   </p>
                   <p class="mt-1 text-lg font-mono font-semibold text-gray-900 dark:text-white">
-                    {{
-                                            formatDuration(metadata.duration) }}
+                    {{ formatDuration(metadata.duration) }}
                   </p>
                 </div>
                 <div
@@ -206,8 +211,7 @@ const handleBackdropClick = (e: MouseEvent) => {
                     {{ t("video_track_count") }}
                   </p>
                   <p class="mt-1 text-lg font-semibold text-gray-900 dark:text-white">
-                    {{
-                                            metadata.tracks.length }}
+                    {{ metadata.tracks.length }}
                   </p>
                 </div>
               </div>
@@ -245,8 +249,7 @@ const handleBackdropClick = (e: MouseEvent) => {
                       {{ t("video_full_codec") }}
                     </dt>
                     <dd class="mt-1 font-mono text-xs text-gray-900 dark:text-white">
-                      {{
-                                                track.codecString }}
+                      {{ track.codecString }}
                     </dd>
                   </div>
                   <div>
@@ -254,8 +257,7 @@ const handleBackdropClick = (e: MouseEvent) => {
                       {{ t("video_duration") }}
                     </dt>
                     <dd class="mt-1 font-mono text-gray-900 dark:text-white">
-                      {{
-                                                formatDuration(track.duration) }}
+                      {{ formatDuration(track.duration) }}
                     </dd>
                   </div>
 
@@ -266,8 +268,7 @@ const handleBackdropClick = (e: MouseEvent) => {
                         {{ t("video_resolution") }}
                       </dt>
                       <dd class="mt-1 font-mono text-gray-900 dark:text-white">
-                        {{ track.codedWidth
-                        }}
+                        {{ track.codedWidth }}
                         × {{ track.codedHeight }}
                       </dd>
                     </div>
@@ -276,7 +277,9 @@ const handleBackdropClick = (e: MouseEvent) => {
                         {{ t("video_rotation") }}
                       </dt>
                       <dd class="mt-1 text-gray-900 dark:text-white">
-                        {{ t("video_rotation_clockwise", String(track.rotation)) }}
+                        {{
+                          t("video_rotation_clockwise", String(track.rotation))
+                        }}
                       </dd>
                     </div>
                   </template>
@@ -309,8 +312,7 @@ const handleBackdropClick = (e: MouseEvent) => {
                         {{ t("video_packet_count") }}
                       </dt>
                       <dd class="mt-1 text-gray-900 dark:text-white">
-                        {{
-                                                    track.packetStats.packetCount }}
+                        {{ track.packetStats.packetCount }}
                       </dd>
                     </div>
                     <div>
@@ -318,8 +320,7 @@ const handleBackdropClick = (e: MouseEvent) => {
                         {{ t("video_avg_bitrate") }}
                       </dt>
                       <dd class="mt-1 font-mono text-gray-900 dark:text-white">
-                        {{
-                                                    formatBitrate(track.packetStats.averageBitrate) }}
+                        {{ formatBitrate(track.packetStats.averageBitrate) }}
                       </dd>
                     </div>
                     <div>
@@ -327,9 +328,12 @@ const handleBackdropClick = (e: MouseEvent) => {
                         {{ t("video_avg_framerate") }}
                       </dt>
                       <dd class="mt-1 font-mono text-gray-900 dark:text-white">
+                        {{ track.packetStats.averagePacketRate.toFixed(2) }}
                         {{
-                                                    track.packetStats.averagePacketRate.toFixed(2) }}
-                        {{ track.type === 'video' ? t("video_framerate_unit") : t("video_sample_rate_unit") }}
+                          track.type === "video"
+                            ? t("video_framerate_unit")
+                            : t("video_sample_rate_unit")
+                        }}
                       </dd>
                     </div>
                   </template>
@@ -363,7 +367,11 @@ const handleBackdropClick = (e: MouseEvent) => {
                           <span class="text-gray-500 dark:text-gray-400"
                             >{{ t("video_full_range") }}:</span
                           >
-                          {{ track.colorSpace.fullRange ? t("video_yes") : t("video_no") }}
+                          {{
+                            track.colorSpace.fullRange
+                              ? t("video_yes")
+                              : t("video_no")
+                          }}
                         </p>
                       </dd>
                     </div>
@@ -383,17 +391,6 @@ const handleBackdropClick = (e: MouseEvent) => {
                 </dl>
               </div>
             </div>
-          </div>
-
-          <!-- Footer -->
-          <div class="border-t border-gray-200 px-6 py-4 dark:border-gray-700">
-            <button
-              type="button"
-              class="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-600"
-              @click="handleClose"
-            >
-              {{ t("video_details_title") }}
-            </button>
           </div>
         </div>
       </div>
