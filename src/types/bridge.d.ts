@@ -59,7 +59,13 @@ declare module "webext-bridge" {
     >;
     "recording:stop-internal": ProtocolWithReturn<
       Record<string, never>,
-      { success: boolean; data?: Uint8Array; error?: string }
+      {
+        success: boolean;
+        blobId?: string;
+        size?: number;
+        mimeType?: string;
+        error?: string;
+      }
     >;
     "recording:status-internal": ProtocolWithReturn<
       Record<string, never>,

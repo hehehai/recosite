@@ -5,14 +5,15 @@ import { t } from "@/lib/i18n";
 import { Component } from "vue";
 
 defineProps<{
-  recordingState: RecordingState;
-  recordingType: RecordingType;
-  isCapturing: boolean;
-  headerExtra?: Component;
+	recordingState: RecordingState;
+	recordingType: RecordingType;
+	isCapturing: boolean;
+	isInitializing: boolean;
+	headerExtra?: Component;
 }>();
 
 defineEmits<{
-  "toggle-recording": [type: "tab" | "window"];
+	"toggle-recording": [type: "tab" | "window"];
 }>();
 </script>
 
@@ -47,7 +48,9 @@ defineEmits<{
           recordingState === RecordingState.RECORDING &&
           recordingType === 'tab'
         "
+        :loading="isInitializing"
         :disabled="
+          isInitializing ||
           recordingState === RecordingState.PROCESSING ||
           isCapturing ||
           (recordingState === RecordingState.RECORDING &&
@@ -94,7 +97,9 @@ defineEmits<{
           recordingState === RecordingState.RECORDING &&
           recordingType === 'window'
         "
+        :loading="isInitializing"
         :disabled="
+          isInitializing ||
           recordingState === RecordingState.PROCESSING ||
           isCapturing ||
           (recordingState === RecordingState.RECORDING &&
@@ -121,4 +126,3 @@ defineEmits<{
     </div>
   </div>
 </template>
-<<<<<<< Updated upstream ======= >>>>>>> Stashed changes

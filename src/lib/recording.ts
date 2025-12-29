@@ -3,6 +3,7 @@ import { type RecordingOptions, type VideoFormat, VideoResolution } from "@/type
 import { OFFSCREEN_DOCUMENT_PATH } from "./constants/paths";
 import { getResolutionDimensions } from "./constants/resolution";
 import { FILE_NAME_PREFIXES, TIMESTAMP_REPLACE_PATTERN } from "./constants/common";
+import { getBlobData } from "./blobStorage";
 
 /**
  * 确保 offscreen document 已创建
@@ -157,7 +158,7 @@ export async function startRecording(
  */
 export async function stopRecording(): Promise<{
   success: boolean;
-  data?: Uint8Array;
+  blob?: Blob;
   size?: number;
   mimeType?: string;
   error?: string;
@@ -201,14 +202,17 @@ export async function stopRecording(): Promise<{
     await new Promise((resolve) => setTimeout(resolve, 50));
     console.log("[Recording] Safety delay completed");
 
-    // 将 Array 转换回 Uint8Array
-    const data = new Uint8Array(response.data);
+    // 从 IndexedDB 获取 Blob
+    const blob = await getBlobData(response.blobId);
+    if (!blob) {
+      throw new Error("Failed to retrieve recording data from storage");
+    }
 
     console.log("[Recording] Recording stopped successfully");
 
     return {
       success: true,
-      data,
+      blob,
       size: response.size,
       mimeType: response.mimeType,
     };

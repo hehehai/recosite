@@ -15,6 +15,7 @@ export function useRecordingState() {
   const recordingState = ref<RecordingState>(RecordingState.IDLE);
   const recordingType = ref<RecordingType>(RecordingType.TAB);
   const lastRecordingResult = ref<RecordingResult | null>(null);
+  const isInitializing = ref(true);
 
   /**
    * 检查当前录制状态
@@ -28,6 +29,8 @@ export function useRecordingState() {
       }
     } catch (err) {
       console.error("Failed to get recording status:", err);
+    } finally {
+      isInitializing.value = false;
     }
   }
 
@@ -124,6 +127,7 @@ export function useRecordingState() {
     recordingState,
     recordingType,
     lastRecordingResult,
+    isInitializing,
     checkRecordingStatus,
     startRecording,
     stopRecording,

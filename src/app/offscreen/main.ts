@@ -3,12 +3,13 @@ import { RECORDING_BITRATES, RECORDING_TIMING } from "@/lib/constants/recording"
 import { getResolutionDimensions } from "@/lib/constants/resolution";
 import { type RecordingOptions, VideoResolution } from "@/types/screenshot";
 import { getMediaRecorderOptions } from "@/lib/recordingConfig";
+import { storeBlobData } from "@/lib/blobStorage";
 
 let mediaRecorder: MediaRecorder | null = null;
 let recordedChunks: Blob[] = [];
 let isStopping = false; // Prevent duplicate stops
 let autoStoppedData: {
-  data: number[];
+  blobId: string;
   size: number;
   mimeType: string;
 } | null = null; // Store recording data when auto-stopped
@@ -173,12 +174,14 @@ async function handleStartWindowCapture(data: {
 
         // 合并所有录制的数据块
         const blob = new Blob(recordedChunks, { type: "video/webm" });
-        const arrayBuffer = await blob.arrayBuffer();
-        const uint8Array = new Uint8Array(arrayBuffer);
 
-        // 保存数据供后续请求使用
+        // 保存到 IndexedDB
+        const blobId = `recording-auto-${Date.now()}`;
+        await storeBlobData(blobId, blob);
+
+        // 保存元数据供后续请求使用
         autoStoppedData = {
-          data: Array.from(uint8Array),
+          blobId,
           size: blob.size,
           mimeType: blob.type,
         };
@@ -367,7 +370,7 @@ async function handleStartRecording(data: {
  */
 async function handleStopRecording(): Promise<{
   success: boolean;
-  data?: Uint8Array | number[];
+  blobId?: string;
   size?: number;
   mimeType?: string;
   error?: string;
@@ -385,7 +388,7 @@ async function handleStopRecording(): Promise<{
       console.log("[Offscreen] Returning auto-stopped data:", autoStoppedData.size, "bytes");
       const result = {
         success: true,
-        data: autoStoppedData.data,
+        blobId: autoStoppedData.blobId,
         size: autoStoppedData.size,
         mimeType: autoStoppedData.mimeType,
       };
@@ -445,15 +448,15 @@ async function handleStopRecording(): Promise<{
     const blob = new Blob(recordedChunks, { type: "video/webm" });
     console.log(`[Offscreen] Created blob: ${blob.size} bytes`);
 
-    // 将 Blob 转换为 ArrayBuffer 以便传输
-    const arrayBuffer = await blob.arrayBuffer();
-    const uint8Array = new Uint8Array(arrayBuffer);
+    // 保存到 IndexedDB
+    const blobId = `recording-${Date.now()}`;
+    await storeBlobData(blobId, blob);
 
     console.log("[Offscreen] Returning recording data");
 
     const result = {
       success: true,
-      data: Array.from(uint8Array), // 转换为普通数组以便通过消息传递
+      blobId,
       size: blob.size,
       mimeType: blob.type,
     };

@@ -180,7 +180,7 @@ export async function handleStopRecording(recordingStateManager: RecordingStateM
     console.log("[RecordingHandler] Calling stopRecording...");
     const result = await stopRecording();
 
-    if (!(result.success && result.data)) {
+    if (!(result.success && result.blob)) {
       // Stop failed, restore state
       console.error("[RecordingHandler] Failed to stop recording:", result.error);
       console.log("[RecordingHandler] Restoring state to IDLE");
@@ -197,10 +197,8 @@ export async function handleStopRecording(recordingStateManager: RecordingStateM
     const fileName = generateRecordingFileName(VideoFormat.WEBM);
     console.log("[RecordingHandler] Generated file name:", fileName);
 
-    // Create Blob directly (no data URL conversion needed)
-    const blob = new Blob([result.data as BlobPart], {
-      type: result.mimeType || "video/webm",
-    });
+    // 直接使用从 IndexedDB 获取的 Blob
+    const blob = result.blob;
 
     // 获取录制时的实际尺寸
     const targetSize = recordingStateManager.currentRecordingOptions?.sizeSettings;
