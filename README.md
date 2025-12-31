@@ -25,8 +25,11 @@ Capture web pages as images (viewport, full-page) and record screen interactions
 **Screenshots**
 
 - Viewport and full-page capture
+- **Streaming capture for ultra-long pages** (handles pages over 20,000px)
 - PNG/JPEG export with quality control
+- **Image compression** with JPEG/WebP support
 - Resize with presets (0.25x-3x) or custom dimensions
+- **Smart fixed element handling** in full-page screenshots
 - Live preview before export
 
 **Video Recording**
@@ -38,6 +41,7 @@ Capture web pages as images (viewport, full-page) and record screen interactions
 - Convert to MP4, MOV, WebM, or GIF
 - Metadata extraction and video resizing
 - Portrait video display optimization
+- **Optimized data transfer using IndexedDB**
 
 **Page Information**
 
