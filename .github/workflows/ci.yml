@@ -19,20 +19,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
+          cache: "pnpm"
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Run TypeScript type checking
-        run: npm run compile
+        run: pnpm run compile
 
       - name: Run Biome lint and format check
-        run: npm run check
+        run: pnpm run check
 
   build-test:
     name: Test Build - ${{ matrix.browser }}
@@ -51,23 +54,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
+          cache: "pnpm"
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Build extension for ${{ matrix.browser }}
         run: |
           if [ "${{ matrix.browser }}" = "chrome" ]; then
-            npm run build
+            pnpm run build
           elif [ "${{ matrix.browser }}" = "firefox" ]; then
-            npm run build:firefox
+            pnpm run build:firefox
           elif [ "${{ matrix.browser }}" = "edge" ]; then
-            npm run build:edge
+            pnpm run build:edge
           fi
 
       - name: Verify build output
