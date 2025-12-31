@@ -250,6 +250,7 @@ async function handleStartRecording(data: {
     }
 
     // 从 streamId 获取 MediaStream (tab capture)
+    // 使用计算好的设备像素尺寸作为约束，确保录制清晰且无黑边
     const constraints: MediaStreamConstraints = {
       audio: {
         // @ts-expect-error - Chrome specific API
@@ -263,14 +264,13 @@ async function handleStartRecording(data: {
         mandatory: {
           chromeMediaSource: "tab",
           chromeMediaSourceId: streamId,
-          // 如果有目标尺寸，设置录制分辨率
-          ...(targetSize &&
-            targetSize.width !== targetSize.originalWidth && {
-              minWidth: targetSize.width,
-              maxWidth: targetSize.width,
-              minHeight: targetSize.height,
-              maxHeight: targetSize.height,
-            }),
+          // 使用目标尺寸约束，确保视频尺寸正确
+          ...(targetSize && {
+            minWidth: targetSize.width,
+            maxWidth: targetSize.width,
+            minHeight: targetSize.height,
+            maxHeight: targetSize.height,
+          }),
         },
       },
     };

@@ -88,9 +88,24 @@ export async function startRecording(
       url: `${tab.url?.substring(0, 100)}...`,
     });
 
-    // 确定录制尺寸
-    let targetWidth = tab.width || 0;
-    let targetHeight = tab.height || 0;
+    // 获取标签页的设备像素比
+    let devicePixelRatio = 1;
+    try {
+      const [result] = await browser.scripting.executeScript({
+        target: { tabId },
+        func: () => window.devicePixelRatio,
+      });
+      devicePixelRatio = result.result || 1;
+      console.log("[Recording] Device pixel ratio:", devicePixelRatio);
+    } catch (err) {
+      console.warn("[Recording] Failed to get device pixel ratio, using 1:", err);
+    }
+
+    // 确定录制尺寸（使用设备像素尺寸以保持清晰度）
+    const tabWidth = tab.width || 0;
+    const tabHeight = tab.height || 0;
+    let targetWidth = Math.round(tabWidth * devicePixelRatio);
+    let targetHeight = Math.round(tabHeight * devicePixelRatio);
 
     // 优先使用分辨率设置
     if (options.resolution && options.resolution !== VideoResolution.AUTO) {
@@ -105,13 +120,13 @@ export async function startRecording(
     }
     // 如果没有分辨率设置，检查尺寸设置
     else if (options.sizeSettings && options.sizeSettings.scale !== 1) {
-      const originalWidth = tab.width || 0;
-      const originalHeight = tab.height || 0;
-      targetWidth = Math.round(originalWidth * options.sizeSettings.scale);
-      targetHeight = Math.round(originalHeight * options.sizeSettings.scale);
+      targetWidth = Math.round(tabWidth * devicePixelRatio * options.sizeSettings.scale);
+      targetHeight = Math.round(tabHeight * devicePixelRatio * options.sizeSettings.scale);
       console.log(
         `[Recording] Adjusted recording size: ${targetWidth}x${targetHeight} (scale: ${options.sizeSettings.scale})`,
       );
+    } else {
+      console.log(`[Recording] Using device pixel size: ${targetWidth}x${targetHeight}`);
     }
 
     // 获取标签页的 MediaStream ID
