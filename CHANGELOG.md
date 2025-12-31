@@ -6,22 +6,22 @@ All notable changes to this project will be documented in this file.
 
 ### ✨ Features
 
-* add favicon copy and download functionality ([f89186e](https://github.com/hehehai/recosite/commit/f89186e1b0d6716a98bf633b2ce14c79ecc172cd))
-* add image compression with JPEG/WebP support ([c1203b2](https://github.com/hehehai/recosite/commit/c1203b2fcc2617c7aee49e218f62d07643ec14f4))
-* enhance favicon display with multi-icon support and copy functionality ([c3360e3](https://github.com/hehehai/recosite/commit/c3360e3aed66f712530e4f8b073c4914352a682c))
-* implement streaming screenshot capture for ultra-long pages ([bb8cf54](https://github.com/hehehai/recosite/commit/bb8cf54e9c934de702386d36568b97fa9c554492))
+- add favicon copy and download functionality ([f89186e](https://github.com/hehehai/recosite/commit/f89186e1b0d6716a98bf633b2ce14c79ecc172cd))
+- add image compression with JPEG/WebP support ([c1203b2](https://github.com/hehehai/recosite/commit/c1203b2fcc2617c7aee49e218f62d07643ec14f4))
+- enhance favicon display with multi-icon support and copy functionality ([c3360e3](https://github.com/hehehai/recosite/commit/c3360e3aed66f712530e4f8b073c4914352a682c))
+- implement streaming screenshot capture for ultra-long pages ([bb8cf54](https://github.com/hehehai/recosite/commit/bb8cf54e9c934de702386d36568b97fa9c554492))
 
 ### 🐛 Bug Fixes
 
-* **ci:** switch from npm to pnpm in GitHub Actions workflows ([bed0be9](https://github.com/hehehai/recosite/commit/bed0be97f0607ff40cf857f5407f3d8ef14f9854))
-* improve full-page screenshot handling of fixed elements ([54c5c6c](https://github.com/hehehai/recosite/commit/54c5c6ce2e94c473f6fad3e8ea6d1ce98e572c43))
-* improve portrait video display in player ([104abf4](https://github.com/hehehai/recosite/commit/104abf4b68ffc4c85f2c672d12f652bc8b25b94f))
-* resolve recording stop errors and storage quota issues ([6dd55a7](https://github.com/hehehai/recosite/commit/6dd55a75257c31544c6237139b72822997a5f81d))
-* video record black bar ([b295e43](https://github.com/hehehai/recosite/commit/b295e43db63fe408b018907a3a886b3ccb674e9b))
+- **ci:** switch from npm to pnpm in GitHub Actions workflows ([bed0be9](https://github.com/hehehai/recosite/commit/bed0be97f0607ff40cf857f5407f3d8ef14f9854))
+- improve full-page screenshot handling of fixed elements ([54c5c6c](https://github.com/hehehai/recosite/commit/54c5c6ce2e94c473f6fad3e8ea6d1ce98e572c43))
+- improve portrait video display in player ([104abf4](https://github.com/hehehai/recosite/commit/104abf4b68ffc4c85f2c672d12f652bc8b25b94f))
+- resolve recording stop errors and storage quota issues ([6dd55a7](https://github.com/hehehai/recosite/commit/6dd55a75257c31544c6237139b72822997a5f81d))
+- video record black bar ([b295e43](https://github.com/hehehai/recosite/commit/b295e43db63fe408b018907a3a886b3ccb674e9b))
 
 ### ♻️ Code Refactoring
 
-* optimize recording data transfer using IndexedDB ([04d74c9](https://github.com/hehehai/recosite/commit/04d74c963303961368d3dd5ed06355d7669c2650))
+- optimize recording data transfer using IndexedDB ([04d74c9](https://github.com/hehehai/recosite/commit/04d74c963303961368d3dd5ed06355d7669c2650))
 
 ## [1.2.9](https://github.com/hehehai/recosite/compare/v1.2.8...v1.2.9) (2025-12-25)
 
