@@ -17,7 +17,7 @@ Capture web pages as images (viewport, full-page) and record screen interactions
 ## Demo
 
 <div align="center">
-  <video src="https://github.com/user-attachments/assets/11268c23-bda1-4c17-894e-f3c0bfd456ca" width="70%"> </video>
+  <img src="https://github.com/user-attachments/assets/70a4945c-51da-4439-8191-ff61a3d0dd96" width="70%"/>
 </div>
 
 ## Features
