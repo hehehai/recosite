@@ -1,38 +1,69 @@
 <script setup lang="ts">
+import { ref } from "vue";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import ActionButton from "./ActionButton.vue";
 import { usePageInfoActions } from "@/composables/usePageInfoActions";
+import {
+	useImageCompression,
+	type CompressionFormat,
+} from "@/composables/useImageCompression";
 import type { PageInfo } from "@/types/screenshot";
 import { t } from "@/lib/i18n";
 
 const props = defineProps<{
-  pageInfo: PageInfo;
+	pageInfo: PageInfo;
 }>();
 
 const emit = defineEmits<{
-  close: [];
+	close: [];
 }>();
 
 const {
-  urlCopySuccess,
-  titleCopySuccess,
-  descCopySuccess,
-  metaCopySuccess,
-  faviconCopySuccess,
-  faviconDownloadSuccess,
-  copyText,
-  copyMetaTags,
-  copyPageInfoImage,
-  downloadPageInfoImage,
-  copyFavicon,
-  downloadFavicon,
+	urlCopySuccess,
+	titleCopySuccess,
+	descCopySuccess,
+	metaCopySuccess,
+	faviconCopySuccess,
+	faviconDownloadSuccess,
+	copyText,
+	copyMetaTags,
+	copyPageInfoImage,
+	downloadPageInfoImage,
+	copyFavicon,
+	downloadFavicon,
 } = usePageInfoActions();
+
+const {
+	isCompressing,
+	compressingFormat,
+	compressAndDownload,
+	COMPRESSION_FORMATS,
+	DEFAULT_COMPRESSION_QUALITY,
+} = useImageCompression();
+
+const compressionQuality = ref(DEFAULT_COMPRESSION_QUALITY);
+const activeCompressTarget = ref<"screenshot" | "og" | null>(null);
+
+async function handleCompressDownload(
+	dataUrl: string,
+	fileName: string,
+	format: CompressionFormat,
+	target: "screenshot" | "og",
+) {
+	activeCompressTarget.value = target;
+	await compressAndDownload(dataUrl, fileName, {
+		format,
+		quality: compressionQuality.value,
+	});
+	activeCompressTarget.value = null;
+}
 </script>
 
 <template>
@@ -254,6 +285,32 @@ const {
                   action="download"
                   @click="downloadPageInfoImage(pageInfo.screenshot, 'screenshot.png')"
                 />
+                <DropdownMenu>
+                  <DropdownMenuTrigger as-child>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      :disabled="isCompressing && activeCompressTarget === 'screenshot'"
+                    >
+                      <span
+                        v-if="isCompressing && activeCompressTarget === 'screenshot'"
+                        class="i-hugeicons-loading-03 animate-spin"
+                      />
+                      <span v-else class="i-hugeicons-file-zip" />
+                      {{ t("compress_download") }}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      v-for="format in COMPRESSION_FORMATS"
+                      :key="format"
+                      :disabled="isCompressing"
+                      @click="handleCompressDownload(pageInfo.screenshot, 'screenshot', format, 'screenshot')"
+                    >
+                      <span class="uppercase">{{ format }}</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </CardHeader>
             <CardContent>
@@ -283,6 +340,32 @@ const {
                   action="download"
                   @click="downloadPageInfoImage(pageInfo.ogImage, 'og-image.png')"
                 />
+                <DropdownMenu>
+                  <DropdownMenuTrigger as-child>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      :disabled="isCompressing && activeCompressTarget === 'og'"
+                    >
+                      <span
+                        v-if="isCompressing && activeCompressTarget === 'og'"
+                        class="i-hugeicons-loading-03 animate-spin"
+                      />
+                      <span v-else class="i-hugeicons-file-zip" />
+                      {{ t("compress_download") }}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      v-for="format in COMPRESSION_FORMATS"
+                      :key="format"
+                      :disabled="isCompressing"
+                      @click="handleCompressDownload(pageInfo.ogImage, 'og-image', format, 'og')"
+                    >
+                      <span class="uppercase">{{ format }}</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </CardHeader>
             <CardContent>

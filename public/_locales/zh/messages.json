@@ -574,5 +574,37 @@
   "pageinfo_no_description": {
     "message": "无描述",
     "description": "无描述占位符"
+  },
+  "compress_download": {
+    "message": "压缩",
+    "description": "压缩下载按钮"
+  },
+  "compress_quality": {
+    "message": "质量",
+    "description": "压缩质量标签"
+  },
+  "compress_quality_tip": {
+    "message": "质量 1-100，越高质量越好但文件越大",
+    "description": "压缩质量提示"
+  },
+  "compress_success": {
+    "message": "已压缩并下载为 $1",
+    "description": "压缩成功消息",
+    "placeholders": {
+      "format": {
+        "content": "$1",
+        "example": "JPEG"
+      }
+    }
+  },
+  "compress_failed": {
+    "message": "压缩失败：$1",
+    "description": "压缩失败消息",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "无效的图片数据"
+      }
+    }
   }
 }

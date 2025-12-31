@@ -574,5 +574,37 @@
   "pageinfo_no_description": {
     "message": "Keine Beschreibung",
     "description": "Keine Beschreibung-Platzhalter"
+  },
+  "compress_download": {
+    "message": "Komprimieren",
+    "description": "Komprimieren-Download-Button"
+  },
+  "compress_quality": {
+    "message": "Qualität",
+    "description": "Komprimierungsqualität-Bezeichnung"
+  },
+  "compress_quality_tip": {
+    "message": "Qualität 1-100, höher bedeutet bessere Qualität aber größere Datei",
+    "description": "Komprimierungsqualität-Tooltip"
+  },
+  "compress_success": {
+    "message": "Komprimiert und als $1 heruntergeladen",
+    "description": "Komprimierung erfolgreich-Nachricht",
+    "placeholders": {
+      "format": {
+        "content": "$1",
+        "example": "JPEG"
+      }
+    }
+  },
+  "compress_failed": {
+    "message": "Komprimierung fehlgeschlagen: $1",
+    "description": "Komprimierung fehlgeschlagen-Nachricht",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "Ungültige Bilddaten"
+      }
+    }
   }
 }

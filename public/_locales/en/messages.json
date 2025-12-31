@@ -574,5 +574,37 @@
   "pageinfo_no_description": {
     "message": "No description",
     "description": "No description placeholder"
+  },
+  "compress_download": {
+    "message": "Compress",
+    "description": "Compress download button"
+  },
+  "compress_quality": {
+    "message": "Quality",
+    "description": "Compression quality label"
+  },
+  "compress_quality_tip": {
+    "message": "Quality 1-100, higher is better quality but larger file size",
+    "description": "Compression quality tooltip"
+  },
+  "compress_success": {
+    "message": "Compressed and downloaded as $1",
+    "description": "Compression success message",
+    "placeholders": {
+      "format": {
+        "content": "$1",
+        "example": "JPEG"
+      }
+    }
+  },
+  "compress_failed": {
+    "message": "Compression failed: $1",
+    "description": "Compression failed message",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "Invalid image data"
+      }
+    }
   }
 }

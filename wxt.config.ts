@@ -1,5 +1,6 @@
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "wxt";
+import { viteStaticCopy } from "vite-plugin-static-copy";
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
@@ -30,9 +31,28 @@ export default defineConfig({
     },
   },
   vite: () => ({
-    plugins: [tailwindcss()],
+    plugins: [
+      tailwindcss(),
+      // 复制 jSquash WASM 文件到构建输出（仅 JPEG 和 WebP 有损压缩格式）
+      viteStaticCopy({
+        targets: [
+          {
+            src: "node_modules/@jsquash/jpeg/codec/enc/*.wasm",
+            dest: "chunks",
+          },
+          {
+            src: "node_modules/@jsquash/webp/codec/enc/*.wasm",
+            dest: "chunks",
+          },
+        ],
+      }),
+    ],
     build: {
       minify: false, // 禁用压缩以避免 UTF-8 编码问题
+    },
+    optimizeDeps: {
+      // jSquash 包使用 WASM，需要排除预构建以保持动态导入正常工作
+      exclude: ["@jsquash/jpeg", "@jsquash/webp"],
     },
   }),
   hooks: {

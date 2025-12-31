@@ -574,5 +574,37 @@
   "pageinfo_no_description": {
     "message": "설명 없음",
     "description": "설명 없음 플레이스홀더"
+  },
+  "compress_download": {
+    "message": "압축",
+    "description": "압축 다운로드 버튼"
+  },
+  "compress_quality": {
+    "message": "품질",
+    "description": "압축 품질 레이블"
+  },
+  "compress_quality_tip": {
+    "message": "품질 1-100, 높을수록 품질이 좋지만 파일 크기가 큼",
+    "description": "압축 품질 도움말"
+  },
+  "compress_success": {
+    "message": "$1로 압축 다운로드 완료",
+    "description": "압축 성공 메시지",
+    "placeholders": {
+      "format": {
+        "content": "$1",
+        "example": "JPEG"
+      }
+    }
+  },
+  "compress_failed": {
+    "message": "압축 실패: $1",
+    "description": "압축 실패 메시지",
+    "placeholders": {
+      "error": {
+        "content": "$1",
+        "example": "잘못된 이미지 데이터"
+      }
+    }
   }
 }
