@@ -1,9 +1,10 @@
 import { browser } from "wxt/browser";
 import { RECORDING_BITRATES, RECORDING_TIMING } from "@/lib/constants/recording";
+import { MAX_CANVAS_HEIGHT } from "@/lib/constants/screenshot";
 import { getResolutionDimensions } from "@/lib/constants/resolution";
-import { type RecordingOptions, VideoResolution } from "@/types/screenshot";
+import { type RecordingOptions, VideoResolution, ImageFormat } from "@/types/screenshot";
 import { getMediaRecorderOptions } from "@/lib/recordingConfig";
-import { storeBlobData } from "@/lib/blobStorage";
+import { storeBlobData, getScreenshotChunks, type ScreenshotChunk } from "@/lib/blobStorage";
 
 let mediaRecorder: MediaRecorder | null = null;
 let recordedChunks: Blob[] = [];
@@ -55,6 +56,10 @@ browser.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         isRecording: mediaRecorder !== null && mediaRecorder.state === "recording",
       });
       return false;
+
+    case "screenshot:merge-chunks":
+      handleMergeScreenshotChunks(message.data).then(sendResponse);
+      return true; // 保持异步通道开启
 
     default:
       console.warn("[Offscreen] Unknown message type:", message.type);
@@ -471,4 +476,347 @@ async function handleStopRecording(): Promise<{
     isStopping = false;
     return { success: false, error: String(error) };
   }
+}
+
+// ============ Screenshot Merging ============
+
+/**
+ * 从 dataURL 加载图片
+ */
+function loadImage(dataUrl: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = dataUrl;
+  });
+}
+
+/**
+ * 处理超长页面截图的拼接
+ * 使用 OffscreenCanvas 在后台进行图片合并
+ */
+async function handleMergeScreenshotChunks(data: {
+  sessionId: string;
+  totalHeight: number;
+  viewportHeight: number;
+  canvasWidth: number;
+  format: ImageFormat;
+  quality: number;
+  chunkCount: number;
+}): Promise<{
+  success: boolean;
+  blobId?: string;
+  width?: number;
+  height?: number;
+  error?: string;
+}> {
+  const { sessionId, totalHeight, viewportHeight, format, quality, chunkCount } = data;
+
+  console.log(`[Offscreen] Merging ${chunkCount} screenshot chunks for session: ${sessionId}`);
+  console.log(`[Offscreen] Total height: ${totalHeight}px, viewport: ${viewportHeight}px`);
+
+  try {
+    // 1. 从 IndexedDB 获取所有截图分片
+    const chunks = await getScreenshotChunks(sessionId);
+
+    if (chunks.length === 0) {
+      throw new Error("No screenshot chunks found");
+    }
+
+    console.log(`[Offscreen] Loaded ${chunks.length} chunks from IndexedDB`);
+
+    // 2. 加载第一张图片来确定缩放比例
+    const firstImage = await loadImage(chunks[0].dataUrl);
+    const scale = firstImage.naturalHeight / viewportHeight;
+    const finalWidth = firstImage.naturalWidth;
+    const finalHeight = Math.ceil(totalHeight * scale);
+
+    console.log(`[Offscreen] Scale: ${scale}, final size: ${finalWidth}x${finalHeight}`);
+
+    // 3. 检查是否需要分片处理（超过单个 Canvas 限制）
+    if (finalHeight > MAX_CANVAS_HEIGHT) {
+      console.log(
+        `[Offscreen] Height ${finalHeight}px exceeds limit ${MAX_CANVAS_HEIGHT}px, using segmented merge`,
+      );
+      return await mergeScreenshotsSegmented(
+        chunks,
+        finalWidth,
+        finalHeight,
+        scale,
+        format,
+        quality,
+        sessionId,
+      );
+    }
+
+    // 4. 普通合并（单个 Canvas）
+    return await mergeScreenshotsSingle(
+      chunks,
+      finalWidth,
+      finalHeight,
+      scale,
+      format,
+      quality,
+      sessionId,
+    );
+  } catch (error) {
+    console.error("[Offscreen] Failed to merge screenshots:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+/**
+ * 单个 Canvas 合并（用于普通长度页面）
+ */
+async function mergeScreenshotsSingle(
+  chunks: ScreenshotChunk[],
+  finalWidth: number,
+  finalHeight: number,
+  scale: number,
+  format: ImageFormat,
+  quality: number,
+  sessionId: string,
+): Promise<{
+  success: boolean;
+  blobId?: string;
+  width?: number;
+  height?: number;
+  error?: string;
+}> {
+  console.log(`[Offscreen] Single canvas merge: ${finalWidth}x${finalHeight}`);
+
+  // 创建 OffscreenCanvas
+  const canvas = new OffscreenCanvas(finalWidth, finalHeight);
+  const ctx = canvas.getContext("2d");
+
+  if (!ctx) {
+    throw new Error("Failed to get 2d context");
+  }
+
+  // 加载所有图片并排序
+  const images: Array<{ img: HTMLImageElement; scrollY: number }> = [];
+  for (const chunk of chunks) {
+    const img = await loadImage(chunk.dataUrl);
+    images.push({ img, scrollY: chunk.scrollY });
+  }
+
+  // 按 scrollY 排序
+  images.sort((a, b) => a.scrollY - b.scrollY);
+
+  // 绘制到 Canvas
+  let canvasFilledHeight = 0;
+
+  for (const { img, scrollY } of images) {
+    const destY = Math.round(scrollY * scale);
+
+    let srcY = 0;
+    let drawDestY = destY;
+    let srcH = img.naturalHeight;
+
+    // 处理重叠
+    if (destY < canvasFilledHeight) {
+      const overlap = canvasFilledHeight - destY;
+      srcY = Math.min(overlap, img.naturalHeight);
+      drawDestY = canvasFilledHeight;
+      srcH = img.naturalHeight - srcY;
+    }
+
+    // 确保不超出画布
+    const remaining = finalHeight - drawDestY;
+    if (remaining <= 0 || srcH <= 0) {
+      continue;
+    }
+
+    srcH = Math.min(srcH, remaining);
+
+    if (srcH > 0) {
+      ctx.drawImage(img, 0, srcY, img.naturalWidth, srcH, 0, drawDestY, img.naturalWidth, srcH);
+      canvasFilledHeight = Math.max(canvasFilledHeight, drawDestY + srcH);
+    }
+  }
+
+  // 转换为 Blob
+  const mimeType = format === ImageFormat.PNG ? "image/png" : "image/jpeg";
+  const blob = await canvas.convertToBlob({
+    type: mimeType,
+    quality: format === ImageFormat.JPEG ? quality : undefined,
+  });
+
+  // 存储到 IndexedDB
+  const blobId = `screenshot-merged-${sessionId}`;
+  await storeBlobData(blobId, blob);
+
+  console.log(`[Offscreen] Merged screenshot saved: ${blob.size} bytes, id: ${blobId}`);
+
+  return {
+    success: true,
+    blobId,
+    width: finalWidth,
+    height: finalHeight,
+  };
+}
+
+/**
+ * 分段合并（用于超长页面，避免 Canvas 尺寸限制）
+ * 将大图分成多个小段，逐段处理后再合并
+ */
+async function mergeScreenshotsSegmented(
+  chunks: ScreenshotChunk[],
+  finalWidth: number,
+  finalHeight: number,
+  scale: number,
+  format: ImageFormat,
+  quality: number,
+  sessionId: string,
+): Promise<{
+  success: boolean;
+  blobId?: string;
+  width?: number;
+  height?: number;
+  error?: string;
+}> {
+  const segmentCount = Math.ceil(finalHeight / MAX_CANVAS_HEIGHT);
+  console.log(
+    `[Offscreen] Segmented merge: ${segmentCount} segments of max ${MAX_CANVAS_HEIGHT}px each`,
+  );
+
+  // 加载所有图片
+  const images: Array<{ img: HTMLImageElement; scrollY: number }> = [];
+  for (const chunk of chunks) {
+    const img = await loadImage(chunk.dataUrl);
+    images.push({ img, scrollY: chunk.scrollY });
+  }
+
+  // 按 scrollY 排序
+  images.sort((a, b) => a.scrollY - b.scrollY);
+
+  // 逐段处理
+  const segmentBlobs: Blob[] = [];
+
+  for (let seg = 0; seg < segmentCount; seg++) {
+    const segStartY = seg * MAX_CANVAS_HEIGHT;
+    const segHeight = Math.min(MAX_CANVAS_HEIGHT, finalHeight - segStartY);
+
+    console.log(
+      `[Offscreen] Processing segment ${seg + 1}/${segmentCount}: y=${segStartY}, height=${segHeight}`,
+    );
+
+    // 创建此段的 Canvas
+    const canvas = new OffscreenCanvas(finalWidth, segHeight);
+    const ctx = canvas.getContext("2d");
+
+    if (!ctx) {
+      throw new Error("Failed to get 2d context for segment");
+    }
+
+    // 绘制相关图片到此段
+    for (const { img, scrollY } of images) {
+      const imgDestY = Math.round(scrollY * scale);
+      const imgEndY = imgDestY + img.naturalHeight;
+
+      // 检查此图片是否与当前段有交集
+      const segEndY = segStartY + segHeight;
+      if (imgEndY <= segStartY || imgDestY >= segEndY) {
+        continue; // 无交集，跳过
+      }
+
+      // 计算绘制参数
+      const srcY = Math.max(0, segStartY - imgDestY);
+      const drawDestY = Math.max(0, imgDestY - segStartY);
+      let srcH = img.naturalHeight - srcY;
+      srcH = Math.min(srcH, segHeight - drawDestY);
+
+      if (srcH > 0) {
+        ctx.drawImage(img, 0, srcY, img.naturalWidth, srcH, 0, drawDestY, img.naturalWidth, srcH);
+      }
+    }
+
+    // 此段转换为 Blob（使用 PNG 保持质量，最后再转换格式）
+    const segBlob = await canvas.convertToBlob({ type: "image/png" });
+    segmentBlobs.push(segBlob);
+  }
+
+  console.log(`[Offscreen] All segments processed, merging final image...`);
+
+  // 将分段合并为最终图片
+  // 加载所有分段图片
+  const segmentImages: HTMLImageElement[] = [];
+  for (const blob of segmentBlobs) {
+    const url = URL.createObjectURL(blob);
+    const img = await loadImage(url);
+    segmentImages.push(img);
+    URL.revokeObjectURL(url);
+  }
+
+  // 由于最终图片仍然超过限制，我们需要逐段写入
+  // 这里使用一个技巧：创建多个小 Canvas，然后合并成一个大 Blob
+  // 但更实际的做法是直接返回多个文件或使用降采样
+
+  // 简化方案：如果最终高度仍然太大，使用降采样
+  let outputWidth = finalWidth;
+  let outputHeight = finalHeight;
+
+  if (finalHeight > MAX_CANVAS_HEIGHT * 2) {
+    // 超过 2 倍限制，进行降采样
+    const downscaleRatio = (MAX_CANVAS_HEIGHT * 2) / finalHeight;
+    outputWidth = Math.round(finalWidth * downscaleRatio);
+    outputHeight = Math.round(finalHeight * downscaleRatio);
+    console.log(
+      `[Offscreen] Downscaling to ${outputWidth}x${outputHeight} (ratio: ${downscaleRatio.toFixed(2)})`,
+    );
+  }
+
+  // 创建最终 Canvas（可能是降采样后的尺寸）
+  const finalCanvas = new OffscreenCanvas(outputWidth, outputHeight);
+  const finalCtx = finalCanvas.getContext("2d");
+
+  if (!finalCtx) {
+    throw new Error("Failed to get final canvas context");
+  }
+
+  // 绘制所有分段
+  let currentY = 0;
+  const segmentScaleRatio = outputHeight / finalHeight;
+
+  for (const segImg of segmentImages) {
+    const drawHeight = Math.round(segImg.naturalHeight * segmentScaleRatio);
+    finalCtx.drawImage(
+      segImg,
+      0,
+      0,
+      segImg.naturalWidth,
+      segImg.naturalHeight,
+      0,
+      currentY,
+      outputWidth,
+      drawHeight,
+    );
+    currentY += drawHeight;
+  }
+
+  // 转换为最终 Blob
+  const mimeType = format === ImageFormat.PNG ? "image/png" : "image/jpeg";
+  const finalBlob = await finalCanvas.convertToBlob({
+    type: mimeType,
+    quality: format === ImageFormat.JPEG ? quality : undefined,
+  });
+
+  // 存储到 IndexedDB
+  const blobId = `screenshot-merged-${sessionId}`;
+  await storeBlobData(blobId, finalBlob);
+
+  console.log(
+    `[Offscreen] Final merged screenshot saved: ${finalBlob.size} bytes, size: ${outputWidth}x${outputHeight}`,
+  );
+
+  return {
+    success: true,
+    blobId,
+    width: outputWidth,
+    height: outputHeight,
+  };
 }

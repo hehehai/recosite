@@ -25,6 +25,26 @@ declare module "webext-bridge" {
       }
     >;
 
+    // 超长页面截图拼接 - Background to Offscreen
+    "screenshot:merge-chunks": ProtocolWithReturn<
+      {
+        sessionId: string;
+        totalHeight: number;
+        viewportHeight: number;
+        canvasWidth: number;
+        format: ImageFormat;
+        quality: number;
+        chunkCount: number;
+      },
+      {
+        success: boolean;
+        blobId?: string;
+        width?: number;
+        height?: number;
+        error?: string;
+      }
+    >;
+
     // 录制相关 - Popup to Background
     "recording:start-request": ProtocolWithReturn<
       RecordingOptions,

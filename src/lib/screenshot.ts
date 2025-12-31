@@ -1,4 +1,5 @@
 import { browser } from "wxt/browser";
+import { sendMessage } from "webext-bridge/background";
 import {
   ImageFormat,
   type ScreenshotOptions,
@@ -6,7 +7,10 @@ import {
   ScreenshotType,
 } from "@/types/screenshot";
 import { JPEG_QUALITY } from "./constants/common";
+import { LONG_PAGE_THRESHOLD } from "./constants/screenshot";
 import { dataURLToBlob } from "./file";
+import { storeScreenshotChunk, deleteScreenshotChunks, getBlobData } from "./blobStorage";
+import { ensureOffscreenDocument } from "./recording";
 
 /**
  * 从 dataURL 获取图片尺寸
@@ -293,6 +297,7 @@ async function performScrollStep(tabId: number, y: number) {
 /**
  * 捕获整个页面（长截图）
  * 使用带重叠的智能滚动策略
+ * 对于超长页面（> LONG_PAGE_THRESHOLD）使用流式处理
  */
 export async function captureFullPage(
   format: ImageFormat = ImageFormat.PNG,
@@ -316,30 +321,216 @@ export async function captureFullPage(
 
     const { totalHeight, viewportHeight } = prepResult[0].result;
 
-    // 2. 构建滚动计划
-    const offsets = buildScrollPlan(totalHeight, viewportHeight);
+    // 判断是否为超长页面，使用流式处理
+    if (totalHeight > LONG_PAGE_THRESHOLD) {
+      console.log(`[Screenshot] Long page detected (${totalHeight}px), using streaming mode`);
+      return await captureFullPageStreaming(tab.id, format, quality, totalHeight, viewportHeight);
+    }
 
-    // 3. 执行滚动并截图
-    const screenshots: string[] = [];
-    const actualOffsets: number[] = [];
+    // 普通页面使用原有逻辑
+    return await captureFullPageNormal(tab.id, format, quality, totalHeight, viewportHeight);
+  } finally {
+    // 恢复页面状态
+    await restorePageState(tab.id);
+  }
+}
 
+/**
+ * 普通页面截图（内存中拼接）
+ */
+async function captureFullPageNormal(
+  tabId: number,
+  format: ImageFormat,
+  quality: number,
+  totalHeight: number,
+  viewportHeight: number,
+): Promise<ScreenshotResult> {
+  // 构建滚动计划
+  const offsets = buildScrollPlan(totalHeight, viewportHeight);
+
+  // 执行滚动并截图
+  const screenshots: string[] = [];
+  const actualOffsets: number[] = [];
+
+  for (let i = 0; i < offsets.length; i++) {
+    const offset = offsets[i];
+
+    // 第一屏截图后隐藏 fixed 元素，防止在后续截图中重复出现
+    if (i === 1) {
+      await setFixedElementsVisibility(tabId, false);
+    }
+
+    // 滚动到目标位置
+    await performScrollStep(tabId, offset);
+
+    // 等待渲染
+    await new Promise((resolve) => setTimeout(resolve, 800));
+
+    // 获取实际滚动位置
+    const actualPosResult = await browser.scripting.executeScript({
+      target: { tabId },
+      func: () => window.scrollY,
+    });
+    const actualPos = actualPosResult[0]?.result || offset;
+
+    // 截图
+    const dataUrl = await browser.tabs.captureVisibleTab({
+      format: format === ImageFormat.PNG ? "png" : "jpeg",
+      quality: format === ImageFormat.JPEG ? Math.round(quality * 100) : undefined,
+    });
+
+    screenshots.push(dataUrl);
+    actualOffsets.push(actualPos);
+  }
+
+  // 拼接截图
+  const mergeResult = await browser.scripting.executeScript({
+    target: { tabId },
+    func: async (
+      dataUrls: string[],
+      imageFormat: ImageFormat,
+      imageQuality: number,
+      pageHeight: number,
+      viewportH: number,
+      scrollOffsets: number[],
+    ) => {
+      // 加载所有图片
+      const images = await Promise.all(
+        dataUrls.map(
+          (url) =>
+            new Promise<HTMLImageElement>((resolveImg, rejectImg) => {
+              const image = new Image();
+              image.onload = () => resolveImg(image);
+              image.onerror = rejectImg;
+              image.src = url;
+            }),
+        ),
+      );
+
+      const scale = images[0].naturalHeight / viewportH;
+      const canvas = document.createElement("canvas");
+      canvas.width = images[0].naturalWidth;
+      canvas.height = Math.ceil(pageHeight * scale);
+      const ctx = canvas.getContext("2d");
+
+      if (!ctx) {
+        throw new Error("Failed to get 2d context");
+      }
+
+      // 使用实际偏移量进行精确拼接
+      const segments = images.map((bitmap, index) => ({
+        bitmap,
+        destY: scrollOffsets[index] * scale,
+      }));
+
+      segments.sort((a, b) => a.destY - b.destY);
+
+      let canvasFilledHeight = 0;
+
+      for (const { bitmap, destY } of segments) {
+        const roundedDestY = Math.round(destY);
+
+        let srcY = 0;
+        let drawDestY = roundedDestY;
+        let srcH = bitmap.naturalHeight;
+
+        // 处理重叠
+        if (roundedDestY < canvasFilledHeight) {
+          const overlap = canvasFilledHeight - roundedDestY;
+          srcY = Math.min(overlap, bitmap.naturalHeight);
+          drawDestY = canvasFilledHeight;
+          srcH = bitmap.naturalHeight - srcY;
+        }
+
+        // 确保不超出画布
+        const remaining = canvas.height - drawDestY;
+        if (remaining <= 0 || srcH <= 0) {
+          continue;
+        }
+
+        srcH = Math.min(srcH, remaining);
+
+        if (srcH > 0) {
+          ctx.drawImage(
+            bitmap,
+            0,
+            srcY,
+            bitmap.naturalWidth,
+            srcH,
+            0,
+            drawDestY,
+            bitmap.naturalWidth,
+            srcH,
+          );
+          canvasFilledHeight = Math.max(canvasFilledHeight, drawDestY + srcH);
+        }
+      }
+
+      const mergedDataUrl = canvas.toDataURL(
+        `image/${imageFormat}`,
+        imageFormat === "jpeg" ? imageQuality : undefined,
+      );
+
+      return {
+        dataUrl: mergedDataUrl,
+        width: canvas.width,
+        height: canvas.height,
+      };
+    },
+    args: [screenshots, format, quality, totalHeight, viewportHeight, actualOffsets],
+  });
+
+  if (!mergeResult[0]?.result) {
+    throw new Error("Failed to merge screenshots");
+  }
+
+  const { dataUrl: finalDataUrl, width, height } = mergeResult[0].result;
+  const blob = dataURLToBlob(finalDataUrl);
+
+  return {
+    dataUrl: finalDataUrl,
+    blob,
+    width,
+    height,
+  };
+}
+
+/**
+ * 超长页面流式截图（存储到 IndexedDB，在 Offscreen 中拼接）
+ */
+async function captureFullPageStreaming(
+  tabId: number,
+  format: ImageFormat,
+  quality: number,
+  totalHeight: number,
+  viewportHeight: number,
+): Promise<ScreenshotResult> {
+  const sessionId = crypto.randomUUID();
+  const offsets = buildScrollPlan(totalHeight, viewportHeight);
+
+  console.log(`[Screenshot] Streaming capture: ${offsets.length} chunks, sessionId: ${sessionId}`);
+
+  let canvasWidth = 0;
+
+  try {
+    // 1. 流式截图并存储到 IndexedDB
     for (let i = 0; i < offsets.length; i++) {
       const offset = offsets[i];
 
-      // 第一屏截图后隐藏 fixed 元素，防止在后续截图中重复出现
+      // 第一屏截图后隐藏 fixed 元素
       if (i === 1) {
-        await setFixedElementsVisibility(tab.id, false);
+        await setFixedElementsVisibility(tabId, false);
       }
 
       // 滚动到目标位置
-      await performScrollStep(tab.id, offset);
+      await performScrollStep(tabId, offset);
 
       // 等待渲染
       await new Promise((resolve) => setTimeout(resolve, 800));
 
       // 获取实际滚动位置
       const actualPosResult = await browser.scripting.executeScript({
-        target: { tabId: tab.id },
+        target: { tabId },
         func: () => window.scrollY,
       });
       const actualPos = actualPosResult[0]?.result || offset;
@@ -350,123 +541,65 @@ export async function captureFullPage(
         quality: format === ImageFormat.JPEG ? Math.round(quality * 100) : undefined,
       });
 
-      screenshots.push(dataUrl);
-      actualOffsets.push(actualPos);
+      // 从第一张图获取 canvas 宽度
+      if (i === 0) {
+        const dimensions = await getImageDimensions(dataUrl);
+        canvasWidth = dimensions.width;
+      }
+
+      // 立即存储到 IndexedDB，释放内存
+      await storeScreenshotChunk(sessionId, i, dataUrl, actualPos);
+
+      console.log(`[Screenshot] Stored chunk ${i + 1}/${offsets.length}, scrollY: ${actualPos}`);
     }
 
-    // 4. 拼接截图
-    const mergeResult = await browser.scripting.executeScript({
-      target: { tabId: tab.id },
-      func: async (
-        dataUrls: string[],
-        imageFormat: ImageFormat,
-        imageQuality: number,
-        pageHeight: number,
-        viewportH: number,
-        scrollOffsets: number[],
-      ) => {
-        // 加载所有图片
-        const images = await Promise.all(
-          dataUrls.map(
-            (url) =>
-              new Promise<HTMLImageElement>((resolveImg, rejectImg) => {
-                const image = new Image();
-                image.onload = () => resolveImg(image);
-                image.onerror = rejectImg;
-                image.src = url;
-              }),
-          ),
-        );
+    // 2. 确保 Offscreen Document 存在
+    await ensureOffscreenDocument();
 
-        const scale = images[0].naturalHeight / viewportH;
-        const canvas = document.createElement("canvas");
-        canvas.width = images[0].naturalWidth;
-        canvas.height = Math.ceil(pageHeight * scale);
-        const ctx = canvas.getContext("2d");
-
-        if (!ctx) {
-          throw new Error("Failed to get 2d context");
-        }
-
-        // 使用实际偏移量进行精确拼接
-        const segments = images.map((bitmap, index) => ({
-          bitmap,
-          destY: scrollOffsets[index] * scale,
-        }));
-
-        segments.sort((a, b) => a.destY - b.destY);
-
-        let canvasFilledHeight = 0;
-
-        for (const { bitmap, destY } of segments) {
-          const roundedDestY = Math.round(destY);
-
-          let srcY = 0;
-          let drawDestY = roundedDestY;
-          let srcH = bitmap.naturalHeight;
-
-          // 处理重叠
-          if (roundedDestY < canvasFilledHeight) {
-            const overlap = canvasFilledHeight - roundedDestY;
-            srcY = Math.min(overlap, bitmap.naturalHeight);
-            drawDestY = canvasFilledHeight;
-            srcH = bitmap.naturalHeight - srcY;
-          }
-
-          // 确保不超出画布
-          const remaining = canvas.height - drawDestY;
-          if (remaining <= 0 || srcH <= 0) {
-            continue;
-          }
-
-          srcH = Math.min(srcH, remaining);
-
-          if (srcH > 0) {
-            ctx.drawImage(
-              bitmap,
-              0,
-              srcY,
-              bitmap.naturalWidth,
-              srcH,
-              0,
-              drawDestY,
-              bitmap.naturalWidth,
-              srcH,
-            );
-            canvasFilledHeight = Math.max(canvasFilledHeight, drawDestY + srcH);
-          }
-        }
-
-        const mergedDataUrl = canvas.toDataURL(
-          `image/${imageFormat}`,
-          imageFormat === "jpeg" ? imageQuality : undefined,
-        );
-
-        return {
-          dataUrl: mergedDataUrl,
-          width: canvas.width,
-          height: canvas.height,
-        };
+    // 3. 发送到 Offscreen 进行拼接
+    console.log("[Screenshot] Sending to offscreen for merging...");
+    const mergeResult = await sendMessage(
+      "screenshot:merge-chunks",
+      {
+        sessionId,
+        totalHeight,
+        viewportHeight,
+        canvasWidth,
+        format,
+        quality,
+        chunkCount: offsets.length,
       },
-      args: [screenshots, format, quality, totalHeight, viewportHeight, actualOffsets],
+      "offscreen",
+    );
+
+    if (!mergeResult.success || !mergeResult.blobId) {
+      throw new Error(mergeResult.error || "Failed to merge screenshots");
+    }
+
+    // 4. 从 IndexedDB 获取结果 Blob
+    const blob = await getBlobData(mergeResult.blobId);
+    if (!blob) {
+      throw new Error("Failed to retrieve merged screenshot from IndexedDB");
+    }
+
+    // 转换为 dataUrl（用于预览）
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
     });
 
-    if (!mergeResult[0]?.result) {
-      throw new Error("Failed to merge screenshots");
-    }
-
-    const { dataUrl: finalDataUrl, width, height } = mergeResult[0].result;
-    const blob = dataURLToBlob(finalDataUrl);
-
     return {
-      dataUrl: finalDataUrl,
+      dataUrl,
       blob,
-      width,
-      height,
+      width: mergeResult.width || canvasWidth,
+      height: mergeResult.height || Math.ceil(totalHeight * (canvasWidth / viewportHeight)),
     };
   } finally {
-    // 5. 恢复页面状态
-    await restorePageState(tab.id);
+    // 5. 清理临时数据
+    await deleteScreenshotChunks(sessionId);
+    console.log(`[Screenshot] Cleaned up chunks for session: ${sessionId}`);
   }
 }
 

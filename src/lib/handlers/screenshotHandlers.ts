@@ -31,16 +31,18 @@ export async function handleCaptureViewport(data: {
     // Convert to Blob if data URL is too large
     const dataUrlSize = result.dataUrl.length;
     let imageData: Blob | string = result.dataUrl;
+    let imageSize = result.blob?.size || 0;
 
     if (dataUrlSize > STORAGE_QUOTA_THRESHOLD) {
       console.log(
         `[ScreenshotHandler] Image size ${dataUrlSize} exceeds threshold, using IndexedDB`,
       );
       imageData = dataURLToBlob(result.dataUrl);
+      imageSize = imageData.size;
     }
 
     // 打开结果页面显示截图
-    await openResultPage(imageData, fileName, result.width, result.height);
+    await openResultPage(imageData, fileName, result.width, result.height, imageSize);
 
     return {
       success: true,
@@ -85,16 +87,18 @@ export async function handleCaptureFullPage(data: {
     // Convert to Blob if data URL is too large (full page screenshots are often large)
     const dataUrlSize = result.dataUrl.length;
     let imageData: Blob | string = result.dataUrl;
+    let imageSize = result.blob?.size || 0;
 
     if (dataUrlSize > STORAGE_QUOTA_THRESHOLD) {
       console.log(
         `[ScreenshotHandler] Image size ${dataUrlSize} exceeds threshold, using IndexedDB`,
       );
       imageData = dataURLToBlob(result.dataUrl);
+      imageSize = imageData.size;
     }
 
     // 打开结果页面显示截图
-    await openResultPage(imageData, fileName, result.width, result.height);
+    await openResultPage(imageData, fileName, result.width, result.height, imageSize);
     console.log("[ScreenshotHandler] Result page opened");
 
     return {

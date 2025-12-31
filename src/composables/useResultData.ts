@@ -35,6 +35,10 @@ export function useResultData() {
 
   const fileSizeFormatted = computed(() => {
     if (fileSize.value === 0 && mediaData.value) {
+      // 如果是 blob URL，无法估算大小，显示未知
+      if (mediaData.value.startsWith("blob:")) {
+        return "-";
+      }
       // 估算 dataURL 的大小
       const base64Length = mediaData.value.split(",")[1]?.length || 0;
       const bytes = (base64Length * 3) / 4;

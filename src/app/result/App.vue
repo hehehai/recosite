@@ -13,36 +13,36 @@ import { Button } from "@/components/ui/button";
 
 // 使用 composables
 const {
-  resultType,
-  mediaData,
-  svgData,
-  fileName,
-  width,
-  height,
-  originalFormat,
-  loading,
-  error,
-  pageInfo,
-  fileSizeFormatted,
-  resultTypeLabel,
-  loadResultData,
+	resultType,
+	mediaData,
+	svgData,
+	fileName,
+	width,
+	height,
+	originalFormat,
+	loading,
+	error,
+	pageInfo,
+	fileSizeFormatted,
+	resultTypeLabel,
+	loadResultData,
 } = useResultData();
 
 onMounted(async () => {
-  const params = new URLSearchParams(window.location.search);
-  const resultId = params.get("id");
+	const params = new URLSearchParams(window.location.search);
+	const resultId = params.get("id");
 
-  if (!resultId) {
-    error.value = t("result_no_data");
-    loading.value = false;
-    return;
-  }
+	if (!resultId) {
+		error.value = t("result_no_data");
+		loading.value = false;
+		return;
+	}
 
-  await loadResultData(resultId);
+	await loadResultData(resultId);
 });
 
 function handleClose() {
-  window.close();
+	window.close();
 }
 </script>
 
