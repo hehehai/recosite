@@ -111,7 +111,7 @@ function preparePageScript() {
     };
   }
 
-  const backups: Array<{ el: HTMLElement; cssText: string }> = [];
+  const backups: Array<{ el: HTMLElement; cssText: string; isFixed: boolean }> = [];
   const originalScrollTop = window.scrollY;
   const originalOverflow = document.documentElement.style.overflow || "";
   const originalBodyOverflow = document.body.style.overflow || "";
@@ -123,7 +123,11 @@ function preparePageScript() {
     const position = cs.position;
 
     if (position === "fixed" || position === "sticky") {
-      backups.push({ el, cssText: el.style.cssText });
+      backups.push({
+        el,
+        cssText: el.style.cssText,
+        isFixed: position === "fixed",
+      });
     }
   }
 
@@ -147,20 +151,16 @@ function preparePageScript() {
   window.scrollTo(0, 0);
 
   // 处理定位元素
+  // fixed 元素保持不变，在第一屏正常显示，后续滚动时通过 visibility 隐藏
+  // sticky 元素转换为 static，防止在滚动时重复出现
   for (const backup of backups) {
-    const cs = getComputedStyle(backup.el);
-    if (cs.position === "fixed") {
-      const rect = backup.el.getBoundingClientRect();
-      backup.el.style.setProperty("position", "absolute", "important");
-      backup.el.style.setProperty("top", `${rect.top}px`, "important");
-      backup.el.style.setProperty("left", `${rect.left}px`, "important");
-      backup.el.style.setProperty("right", "auto", "important");
-      backup.el.style.setProperty("bottom", "auto", "important");
-    } else if (cs.position === "sticky") {
+    if (!backup.isFixed) {
+      // sticky 元素转换为 static
       backup.el.style.setProperty("position", "static", "important");
       backup.el.style.setProperty("top", "auto", "important");
       backup.el.style.setProperty("z-index", "auto", "important");
     }
+    // fixed 元素不做任何修改，保持原样
   }
 
   // 计算内容高度
@@ -171,16 +171,33 @@ function preparePageScript() {
     document.body.offsetHeight,
   );
 
+  // 通过查找最底部的可见元素来计算实际内容高度
   let maxBottom = 0;
   const nodes = Array.from(document.body.getElementsByTagName("*")) as HTMLElement[];
   for (const el of nodes) {
+    const elCs = getComputedStyle(el);
+    // 跳过隐藏或不可见的元素
+    if (elCs.display === "none" || elCs.visibility === "hidden" || elCs.opacity === "0") {
+      continue;
+    }
     const rect = el.getBoundingClientRect();
-    if (rect) {
+    if (rect && rect.height > 0 && rect.width > 0) {
       maxBottom = Math.max(maxBottom, rect.bottom);
     }
   }
   const bboxH = maxBottom + window.scrollY;
-  const totalHeight = Math.max(layoutH, bboxH);
+
+  // 使用 bboxH 作为权威高度（如果合理的话）
+  // 使用 min 避免 scrollHeight 膨胀导致的额外空白
+  let totalHeight: number;
+  if (bboxH > 0 && bboxH < layoutH) {
+    // bboxH 更小且有效 - 使用它来避免空白
+    // 添加小缓冲区（10px）确保不会截断内容
+    totalHeight = bboxH + 10;
+  } else {
+    // 如果 bboxH 为 0 或更大，则回退到 layoutH
+    totalHeight = layoutH;
+  }
   const viewportHeight = window.innerHeight;
 
   w.__snapshotBackup = {
@@ -236,6 +253,28 @@ async function restorePageState(tabId: number) {
 }
 
 /**
+ * 设置 fixed 元素的可见性
+ * 在第一屏截图后隐藏 fixed 元素，防止在后续截图中重复出现
+ */
+async function setFixedElementsVisibility(tabId: number, visible: boolean) {
+  await browser.scripting.executeScript({
+    target: { tabId },
+    func: (show: boolean) => {
+      const w = window as any;
+      const b = w.__snapshotBackup;
+      if (b) {
+        for (const item of b.backups || []) {
+          if (item.isFixed) {
+            item.el.style.setProperty("visibility", show ? "visible" : "hidden", "important");
+          }
+        }
+      }
+    },
+    args: [visible],
+  });
+}
+
+/**
  * 执行滚动步骤
  */
 async function performScrollStep(tabId: number, y: number) {
@@ -284,7 +323,14 @@ export async function captureFullPage(
     const screenshots: string[] = [];
     const actualOffsets: number[] = [];
 
-    for (const offset of offsets) {
+    for (let i = 0; i < offsets.length; i++) {
+      const offset = offsets[i];
+
+      // 第一屏截图后隐藏 fixed 元素，防止在后续截图中重复出现
+      if (i === 1) {
+        await setFixedElementsVisibility(tab.id, false);
+      }
+
       // 滚动到目标位置
       await performScrollStep(tab.id, offset);
 
