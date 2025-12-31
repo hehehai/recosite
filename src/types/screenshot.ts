@@ -120,13 +120,26 @@ export interface Message {
 }
 
 /**
+ * Favicon 信息
+ */
+export interface FaviconInfo {
+  url: string; // favicon URL
+  html: string; // HTML link code
+  rel: string; // rel attribute (e.g., "icon", "shortcut icon", "apple-touch-icon")
+  sizes?: string; // sizes attribute if present
+  type?: string; // type attribute if present
+}
+
+/**
  * 页面信息
  */
 export interface PageInfo {
   url: string;
   title: string;
   description: string;
-  favicon: string;
+  favicon: string; // primary favicon URL (for backward compatibility)
+  favicons: FaviconInfo[]; // all favicons with their HTML code
+  iconLinks: string; // HTML code of all icon link tags
   ogImage: string;
   screenshot: string; // dataUrl
   metaTags: string; // HTML code of all meta tags

@@ -503,6 +503,18 @@
     "message": "Favicon",
     "description": "Favicon label"
   },
+  "pageinfo_favicons": {
+    "message": "Website Icons",
+    "description": "All favicons label"
+  },
+  "pageinfo_icon_links": {
+    "message": "Icon Link Tags",
+    "description": "Icon link tags label"
+  },
+  "pageinfo_icon_code_copied": {
+    "message": "Icon link code copied to clipboard",
+    "description": "Icon link code copy success"
+  },
   "pageinfo_og_image": {
     "message": "Open Graph Image",
     "description": "OG image label"
@@ -516,8 +528,12 @@
     "description": "Meta tags label"
   },
   "pageinfo_copy_meta": {
-    "message": "Copy",
+    "message": "Copy Meta",
     "description": "Copy meta tags button"
+  },
+  "pageinfo_copy_icon": {
+    "message": "Copy Icon",
+    "description": "Copy icon links button"
   },
   "pageinfo_copied": {
     "message": "Copied",

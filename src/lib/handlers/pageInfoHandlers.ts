@@ -39,27 +39,62 @@ export async function handleCapturePageInfo(): Promise<{
           document.querySelector('meta[property="og:description"]');
         const pageDescription = descMeta?.getAttribute("content") || "";
 
-        // 获取 favicon
-        let pageFavicon = "";
-        const iconLink =
-          document.querySelector('link[rel="icon"]') ||
-          document.querySelector('link[rel="shortcut icon"]') ||
-          document.querySelector('link[rel="apple-touch-icon"]');
-        if (iconLink) {
-          pageFavicon = iconLink.getAttribute("href") || "";
-          // 如果是相对路径，转换为绝对路径
-          if (pageFavicon && !pageFavicon.startsWith("http")) {
-            pageFavicon = new URL(pageFavicon, window.location.origin).href;
+        // 获取所有 favicon links
+        const iconSelectors = [
+          'link[rel="icon"]',
+          'link[rel="shortcut icon"]',
+          'link[rel="apple-touch-icon"]',
+          'link[rel="apple-touch-icon-precomposed"]',
+          'link[rel="mask-icon"]',
+          'link[rel*="icon"]',
+        ];
+
+        const iconLinksSet = new Set<HTMLLinkElement>();
+        for (const selector of iconSelectors) {
+          const links = document.querySelectorAll(selector);
+          for (const link of links) {
+            iconLinksSet.add(link as HTMLLinkElement);
           }
+        }
+
+        const favicons: {
+          url: string;
+          html: string;
+          rel: string;
+          sizes?: string;
+          type?: string;
+        }[] = [];
+
+        for (const link of iconLinksSet) {
+          let href = link.getAttribute("href") || "";
+          if (href && !href.startsWith("http") && !href.startsWith("data:")) {
+            href = new URL(href, window.location.origin).href;
+          }
+          if (href) {
+            favicons.push({
+              url: href,
+              html: link.outerHTML,
+              rel: link.getAttribute("rel") || "",
+              sizes: link.getAttribute("sizes") || undefined,
+              type: link.getAttribute("type") || undefined,
+            });
+          }
+        }
+
+        let pageFavicon = "";
+        if (favicons.length > 0) {
+          pageFavicon = favicons[0].url;
         } else {
-          // 默认使用 /favicon.ico
           pageFavicon = `${window.location.origin}/favicon.ico`;
         }
+
+        const iconLinksHtml = Array.from(iconLinksSet)
+          .map((link) => link.outerHTML)
+          .join("\n");
 
         // 获取 OG 图片
         const ogImageMeta = document.querySelector('meta[property="og:image"]');
         let pageOgImage = ogImageMeta?.getAttribute("content") || "";
-        // 如果是相对路径，转换为绝对路径
         if (pageOgImage && !pageOgImage.startsWith("http")) {
           pageOgImage = new URL(pageOgImage, window.location.origin).href;
         }
@@ -72,6 +107,8 @@ export async function handleCapturePageInfo(): Promise<{
         return {
           description: pageDescription,
           favicon: pageFavicon,
+          favicons,
+          iconLinks: iconLinksHtml,
           ogImage: pageOgImage,
           metaTags: pageMetaTags,
         };
@@ -82,13 +119,15 @@ export async function handleCapturePageInfo(): Promise<{
       return { success: false, error: "Failed to get page meta info" };
     }
 
-    const { description, favicon, ogImage, metaTags } = result.result;
+    const { description, favicon, favicons, iconLinks, ogImage, metaTags } = result.result;
 
     const pageInfo: PageInfo = {
       url: tab.url,
       title: tab.title || "",
       description,
       favicon,
+      favicons: favicons as PageInfo["favicons"],
+      iconLinks,
       ogImage,
       screenshot: screenshot.dataUrl,
       metaTags,

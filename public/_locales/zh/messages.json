@@ -503,6 +503,18 @@
     "message": "网站图标",
     "description": "网站图标标签"
   },
+  "pageinfo_favicons": {
+    "message": "网站图标",
+    "description": "所有网站图标标签"
+  },
+  "pageinfo_icon_links": {
+    "message": "图标链接代码",
+    "description": "图标链接标签"
+  },
+  "pageinfo_icon_code_copied": {
+    "message": "图标链接代码已复制到剪贴板",
+    "description": "图标链接代码复制成功"
+  },
   "pageinfo_og_image": {
     "message": "Open Graph 图片",
     "description": "OG图片标签"
@@ -516,8 +528,12 @@
     "description": "Meta标签标签"
   },
   "pageinfo_copy_meta": {
-    "message": "复制",
+    "message": "复制 Meta",
     "description": "复制Meta标签按钮"
+  },
+  "pageinfo_copy_icon": {
+    "message": "复制 Icon",
+    "description": "复制图标链接按钮"
   },
   "pageinfo_copied": {
     "message": "已复制",

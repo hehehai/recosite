@@ -30,10 +30,12 @@ const {
 	titleCopySuccess,
 	descCopySuccess,
 	metaCopySuccess,
+	iconLinksCopySuccess,
 	faviconCopySuccess,
 	faviconDownloadSuccess,
 	copyText,
 	copyMetaTags,
+	copyIconLinks,
 	copyPageInfoImage,
 	downloadPageInfoImage,
 	copyFavicon,
@@ -203,39 +205,53 @@ async function handleCompressDownload(
           </Card>
 
           <!-- Favicon -->
-          <Card v-if="pageInfo.favicon">
-            <CardHeader class="flex-row items-center justify-between pb-4">
+          <Card v-if="pageInfo.favicons && pageInfo.favicons.length > 0">
+            <CardHeader class="flex-row items-center justify-between">
               <CardTitle class="text-sm">
-                {{ t("pageinfo_favicon") }}
+                {{ t("pageinfo_favicons") }}
+                <span class="ml-2 text-xs font-normal text-muted-foreground">
+                  ({{ pageInfo.favicons.length }})
+                </span>
               </CardTitle>
-              <div class="flex gap-2">
-                <ActionButton
-                  action="copy"
-                  variant="secondary"
-                  :success="faviconCopySuccess"
-                  @click="copyFavicon(pageInfo.favicon)"
-                />
-                <ActionButton
-                  action="download"
-                  :success="faviconDownloadSuccess"
-                  @click="downloadFavicon(pageInfo.favicon)"
-                />
-              </div>
             </CardHeader>
-            <CardContent>
-              <div
-                class="flex items-center justify-center overflow-hidden rounded-lg border border-border bg-muted p-4"
-              >
-                <img
-                  :src="pageInfo.favicon"
-                  :alt="t('pageinfo_favicon')"
-                  class="max-h-32 max-w-32 object-contain"
-                  @error="
-                    (e: Event) =>
-                      ((e.target as HTMLImageElement).parentElement!.parentElement!.parentElement!.style.display =
-                        'none')
-                  "
-                />
+            <CardContent class="space-y-4">
+              <!-- Favicon Grid -->
+              <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+                <div
+                  v-for="(favicon, index) in pageInfo.favicons"
+                  :key="index"
+                  class="group relative flex flex-col items-center gap-2 rounded-lg border border-border bg-muted p-2"
+                >
+                  <img
+                    :src="favicon.url"
+                    :alt="`Favicon ${index + 1}`"
+                    class="size-12 object-contain"
+                    @error="
+                      (e: Event) =>
+                        ((e.target as HTMLImageElement).style.display = 'none')
+                    "
+                  />
+                  <div class="text-center">
+                    <p class="text-xs font-medium text-foreground">{{ favicon.rel }}</p>
+                    <p v-if="favicon.sizes" class="text-xs text-muted-foreground">
+                      {{ favicon.sizes }}
+                    </p>
+                  </div>
+                  <div
+                    class="absolute right-1 top-1 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100"
+                  >
+                    <Button variant="ghost" class="h-6 w-6 p-0" @click="copyFavicon(favicon.url)">
+                      <span class="i-hugeicons-copy-01 text-xs" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      class="h-6 w-6 p-0"
+                      @click="downloadFavicon(favicon.url)"
+                    >
+                      <span class="i-hugeicons-download-02 text-xs" />
+                    </Button>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -246,20 +262,47 @@ async function handleCompressDownload(
               <CardTitle class="text-sm">
                 {{ t("pageinfo_meta_tags") }}
               </CardTitle>
-              <Button size="sm" @click="copyMetaTags(pageInfo.metaTags)">
-                <span v-if="!metaCopySuccess" class="i-hugeicons-copy-01" />
-                <span v-else class="i-hugeicons-checkmark-circle-01" />
-                {{
-                  metaCopySuccess
-                    ? t("pageinfo_copied")
-                    : t("pageinfo_copy_meta")
-                }}
-              </Button>
+              <div class="flex gap-2">
+                <Button size="sm" variant="secondary" @click="copyMetaTags(pageInfo.metaTags)">
+                  <span v-if="!metaCopySuccess" class="i-hugeicons-copy-01" />
+                  <span v-else class="i-hugeicons-checkmark-circle-01" />
+                  {{
+                    metaCopySuccess
+                      ? t("pageinfo_copied")
+                      : t("pageinfo_copy_meta")
+                  }}
+                </Button>
+                <Button
+                  v-if="pageInfo.iconLinks"
+                  size="sm"
+                  @click="copyIconLinks(pageInfo.iconLinks)"
+                >
+                  <span v-if="!iconLinksCopySuccess" class="i-hugeicons-copy-01" />
+                  <span v-else class="i-hugeicons-checkmark-circle-01" />
+                  {{
+                    iconLinksCopySuccess
+                      ? t("pageinfo_copied")
+                      : t("pageinfo_copy_icon")
+                  }}
+                </Button>
+              </div>
             </CardHeader>
-            <CardContent>
-              <pre
-                class="h-100 font-mono overflow-auto rounded-lg bg-muted p-4 text-sm text-foreground leading-relaxed"
-              ><code>{{ pageInfo.metaTags }}</code></pre>
+            <CardContent class="space-y-4">
+              <!-- Icon Links in Meta Card -->
+              <div v-if="pageInfo.iconLinks">
+                <label class="mb-2 block text-xs font-medium text-muted-foreground">
+                  {{ t("pageinfo_icon_links") }}
+                </label>
+                <pre
+                  class="max-h-32 font-mono overflow-auto rounded-lg bg-muted p-3 text-xs text-foreground leading-relaxed"
+                ><code>{{ pageInfo.iconLinks }}</code></pre>
+              </div>
+              <!-- Meta Tags -->
+              <div>
+                <pre
+                  class="h-100 font-mono overflow-auto rounded-lg bg-muted p-3 text-sm text-foreground leading-relaxed"
+                ><code>{{ pageInfo.metaTags }}</code></pre>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -268,7 +311,7 @@ async function handleCompressDownload(
         <div class="space-y-6 w-5xl">
           <!-- 视窗截图 -->
           <Card>
-            <CardHeader class="flex-row items-center justify-between pb-4">
+            <CardHeader class="flex-row items-center justify-between">
               <CardTitle class="text-sm">
                 {{ t("pageinfo_screenshot") }}
                 <span class="ml-2 text-xs font-normal text-muted-foreground">
@@ -326,7 +369,7 @@ async function handleCompressDownload(
 
           <!-- OG Image -->
           <Card v-if="pageInfo.ogImage">
-            <CardHeader class="flex-row items-center justify-between pb-4">
+            <CardHeader class="flex-row items-center justify-between">
               <CardTitle class="text-sm">
                 {{ t("pageinfo_og_image") }}
               </CardTitle>

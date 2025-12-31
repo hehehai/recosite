@@ -10,6 +10,7 @@ export function usePageInfoActions() {
   const titleCopySuccess = ref(false);
   const descCopySuccess = ref(false);
   const metaCopySuccess = ref(false);
+  const iconLinksCopySuccess = ref(false);
   const faviconCopySuccess = ref(false);
   const faviconDownloadSuccess = ref(false);
 
@@ -53,6 +54,22 @@ export function usePageInfoActions() {
       metaCopySuccess.value = true;
       setTimeout(() => {
         metaCopySuccess.value = false;
+      }, 2000);
+    }
+  }
+
+  async function copyIconLinks(iconLinks: string) {
+    if (!iconLinks) {
+      return;
+    }
+    const success = await copyTextToClipboard(iconLinks, {
+      successMessage: t("pageinfo_icon_code_copied"),
+    });
+
+    if (success) {
+      iconLinksCopySuccess.value = true;
+      setTimeout(() => {
+        iconLinksCopySuccess.value = false;
       }, 2000);
     }
   }
@@ -140,10 +157,12 @@ export function usePageInfoActions() {
     titleCopySuccess,
     descCopySuccess,
     metaCopySuccess,
+    iconLinksCopySuccess,
     faviconCopySuccess,
     faviconDownloadSuccess,
     copyText,
     copyMetaTags,
+    copyIconLinks,
     copyPageInfoImage,
     downloadPageInfoImage,
     copyFavicon,
